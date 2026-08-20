@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="900" height="600">
+  <rect width="900" height="200" fill="#FF9933"/>
+  <rect y="200" width="900" height="200" fill="#FFFFFF"/>
+  <rect y="400" width="900" height="200" fill="#138808"/>
+  <g transform="translate(450, 300)">
+    <circle r="92" fill="none" stroke="#000080" stroke-width="10"/>
+    <circle r="18" fill="#000080"/>
+    <!-- 24 Ashoka Chakra Spokes -->
+    <path d="
+      M0,-92 L0,92 M-92,0 L92,0
+      M-65,-65 L65,65 M-65,65 L65,-65
+      M-35,-85 L35,85 M-35,85 L35,-85
+      M-85,-35 L85,35 M-85,35 L85,-35
+      M-23,-89 L23,89 M-23,89 L23,-89
+      M-89,-23 L89,23 M-89,23 L89,-23
+      M-47,-79 L47,79 M-47,79 L47,-79
+      M-79,-47 L79,47 M-79,47 L79,-47
+    " stroke="#000080" stroke-width="5"/>
+  </g>
+</svg>

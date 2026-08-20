@@ -1,0 +1,73 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 500" width="500" height="500">
+  <defs>
+    <!-- Metallic Gold Outer Ring Gradient -->
+    <linearGradient id="goldBorderGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="50%" stop-color="#D97706" />
+      <stop offset="100%" stop-color="#92400E" />
+    </linearGradient>
+
+    <!-- Metallic Gold Ring Gradient Inner -->
+    <linearGradient id="goldInnerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FEF3C7" />
+      <stop offset="100%" stop-color="#FDE68A" />
+    </linearGradient>
+
+    <!-- Drop Shadow for Text Sharpness & 3D Depth -->
+    <filter id="pmTextDropShadow" x="-30%" y="-30%" width="160%" height="160%">
+      <feDropShadow dx="0" dy="6" stdDeviation="5" flood-color="#0F172A" flood-opacity="0.6" />
+    </filter>
+
+    <!-- Circle Clip Path for Flag Background -->
+    <clipPath id="pmTricolorCircleClip">
+      <circle cx="250" cy="250" r="226" />
+    </clipPath>
+  </defs>
+
+  <!-- Outer Metallic Gold Frame Circle -->
+  <circle cx="250" cy="250" r="242" fill="#D97706" stroke="url(#goldBorderGrad)" stroke-width="12" />
+
+  <!-- Tricolors of Indian Flag Background (Orange / White / Green) -->
+  <g clip-path="url(#pmTricolorCircleClip)">
+    <!-- Top Band: Indian Saffron / Orange -->
+    <rect x="0" y="0" width="500" height="175" fill="#FF9933" />
+    
+    <!-- Middle Band: Pure White -->
+    <rect x="0" y="175" width="500" height="150" fill="#FFFFFF" />
+    
+    <!-- Bottom Band: India Green -->
+    <rect x="0" y="325" width="500" height="175" fill="#138808" />
+
+    <!-- Ashoka Chakra (24 Spoke Navy Blue Wheel in Center White Band Background) -->
+    <g transform="translate(250, 250) scale(1.15)" opacity="0.9">
+      <circle cx="0" cy="0" r="52" fill="none" stroke="#000080" stroke-width="3" />
+      <circle cx="0" cy="0" r="8" fill="#000080" />
+      <!-- 24 Spokes -->
+      <path d="
+        M0,0 L0,-52 M0,0 L13.5,-50.2 M0,0 L26,-45 M0,0 L36.8,-36.8 M0,0 L45,-26 M0,0 L50.2,-13.5
+        M0,0 L52,0 M0,0 L50.2,13.5 M0,0 L45,26 M0,0 L36.8,36.8 M0,0 L26,45 M0,0 L13.5,50.2
+        M0,0 L0,52 M0,0 L-13.5,50.2 M0,0 L-26,45 M0,0 L-36.8,36.8 M0,0 L-45,26 M0,0 L-50.2,13.5
+        M0,0 L-52,0 M0,0 L-50.2,-13.5 M0,0 L-45,-26 M0,0 L-36.8,-36.8 M0,0 L-26,-45 M0,0 L-13.5,-50.2
+      " stroke="#000080" stroke-width="2.2" />
+    </g>
+  </g>
+
+  <!-- Inner Gold Bezel Ring -->
+  <circle cx="250" cy="250" r="226" fill="none" stroke="#FBBF24" stroke-width="6" opacity="0.95" />
+
+  <!-- Ultra-Clear & Crisp Font "PM" Centered Over Tricolor Background -->
+  <text 
+    x="250" 
+    y="322" 
+    font-family="system-ui, -apple-system, 'Montserrat', 'Plus Jakarta Sans', 'Arial Black', sans-serif" 
+    font-weight="900" 
+    font-size="215" 
+    fill="#000080" 
+    stroke="#FFFFFF" 
+    stroke-width="10" 
+    paint-order="stroke fill" 
+    text-anchor="middle" 
+    letter-spacing="-3" 
+    filter="url(#pmTextDropShadow)"
+  >PM</text>
+</svg>

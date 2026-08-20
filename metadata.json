@@ -1,0 +1,6 @@
+{
+  "name": "InternIQ: AI-Powered Smart Internship Recommendation & Career Intelligence Platform for the PM Internship Scheme",
+  "description": "Smart Internship Recommendation & Career Intelligence Platform under the PM Internship Scheme, Ministry of Corporate Affairs, Government of India.",
+  "requestFramePermissions": ["microphone", "camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
