@@ -1,0 +1,96 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "entities": {
+    "users": {
+      "title": "Users",
+      "description": "Registered user accounts for students, recruiters, and government officers",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "name": { "type": "string" },
+        "email": { "type": "string" },
+        "role": { "type": "string" },
+        "college": { "type": "string" },
+        "branch": { "type": "string" },
+        "cgpa": { "type": "number" },
+        "skills": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "companyName": { "type": "string" },
+        "githubUrl": { "type": "string" },
+        "xp": { "type": "number" },
+        "level": { "type": "string" },
+        "streakDays": { "type": "number" },
+        "createdAt": { "type": "string" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "internships": {
+      "title": "Internships",
+      "description": "PM Internship opportunities posted by corporate partners or government",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "role": { "type": "string" },
+        "companyName": { "type": "string" },
+        "companyLogo": { "type": "string" },
+        "domain": { "type": "string" },
+        "stipend": { "type": "number" },
+        "location": { "type": "string" },
+        "mode": { "type": "string" },
+        "duration": { "type": "string" },
+        "minCGPA": { "type": "number" },
+        "skillsRequired": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "description": { "type": "string" },
+        "responsibilities": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "openings": { "type": "number" },
+        "trustScore": { "type": "number" },
+        "postedAt": { "type": "string" },
+        "postedBy": { "type": "string" }
+      },
+      "required": ["role", "companyName", "domain", "stipend"]
+    },
+    "applications": {
+      "title": "Applications",
+      "description": "Student applications submitted to internship roles",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "internshipId": { "type": "string" },
+        "studentId": { "type": "string" },
+        "studentName": { "type": "string" },
+        "studentEmail": { "type": "string" },
+        "studentCollege": { "type": "string" },
+        "studentSkills": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "status": { "type": "string" },
+        "appliedAt": { "type": "string" },
+        "matchScore": { "type": "number" }
+      },
+      "required": ["internshipId", "studentId", "status"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "users",
+      "description": "User profiles and account settings"
+    },
+    "/internships/{internshipId}": {
+      "schema": "internships",
+      "description": "Internship listings and opportunities"
+    },
+    "/applications/{applicationId}": {
+      "schema": "applications",
+      "description": "Internship applications submitted by students"
+    }
+  }
+}

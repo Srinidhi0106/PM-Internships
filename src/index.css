@@ -1,0 +1,69 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 30s linear infinite;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
+
+@keyframes speakingMouth {
+  0%, 100% { transform: scaleY(0.4) scaleX(0.95); opacity: 0.75; }
+  25% { transform: scaleY(1.35) scaleX(1.1); opacity: 0.95; }
+  50% { transform: scaleY(0.7) scaleX(0.98); opacity: 0.85; }
+  75% { transform: scaleY(1.2) scaleX(1.05); opacity: 0.92; }
+}
+
+.animate-speaking-mouth {
+  animation: speakingMouth 0.3s ease-in-out infinite;
+}
+
+@keyframes presenterBreathing {
+  0%, 100% { transform: scale(1) translateY(0px); }
+  50% { transform: scale(1.012) translateY(-2px); }
+}
+
+.animate-presenter-breathing {
+  animation: presenterBreathing 4.5s ease-in-out infinite;
+}
+
+@keyframes presenterSway {
+  0%, 100% { transform: rotate(0deg) translateY(0px); }
+  33% { transform: rotate(0.4deg) translateY(-2px); }
+  66% { transform: rotate(-0.4deg) translateY(1px); }
+}
+
+.animate-presenter-sway {
+  animation: presenterSway 4s ease-in-out infinite;
+}
+
+@keyframes attentiveNod {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  30% { transform: translateY(2px) rotate(0.3deg); }
+  60% { transform: translateY(-1px) rotate(-0.2deg); }
+  85% { transform: translateY(1.5px) rotate(0.1deg); }
+}
+
+.animate-attentive-nod {
+  animation: attentiveNod 3.2s ease-in-out infinite;
+}
+
+@keyframes audioEqualizer {
+  0%, 100% { height: 4px; }
+  50% { height: 18px; }
+}
+
+.animate-audio-eq {
+  animation: audioEqualizer 0.4s ease-in-out infinite alternate;
+}
+
