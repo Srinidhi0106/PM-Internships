@@ -23,7 +23,10 @@ import {
   Search,
   Zap,
   Film,
-  Play
+  Play,
+  Wand2,
+  FileText,
+  FileCheck2
 } from 'lucide-react';
 import { LanguageCode, getTranslation } from '../translations';
 import { useLanguage } from '../context/LanguageContext';
@@ -489,6 +492,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <div className="flex flex-wrap gap-1.5">
                 <button
                   type="button"
+                  onClick={() => setActiveTab('ai-resume-tailor')}
+                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Launch AI ATS Resume Tailor & Live Optimizer"
+                >
+                  <Wand2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>{t('aiResumeTailorNav', 'AI ATS Resume Tailor')}</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setActiveTab('ai-interview')}
                   className="px-3 py-1.5 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
@@ -781,6 +794,16 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
               <button
                 type="button"
+                onClick={() => setActiveTab('ai-resume-tailor')}
+                className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
+                title="Open AI ATS Resume Tailor & Live Optimizer"
+              >
+                <Wand2 className="w-4 h-4" />
+                <span>{t('aiResumeTailorNav', 'AI ATS Resume Tailor')}</span>
+              </button>
+
+              <button
+                type="button"
                 onClick={() => setActiveTab('ai-interview')}
                 className="px-5 py-3 bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center gap-2 cursor-pointer"
               >
@@ -805,6 +828,31 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
+          {/* Card 0: AI ATS Resume Tailor */}
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-indigo-600 flex items-center px-3.5 text-white shadow-xs">
+                <Wand2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                  {t('aiResumeTailorTitle', 'AI ATS Resume Tailor')}
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  {t('aiResumeTailorDesc', 'Job-tailored resume optimizer, keyword matching engine, live ATS preview, multi-template PDF exporter & AI bullet rewriter.')}
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveTab('ai-resume-tailor')}
+              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer w-fit"
+            >
+              <span>{t('aiResumeTailorNav', 'AI ATS Resume Tailor')}</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
           {/* Card 1: Interview AI */}
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
             <div className="space-y-4">

@@ -81,6 +81,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
     { id: 'about', label: getTranslation(language, 'about') },
     { id: 'internships', label: getTranslation(language, 'internships') },
     { id: 'ai-recommendation', label: getTranslation(language, 'aiRecommendation') },
+    { id: 'ai-resume-tailor', label: getTranslation(language, 'aiResumeTailorNav') || 'AI ATS Tailor (Video)' },
     { id: 'ai-interview', label: getTranslation(language, 'aiInterviewNav') },
     { id: 'ai-portfolio', label: getTranslation(language, 'aiPortfolioNav') },
     { id: 'ai-skill-gap', label: getTranslation(language, 'aiSkillGapNav') },
@@ -322,16 +323,35 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             {darkMode ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4" />}
           </button>
 
-          {/* Separate Login and Register Buttons */}
+          {/* Separate Login and Register Buttons / User Profile */}
           <div className="flex items-center gap-1.5">
-            <button
-              onClick={() => setActiveTab('auth-login')}
-              className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer"
-              title="Sign in to your portal account"
-            >
-              <UserIcon className="w-3.5 h-3.5 text-indigo-200" />
-              <span>{user && user.id !== 'guest' ? (user.name ? user.name.split(' ')[0] : 'User') : getTranslation(language, 'login')}</span>
-            </button>
+            {user && user.id !== 'guest' ? (
+              <button
+                onClick={() => setActiveTab('dashboard')}
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer border border-indigo-700"
+                title={`Authenticated Email: ${user.email || 'Verified'}`}
+              >
+                <div className="w-4 h-4 rounded-full bg-amber-500 text-slate-950 font-black text-[10px] flex items-center justify-center">
+                  {(user.name || 'U').charAt(0).toUpperCase()}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="leading-tight text-[11px]">{user.name ? user.name.split(' ')[0] : 'User'}</span>
+                  <span className="text-[9px] text-emerald-400 font-bold flex items-center gap-0.5 leading-none">
+                    <span>✓</span> {user.email ? user.email.split('@')[0] : 'Verified'}
+                  </span>
+                </div>
+              </button>
+            ) : (
+              <button
+                onClick={() => setActiveTab('auth-login')}
+                className="flex items-center gap-1 px-2.5 py-1.5 bg-indigo-900 hover:bg-indigo-950 text-white font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer"
+                title="Sign in to your portal account"
+              >
+                <UserIcon className="w-3.5 h-3.5 text-indigo-200" />
+                <span>{getTranslation(language, 'login')}</span>
+              </button>
+            )}
+            
             <button
               onClick={() => setActiveTab('auth-register')}
               className="flex items-center gap-1 px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg transition shadow-2xs cursor-pointer"
@@ -466,7 +486,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             <div>
               <p className="text-[10px] uppercase font-extrabold text-indigo-600 dark:text-indigo-400 tracking-wider mb-1 px-2">AI Career Tools</p>
               <ul className="space-y-1">
-                {navLinks.filter(l => ['ai-recommendation', 'ai-interview', 'ai-portfolio', 'ai-fraud', 'resume-parser'].includes(l.id)).map((link) => (
+                {navLinks.filter(l => ['ai-recommendation', 'ai-resume-tailor', 'ai-interview', 'ai-portfolio', 'ai-fraud', 'resume-parser'].includes(l.id)).map((link) => (
                   <li key={link.id}>
                     <button
                       onClick={() => {

@@ -19,6 +19,7 @@ import { AIPortfolioPage } from './pages/AIPortfolioPage';
 import { AIFraudPage } from './pages/AIFraudPage';
 import { AISkillGapRoadmapPage } from './pages/AISkillGapRoadmapPage';
 import { ResumeParserPage } from './pages/ResumeParserPage';
+import { AIResumeTailorPage } from './pages/AIResumeTailorPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { CompanyDashboard } from './pages/CompanyDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
@@ -41,11 +42,11 @@ import {
 
 const GUEST_USER: User = {
   id: 'guest',
-  name: 'Guest Candidate',
-  email: 'guest@mca.gov.in',
+  name: '',
+  email: '',
   role: 'STUDENT',
-  college: 'General Applicant',
-  branch: 'General',
+  college: '',
+  branch: '',
   cgpa: 0,
   skills: [],
   xp: 0,
@@ -380,6 +381,19 @@ export default function App() {
       case 'resume':
       case 'parser':
         return <ResumeParserPage user={user} onUpdateUser={handleUpdateUser} onNavigate={handleNavigate} />;
+      case 'ai-resume-tailor':
+      case 'resume-tailor':
+      case 'tailor':
+      case 'ats-tailor':
+      case 'jobsuit':
+        return (
+          <AIResumeTailorPage
+            user={user}
+            onUpdateUser={handleUpdateUser}
+            language={language}
+            onNavigateToParser={() => handleNavigate('resume-parser')}
+          />
+        );
       case 'company-dashboard':
       case 'company':
       case 'recruiter':

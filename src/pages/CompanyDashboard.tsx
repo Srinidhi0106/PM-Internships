@@ -89,9 +89,14 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
               <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold">
                 MCA Partner Verified
               </span>
+              {user?.email && (
+                <span className="text-[10px] bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-300 dark:border-indigo-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span>✓</span> {user.email}
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-              PM Internship Scheme Partner Portal • Recruiter Account
+              Recruiter: {user.name || 'Recruitment Officer'} • PM Internship Scheme Partner Corporate Portal
             </p>
           </div>
         </div>

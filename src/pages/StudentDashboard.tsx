@@ -110,8 +110,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               <span className="text-[10px] bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 px-2.5 py-0.5 rounded-full font-bold">
                 Student Candidate
               </span>
+              {user?.email && (
+                <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span>✓</span> OTP Verified Email
+                </span>
+              )}
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
+              {user?.email && <span className="text-slate-900 dark:text-white font-semibold">{user.email} • </span>}
               {user?.college || 'Degree College'} ({user?.branch || 'General Studies'}) • CGPA: {user?.cgpa || 8.5} / 10
             </p>
           </div>

@@ -454,9 +454,20 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
       {/* Header Banner */}
       <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-bold">
-            <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-            <span>AI RESUME, ATS SCORE & LINKEDIN PARSER ENGINE</span>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="inline-flex items-center gap-1.5 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-bold">
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span>AI RESUME, ATS SCORE & LINKEDIN PARSER ENGINE</span>
+            </div>
+            {onNavigate && (
+              <button
+                onClick={() => onNavigate('ai-resume-tailor')}
+                className="inline-flex items-center gap-1.5 bg-amber-500 hover:bg-amber-400 text-slate-950 px-3.5 py-1.5 rounded-xl text-xs font-black uppercase tracking-wider transition shadow-md cursor-pointer"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Tailor to Job Description (Jobsuit AI) →</span>
+              </button>
+            )}
           </div>
           <h1 className="text-3xl font-black">AI Resume & Profile Analyzer with Official ATS Scoring</h1>
           <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
@@ -643,18 +654,30 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
         </div>
 
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            type="button"
-            onClick={() => {
-              setValidationError(null);
-              setResumeText(
-                `CANDIDATE RESUME\nEducation: Bachelor of Technology / Science in Engineering / Computer Applications (CGPA: 8.5 / 10)\nSkills: Python, SQL, JavaScript, React.js, Machine Learning, Data Analytics, Docker, Problem Solving\nProjects:\n1. AI Scheme Recommender Engine - Built candidate internship matching platform.\n2. IoT Telemetry Dashboard - Created real-time device performance analytics.`
-              );
-            }}
-            className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
-          >
-            Load Sample Resume Content
-          </button>
+          <div className="flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => {
+                setValidationError(null);
+                setResumeText(
+                  `CANDIDATE RESUME\nEducation: Bachelor of Technology in Computer Science & Engineering (CGPA: 8.8 / 10)\nSkills: Python, SQL, JavaScript, TypeScript, React.js, Machine Learning, Docker, Automated Testing, Problem Solving\nProjects:\n1. PM Internship Smart Match Engine - Built candidate matching platform with real-time analytics.\n2. Cloud Telemetry & Observability Hub - Created distributed service monitoring with automated alert triggers.`
+                );
+              }}
+              className="text-xs text-indigo-600 dark:text-indigo-400 font-bold hover:underline cursor-pointer"
+            >
+              Load Sample Resume Content
+            </button>
+            {onNavigate && (
+              <button
+                type="button"
+                onClick={() => onNavigate('ai-resume-tailor')}
+                className="text-xs text-amber-600 dark:text-amber-400 font-bold hover:underline cursor-pointer flex items-center gap-1"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Create / Build Resume Online</span>
+              </button>
+            )}
+          </div>
 
           <button
             onClick={parseResume}
@@ -1087,7 +1110,18 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                 Next Steps & Linked AI Modules
               </span>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                <button
+                  onClick={() => onNavigate('ai-resume-tailor')}
+                  className="p-3.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-slate-950 rounded-2xl border border-amber-400 text-xs font-black flex items-center justify-between transition cursor-pointer shadow-md"
+                >
+                  <span className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4" />
+                    <span>Tailor to Job (Jobsuit AI)</span>
+                  </span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
                 <button
                   onClick={() => onNavigate('ai-portfolio')}
                   className="p-3.5 bg-blue-50/70 dark:bg-blue-950/40 hover:bg-blue-100 text-blue-800 dark:text-blue-300 rounded-2xl border border-blue-200 dark:border-blue-800 text-xs font-bold flex items-center justify-between transition cursor-pointer"
@@ -1101,11 +1135,11 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
 
                 <button
                   onClick={() => onNavigate('ai-recommendation')}
-                  className="p-3.5 bg-amber-50/70 dark:bg-amber-950/40 hover:bg-amber-100 text-amber-800 dark:text-amber-300 rounded-2xl border border-amber-200 dark:border-amber-800 text-xs font-bold flex items-center justify-between transition cursor-pointer"
+                  className="p-3.5 bg-indigo-50/70 dark:bg-indigo-950/40 hover:bg-indigo-100 text-indigo-800 dark:text-indigo-300 rounded-2xl border border-indigo-200 dark:border-indigo-800 text-xs font-bold flex items-center justify-between transition cursor-pointer"
                 >
                   <span className="flex items-center gap-2">
-                    <Target className="w-4 h-4 text-amber-600" />
-                    <span>View 10-20 AI Recommendations</span>
+                    <Target className="w-4 h-4 text-indigo-600" />
+                    <span>10-20 AI Recommendations</span>
                   </span>
                   <ArrowRight className="w-4 h-4" />
                 </button>

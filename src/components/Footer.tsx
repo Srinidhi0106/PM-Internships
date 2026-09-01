@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
-import { ShieldCheck, Mail, Phone, MapPin, ExternalLink, QrCode, Download, Smartphone, X, Check, Apple, Play } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
+import { ShieldCheck, Mail, Phone, MapPin, ExternalLink, QrCode, Download, Smartphone, X, Check, Apple, Play, Copy, Share2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { pmSchemeLogo } from '../assets/images';
 
@@ -13,17 +14,44 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
   const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
   const [showIosGuide, setShowIosGuide] = useState(false);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+  const [copiedLink, setCopiedLink] = useState(false);
 
-  React.useEffect(() => {
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
+  useEffect(() => {
+    let appUrl = 'https://interniq.gov.in';
+    if (typeof window !== 'undefined') {
+      const currentUrl = window.location.href;
+      // Convert development URL (ais-dev-) to public share URL (ais-pre-) so phone cameras can open the app without developer login permissions
+      appUrl = currentUrl.replace('ais-dev-', 'ais-pre-');
+    }
+    QRCode.toDataURL(appUrl, {
+      width: 400,
+      margin: 1,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff'
+      },
+      errorCorrectionLevel: 'H'
+    })
+      .then((url) => setQrDataUrl(url))
+      .catch((err) => console.error('Failed to generate real QR code:', err));
   }, []);
+
+  const getPublicAppUrl = () => {
+    if (typeof window !== 'undefined') {
+      return window.location.href.replace('ais-dev-', 'ais-pre-');
+    }
+    return 'https://interniq.gov.in';
+  };
+
+  const handleCopyLink = () => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      const appUrl = getPublicAppUrl();
+      navigator.clipboard.writeText(appUrl);
+      setCopiedLink(true);
+      setTimeout(() => setCopiedLink(false), 3000);
+    }
+  };
 
   const handleSimulateDownload = async (platform: string) => {
     if (platform === 'PWA Web App' || platform === 'Android PWA') {
@@ -158,8 +186,16 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
           onClick={() => setShowQrModal(true)}
           className="bg-slate-900 hover:bg-slate-800/90 border border-slate-800 hover:border-amber-400/80 rounded-2xl p-3 flex items-center gap-3 shrink-0 cursor-pointer transition group text-left shadow-lg"
         >
-          <div className="w-14 h-14 bg-white p-1.5 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-sm">
-            <QrCode className="w-full h-full text-slate-950" />
+          <div className="w-14 h-14 bg-white p-1 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition shadow-sm overflow-hidden">
+            {qrDataUrl ? (
+              <img
+                src={qrDataUrl}
+                alt="Scan to Open PM Internship Mobile Portal"
+                className="w-full h-full object-contain"
+              />
+            ) : (
+              <QrCode className="w-full h-full text-slate-950" />
+            )}
           </div>
           <div className="text-left">
             <span className="text-[10px] uppercase font-black text-amber-400 tracking-wider flex items-center gap-1">
@@ -264,14 +300,49 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
               </p>
             </div>
 
-            {/* High Resolution Rendered QR Code */}
-            <div className="bg-white p-5 rounded-2xl max-w-[220px] mx-auto border-4 border-amber-400 shadow-xl text-center space-y-2">
-              <div className="relative aspect-square flex items-center justify-center">
-                <QrCode className="w-full h-full text-slate-950" />
+            {/* High Resolution Rendered Real QR Code */}
+            <div className="bg-white p-4 rounded-2xl max-w-[240px] mx-auto border-4 border-amber-400 shadow-xl text-center space-y-2">
+              <div className="relative aspect-square flex items-center justify-center p-1 bg-white rounded-xl">
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt="Official Scannable QR Code for PM Internship Portal"
+                    className="w-full h-full object-contain rounded-lg select-all"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center text-slate-500 text-xs py-10">
+                    <QrCode className="w-12 h-12 text-slate-800 animate-pulse mb-2" />
+                    <span>Generating QR Code...</span>
+                  </div>
+                )}
               </div>
-              <p className="text-[10px] font-extrabold text-slate-950 uppercase tracking-wider border-t border-slate-200 pt-1.5">
-                Scan Code to Install App
+              <p className="text-[10px] font-black text-slate-950 uppercase tracking-wider border-t border-slate-200 pt-1.5 flex items-center justify-center gap-1">
+                <span>Scan with Camera / Google Lens</span>
               </p>
+            </div>
+
+            {/* Direct Copy / Share Web Link Bar */}
+            <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs">
+              <div className="truncate text-slate-400 text-[11px] font-mono select-all">
+                {getPublicAppUrl()}
+              </div>
+              <button
+                type="button"
+                onClick={handleCopyLink}
+                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer"
+              >
+                {copiedLink ? (
+                  <>
+                    <Check className="w-3.5 h-3.5 text-emerald-950" />
+                    <span>Copied!</span>
+                  </>
+                ) : (
+                  <>
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy Link</span>
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Download Notification Banner */}
