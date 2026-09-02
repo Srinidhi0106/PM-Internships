@@ -109,7 +109,7 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
   const [skillsList, setSkillsList] = useState<string[]>(
     user.skills && user.skills.length > 0
       ? user.skills.filter(s => isValidSkill(s))
-      : ['Python', 'React', 'SQL', 'Data Structures', 'Communication Skills']
+      : []
   );
   const [newSkillInput, setNewSkillInput] = useState('');
   const [roleValidationError, setRoleValidationError] = useState<string | null>(null);
@@ -149,9 +149,11 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
     }
   }, [targetRole]);
 
-  // Fetch initial analysis on component load
+  // Fetch initial analysis on component load (only if candidate has skills)
   useEffect(() => {
-    fetchSkillGapAnalysis();
+    if (skillsList.length > 0) {
+      fetchSkillGapAnalysis();
+    }
   }, []);
 
   const handleRoleChange = (newRole: string) => {
@@ -450,7 +452,6 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
                   setDegreeYear(preset.degreeYear);
                   setTargetRole(preset.role);
                   setTargetIndustry(preset.industry);
-                  setSkillsList(preset.skills);
                 }}
                 className={`text-xs font-extrabold px-3 py-1.5 rounded-xl border transition cursor-pointer flex items-center gap-1.5 shadow-2xs ${
                   degreeType === preset.degreeType && degreeYear === preset.degreeYear
@@ -598,13 +599,22 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
               <label className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>Your Selected Skills ({skillsList.length}):</span>
                 {skillsList.length > 0 && (
-                  <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded-full">
-                    {skillsList.length} Verified Skills
-                  </span>
+                  <>
+                    <span className="text-[10px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-950/80 px-2 py-0.5 rounded-full">
+                      {skillsList.length} Verified Skills
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setSkillsList([])}
+                      className="text-[11px] font-bold text-rose-600 hover:text-rose-700 dark:text-rose-400 dark:hover:text-rose-300 underline cursor-pointer ml-1"
+                    >
+                      Clear All
+                    </button>
+                  </>
                 )}
               </label>
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                Select skills from the categorized dropdown or search our recognized industry catalog (arbitrary strings like 'abc' are excluded).
+                Search or select skills below to add them to your profile (skills are only added when you choose them).
               </p>
             </div>
 
@@ -636,8 +646,8 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
           {/* Active Skills Pills */}
           <div className="flex flex-wrap items-center gap-2 min-h-[36px]">
             {skillsList.length === 0 ? (
-              <span className="text-xs text-rose-500 font-semibold italic">
-                No skills selected yet. Please pick at least 1 skill from the catalog below.
+              <span className="text-xs text-slate-500 dark:text-slate-400 italic">
+                No skills selected yet. Click any skill tag below or search to add skills to your profile.
               </span>
             ) : (
               skillsList.map((skill) => (

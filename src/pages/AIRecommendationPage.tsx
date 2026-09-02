@@ -188,7 +188,7 @@ export const AIRecommendationPage: React.FC<AIRecommendationPageProps> = ({
 
   // Compute Processed & Scored Recommendations based on User Profile + Selected Algorithm + Mood
   const scoredRecommendations = useMemo(() => {
-    const userSkills = user.skills && user.skills.length > 0 ? user.skills : ['Python', 'Machine Learning', 'React', 'SQL'];
+    const userSkills = user.skills || [];
     const userCgpa = user.cgpa || 8.9;
     const userLocation = user.preferredLocation || 'Delhi / NCR';
 

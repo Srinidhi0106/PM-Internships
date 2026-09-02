@@ -165,7 +165,7 @@ export const AIResumeTailorPage: React.FC<AIResumeTailorPageProps> = ({
   const [builderSkills, setBuilderSkills] = useState<string[]>(
     user.skills && user.skills.length > 0
       ? user.skills
-      : ['Python', 'TypeScript', 'React.js', 'SQL', 'Docker', 'Automated Testing', 'Git']
+      : []
   );
   const [newSkillInput, setNewSkillInput] = useState('');
   const [builderExperiences, setBuilderExperiences] = useState<

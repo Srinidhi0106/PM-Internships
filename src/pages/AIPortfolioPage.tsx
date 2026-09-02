@@ -440,7 +440,7 @@ export const AIPortfolioPage: React.FC<AIPortfolioPageProps> = ({ user, onNaviga
             fileData: fileAttached?.base64,
             fileName: fileAttached?.name,
             targetRole: 'AI & Software Engineering Specialist',
-            skills: user.skills || ['Python', 'React', 'SQL']
+            skills: user.skills || []
           })
         });
 

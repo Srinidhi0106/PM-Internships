@@ -104,7 +104,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
   const [aadhaar, setAadhaar] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [resumeFileName, setResumeFileName] = useState('');
-  const [candidateSkills, setCandidateSkills] = useState<string[]>(['Python', 'SQL', 'React.js']);
+  const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
 
   // Google Modal
   const [showGoogleAccountModal, setShowGoogleAccountModal] = useState(false);
@@ -206,7 +206,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
       companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
       phone: phone.trim() || undefined,
       aadhaar: aadhaar.trim() || undefined,
-      skills: role === 'STUDENT' ? candidateSkills : ['Python', 'SQL', 'Problem Solving'],
+      skills: role === 'STUDENT' ? candidateSkills : [],
       cgpa: 8.5,
       xp: mode === 'REGISTER' ? 500 : 1200,
       level: mode === 'REGISTER' ? 'Registered Member' : 'Verified Member',
@@ -275,7 +275,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
           companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
           phone: phone || undefined,
           aadhaar: aadhaar || undefined,
-          skills: role === 'STUDENT' ? candidateSkills : ['Python', 'SQL']
+          skills: role === 'STUDENT' ? candidateSkills : []
         });
         setSuccessMessage('Account registered successfully and saved to Firebase Firestore!');
       } else {
@@ -302,7 +302,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
         branch: role === 'STUDENT' ? finalBranch : undefined,
         companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
         cgpa: 8.5,
-        skills: role === 'STUDENT' ? candidateSkills : ['Python', 'SQL', 'Problem Solving', 'Data Analytics'],
+        skills: role === 'STUDENT' ? candidateSkills : [],
         xp: mode === 'REGISTER' ? 500 : 1000,
         level: mode === 'REGISTER' ? 'Registered Member' : 'Verified Candidate',
         streakDays: 1
