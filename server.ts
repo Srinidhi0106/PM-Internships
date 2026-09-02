@@ -1904,18 +1904,25 @@ async function extractTextFromBase64(fileData: string, fileName?: string, mimeTy
 function isValidServerGithub(input?: string): { isValid: boolean; error?: string; cleanedUsername?: string } {
   if (!input || !input.trim()) return { isValid: true, cleanedUsername: '' };
   const trimmed = input.trim();
-  const isUrl = /^https?:\/\//i.test(trimmed) || /^www\./i.test(trimmed) || trimmed.includes('.com') || trimmed.includes('.org') || trimmed.includes('/') || trimmed.includes('.');
+  
+  // 1. Check if user provided a LinkedIn URL in GitHub field
+  if (/linkedin\.com/i.test(trimmed)) {
+    return { isValid: false, error: 'Invalid GitHub Link: You provided a LinkedIn URL. This field only accepts authentic GitHub profile or repository links (e.g., https://github.com/your-username).' };
+  }
+
+  const isUrl = /^https?:\/\//i.test(trimmed) || /^www\./i.test(trimmed) || trimmed.includes('.com') || trimmed.includes('.org') || trimmed.includes('.net') || trimmed.includes('.io') || trimmed.includes('.dev') || trimmed.includes('/') || trimmed.includes('.');
   if (isUrl) {
     const isGithub = /^(https?:\/\/)?(www\.)?github\.com\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_.-]+)*\/?$/i.test(trimmed);
     if (!isGithub) {
-      return { isValid: false, error: 'ERROR: Invalid GitHub URL. Only authentic GitHub profile or repository links (e.g. https://github.com/username) are accepted in this field.' };
+      return { isValid: false, error: 'Invalid GitHub Link: Only authentic GitHub profile or repository URLs (e.g., https://github.com/your-username) are accepted in this field.' };
     }
-    const cleaned = trimmed.replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '').replace(/\/.*$/, '').trim();
+    const usernameMatch = trimmed.match(/github\.com\/([a-zA-Z0-9_-]+)/i);
+    const cleaned = usernameMatch ? usernameMatch[1] : trimmed.replace(/^(https?:\/\/)?(www\.)?github\.com\//i, '').replace(/\/.*$/, '').trim();
     return { isValid: true, cleanedUsername: cleaned };
   }
   const isUsernameValid = /^[a-zA-Z0-9]([a-zA-Z0-9-]{0,37}[a-zA-Z0-9])?$/.test(trimmed);
   if (!isUsernameValid) {
-    return { isValid: false, error: 'ERROR: Invalid GitHub Username. GitHub usernames can only contain alphanumeric characters or hyphens.' };
+    return { isValid: false, error: 'Invalid GitHub Username: GitHub usernames can only contain alphanumeric characters or hyphens (e.g., your-username).' };
   }
   return { isValid: true, cleanedUsername: trimmed };
 }
@@ -1923,13 +1930,19 @@ function isValidServerGithub(input?: string): { isValid: boolean; error?: string
 function isValidServerLinkedin(input?: string): { isValid: boolean; error?: string; cleanedUrl?: string } {
   if (!input || !input.trim()) return { isValid: true, cleanedUrl: '' };
   const trimmed = input.trim();
-  const isLinkedin = /^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.(com|in)\/(in|pub|company)\/[a-zA-Z0-9_-]+\/?.*$/i.test(trimmed) ||
-                     /^(https?:\/\/)?(www\.)?linkedin\.(com|in)\/(in|pub)\/[a-zA-Z0-9_-]+\/?.*$/i.test(trimmed);
+
+  // 1. Check if user provided a GitHub URL in LinkedIn field
+  if (/github\.com/i.test(trimmed)) {
+    return { isValid: false, error: 'Invalid LinkedIn Link: You provided a GitHub URL. This field only accepts authentic LinkedIn profile links (e.g., https://linkedin.com/in/your-profile).' };
+  }
+
+  const isLinkedin = /^(https?:\/\/)?([a-z]{2,3}\.)?linkedin\.(com|in)\/(in|pub|company)\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_.-]+)*\/?.*$/i.test(trimmed) ||
+                     /^(https?:\/\/)?(www\.)?linkedin\.(com|in)\/(in|pub|company)\/[a-zA-Z0-9_-]+(\/[a-zA-Z0-9_.-]+)*\/?.*$/i.test(trimmed);
   if (!isLinkedin) {
-    return { isValid: false, error: 'ERROR: Invalid LinkedIn URL. Only authentic LinkedIn profile links (e.g. https://linkedin.com/in/your-profile) are accepted in this field.' };
+    return { isValid: false, error: 'Invalid LinkedIn Link: Only authentic LinkedIn profile URLs (e.g., https://linkedin.com/in/your-profile) are accepted in this field.' };
   }
   let fullUrl = trimmed;
-  if (!/^https?:\/\//i.test(fullUrl)) fullUrl = `https://${fullUrl}`;
+  if (!/^https?:\/\//i.test(fullUrl)) fullUrl = `https://${fullUrl.replace(/^www\./i, 'www.')}`;
   return { isValid: true, cleanedUrl: fullUrl };
 }
 
