@@ -118,8 +118,8 @@ export const SkillSelectDropdown: React.FC<SkillSelectDropdownProps> = ({
         </div>
       </div>
 
-      {/* Selected Skill Tags Display */}
-      {selectedSkills.length > 0 && (
+      {/* Selected Skill Tags Display or Plain Empty State */}
+      {selectedSkills.length > 0 ? (
         <div className="flex flex-wrap gap-1.5 p-2 bg-slate-50 dark:bg-slate-950 rounded-xl border border-slate-200 dark:border-slate-800 min-h-[42px] items-center">
           {selectedSkills.map((skill) => (
             <span
@@ -137,6 +137,11 @@ export const SkillSelectDropdown: React.FC<SkillSelectDropdownProps> = ({
               </button>
             </span>
           ))}
+        </div>
+      ) : (
+        <div className="p-2.5 bg-slate-50 dark:bg-slate-900/40 rounded-xl border border-dashed border-slate-200 dark:border-slate-800 text-[11px] text-slate-400 flex items-center justify-between">
+          <span>Plain / No skills added yet. Click dropdown below to search and add skills:</span>
+          <span className="font-semibold text-amber-600 dark:text-amber-400">0 Added</span>
         </div>
       )}
 

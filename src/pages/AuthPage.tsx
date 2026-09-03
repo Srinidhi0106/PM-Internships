@@ -201,6 +201,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
       name: derivedName,
       email: email.trim(),
       role: role,
+      emailVerified: true,
       college: role === 'STUDENT' ? (finalCollege || 'Indian Institute of Technology (IIT) Delhi') : undefined,
       branch: role === 'STUDENT' ? finalBranch : undefined,
       companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
@@ -584,10 +585,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                 </div>
               )}
 
-              {/* Email ID Field */}
+              {/* Mail ID Field */}
               <div>
                 <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                  Enter Mail ID <span className="text-amber-500">*</span>
+                  Mail ID / Official Email Address <span className="text-amber-500">*</span>
                 </label>
                 <div className="relative">
                   <input
@@ -595,10 +596,10 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                     required
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    placeholder="Enter Mail ID"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-amber-500 dark:focus:border-amber-400 rounded-xl pl-10 pr-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    placeholder="Enter Mail ID (e.g. yourname@gmail.com)"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl pl-10 pr-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
-                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+                  <Mail className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
                 </div>
               </div>
 

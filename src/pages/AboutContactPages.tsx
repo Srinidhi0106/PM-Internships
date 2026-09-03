@@ -10,6 +10,7 @@ import {
   ShieldCheck,
   CheckCircle2
 } from 'lucide-react';
+import { ScrollingAnnouncementTicker } from '../components/ScrollingAnnouncementTicker';
 
 export const AboutContactPages: React.FC = () => {
   const [activeSubTab, setActiveSubTab] = useState<'about' | 'contact'>('about');
@@ -61,6 +62,9 @@ export const AboutContactPages: React.FC = () => {
               Aiming to provide 1 crore internship opportunities in top 500 companies over 5 years, empowering youth with real-world exposure and financial stability.
             </p>
           </div>
+
+          {/* Scrolling Announcement Text Ticker under About Scheme */}
+          <ScrollingAnnouncementTicker variant="section" />
 
           {/* Key Pillars */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

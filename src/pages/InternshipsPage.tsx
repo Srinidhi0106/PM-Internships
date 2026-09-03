@@ -468,23 +468,90 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
       {applyModalInternship && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/70 backdrop-blur-xs p-4 animate-in fade-in">
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 sm:p-8 relative shadow-2xl space-y-6">
-            <button
-              onClick={() => setApplyModalInternship(null)}
-              className="absolute top-5 right-5 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+            {/* Top Header & Close */}
+            <div className="relative">
+              <button
+                onClick={() => setApplyModalInternship(null)}
+                className="absolute -top-2 -right-2 text-slate-400 hover:text-slate-600 p-1.5 rounded-lg cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
 
-            <div className="space-y-2">
-              <span className="text-[10px] font-black uppercase text-amber-600 dark:text-amber-400 tracking-wider">
-                PM Internship Scheme • Application Form
-              </span>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white">
-                Apply to {applyModalInternship.role}
-              </h2>
-              <p className="text-xs text-slate-500 font-medium">
-                {applyModalInternship.companyName} • Stipend: ₹{applyModalInternship.stipend.toLocaleString('en-IN')}/mo
-              </p>
+            {/* Internship Overview: Location, Duration, and Skills According to this Application */}
+            <div className="bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80 rounded-2xl p-4 space-y-3">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-600 dark:text-amber-400">
+                    PM Internship Scheme • Application Form
+                  </span>
+                  <h2 className="text-lg font-black text-slate-900 dark:text-white leading-tight">
+                    {applyModalInternship.role}
+                  </h2>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 font-semibold mt-0.5">
+                    {applyModalInternship.companyName}
+                  </p>
+                </div>
+                <div className="text-right shrink-0">
+                  <span className="text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 inline-block">
+                    ₹{applyModalInternship.stipend.toLocaleString('en-IN')}/mo
+                  </span>
+                </div>
+              </div>
+
+              {/* Location & Duration Badges */}
+              <div className="grid grid-cols-2 gap-2 pt-2 border-t border-slate-200/70 dark:border-slate-700/70">
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <MapPin className="w-4 h-4 text-rose-500 shrink-0" />
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block leading-tight">Location & Mode</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+                      {applyModalInternship.location} • {applyModalInternship.mode}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 bg-white dark:bg-slate-900 px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                  <Clock className="w-4 h-4 text-indigo-500 shrink-0" />
+                  <div className="truncate">
+                    <span className="text-[10px] font-bold uppercase text-slate-400 block leading-tight">Duration</span>
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200 truncate block">
+                      {applyModalInternship.duration || '6 Months (12 Mo Scheme)'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Required Skills according to this application */}
+              <div className="pt-2 border-t border-slate-200/70 dark:border-slate-700/70 space-y-1.5">
+                <div className="flex items-center justify-between text-[11px]">
+                  <span className="font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-amber-500" />
+                    <span>Skills Required for this Application:</span>
+                  </span>
+                  <span className="text-[10px] text-slate-400 font-medium">
+                    {applyModalInternship.skillsRequired.length} skills evaluated
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {applyModalInternship.skillsRequired.map((skill, sIdx) => {
+                    const candidateHasSkill = user.skills?.some(s => s.toLowerCase() === skill.toLowerCase());
+                    return (
+                      <span
+                        key={sIdx}
+                        className={`text-[11px] font-bold px-2 py-0.5 rounded-lg border flex items-center gap-1 ${
+                          candidateHasSkill
+                            ? 'bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                            : 'bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border-indigo-200 dark:border-indigo-800'
+                        }`}
+                      >
+                        {candidateHasSkill && <Check className="w-3 h-3 text-emerald-600" />}
+                        <span>{skill}</span>
+                      </span>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
 
             {applicationSuccess ? (

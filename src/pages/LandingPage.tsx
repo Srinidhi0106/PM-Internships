@@ -461,15 +461,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   <span>🎬 Replay Curtain Intro</span>
                 </button>
               )}
-
-              <button
-                type="button"
-                onClick={openVoiceSearch}
-                className="px-5 py-3.5 bg-white/95 dark:bg-slate-800/95 hover:bg-white dark:hover:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-800 dark:text-white font-bold text-xs sm:text-sm rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
-              >
-                <Mic className="w-4 h-4 text-orange-500" />
-                <span>{t('voiceBtn', 'Voice Search')}</span>
-              </button>
             </div>
 
             {/* Login / Register Link matching screenshot */}

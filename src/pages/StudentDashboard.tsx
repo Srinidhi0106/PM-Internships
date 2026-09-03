@@ -112,7 +112,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </span>
               {user?.email && (
                 <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <span>✓</span> OTP Verified Email
+                  <span>✓</span> Verified Email
                 </span>
               )}
             </div>

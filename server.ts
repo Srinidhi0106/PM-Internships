@@ -78,9 +78,17 @@ function getGeminiClient() {
 // ----------------------------------------------------
 // EMAIL DISPATCHER (Resend API / SMTP / Secure Channel)
 // ----------------------------------------------------
+// TRANSACTIONAL EMAIL DISPATCHER (REAL INBOX DELIVERY)
+// ----------------------------------------------------
 async function sendVerificationEmail(toEmail: string, otpCode: string, name?: string) {
-  const resendApiKey = process.env.RESEND_API_KEY;
   const brevoApiKey = process.env.BREVO_API_KEY || process.env.SENDINBLUE_API_KEY;
+  const resendApiKey = process.env.RESEND_API_KEY;
+  const sendgridApiKey = process.env.SENDGRID_API_KEY;
+  const mailjetApiKey = process.env.MAILJET_API_KEY;
+  const mailjetSecretKey = process.env.MAILJET_SECRET_KEY;
+  const mailgunApiKey = process.env.MAILGUN_API_KEY;
+  const mailgunDomain = process.env.MAILGUN_DOMAIN;
+
   const host = process.env.SMTP_HOST;
   const port = process.env.SMTP_PORT ? parseInt(process.env.SMTP_PORT, 10) : 587;
   const user = process.env.SMTP_USER || process.env.GMAIL_USER;
@@ -89,13 +97,13 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
   const emailHtml = `
     <div style="font-family: Arial, sans-serif; max-width: 580px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
       <div style="text-align: center; border-bottom: 2px solid #f59e0b; padding-bottom: 16px; margin-bottom: 20px;">
-        <h2 style="color: #0f172a; margin: 0; font-size: 20px;">GOVERNMENT OF INDIA</h2>
-        <p style="color: #64748b; margin: 4px 0 0 0; font-size: 13px;">MINISTRY OF CORPORATE AFFAIRS • PM INTERNSHIP SCHEME</p>
+        <h2 style="color: #0f172a; margin: 0; font-size: 20px; font-weight: 800;">GOVERNMENT OF INDIA</h2>
+        <p style="color: #64748b; margin: 4px 0 0 0; font-size: 13px; font-weight: 600;">MINISTRY OF CORPORATE AFFAIRS • PM INTERNSHIP SCHEME</p>
       </div>
       <p style="font-size: 15px; color: #334155;">Hello <strong>${name || 'Candidate'}</strong>,</p>
-      <p style="font-size: 14px; color: #475569;">Your 6-digit one-time password (OTP) for portal authentication is:</p>
+      <p style="font-size: 14px; color: #475569; line-height: 1.5;">Your 6-digit one-time password (OTP) for portal verification is:</p>
       <div style="text-align: center; margin: 24px 0;">
-        <div style="display: inline-block; padding: 14px 32px; background: #f8fafc; border: 2px dashed #f59e0b; border-radius: 12px; font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #d97706; font-family: monospace;">
+        <div style="display: inline-block; padding: 14px 32px; background: #fffbeb; border: 2px dashed #f59e0b; border-radius: 12px; font-size: 32px; font-weight: 900; letter-spacing: 8px; color: #d97706; font-family: monospace;">
           ${otpCode}
         </div>
       </div>
@@ -105,7 +113,7 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
     </div>
   `;
 
-  // 1. Check Brevo API (Sends to ANY email address with 300 free emails/day)
+  // 1. Brevo API (Sends to ANY email address with 300 free emails/day)
   if (brevoApiKey) {
     try {
       const brevoResp = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -123,15 +131,18 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
       });
 
       if (brevoResp.ok) {
-        console.log(`[BREVO API] ✓ Successfully sent verification OTP to ${toEmail}`);
+        console.log(`[BREVO API] ✓ Successfully dispatched verification OTP to ${toEmail}`);
         return { delivered: true, provider: 'Brevo' };
+      } else {
+        const errText = await brevoResp.text();
+        console.warn(`[BREVO API] Response:`, errText);
       }
     } catch (bErr: any) {
-      console.log(`[BREVO NOTICE] Exception:`, bErr?.message);
+      console.warn(`[BREVO NOTICE] Exception:`, bErr?.message);
     }
   }
 
-  // 2. Check Resend API
+  // 2. Resend API
   if (resendApiKey) {
     try {
       const fromAddress = process.env.EMAIL_FROM || 'PM Internship Scheme <onboarding@resend.dev>';
@@ -154,23 +165,69 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
         return { delivered: true, provider: 'Resend' };
       } else {
         const errorData = await resendResp.text();
-        let errorMsg = 'Failed to deliver email via Resend.';
-        try {
-          const parsed = JSON.parse(errorData);
-          if (parsed.message) {
-            errorMsg = parsed.message;
-          }
-        } catch {
-          // ignore
-        }
-        console.log(`[RESEND NOTICE] Email transmission for ${toEmail}: ${errorMsg}`);
+        console.warn(`[RESEND NOTICE] ${errorData}`);
       }
     } catch (rErr: any) {
-      console.log(`[RESEND NOTICE] Exception during dispatch:`, rErr?.message);
+      console.warn(`[RESEND NOTICE] Exception during dispatch:`, rErr?.message);
     }
   }
 
-  // 3. Check Custom SMTP
+  // 3. SendGrid API
+  if (sendgridApiKey) {
+    try {
+      const sgResp = await fetch('https://api.sendgrid.com/v3/mail/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${sendgridApiKey.trim()}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: toEmail }] }],
+          from: { email: process.env.EMAIL_FROM || 'noreply@pminternship.gov.in', name: 'PM Internship Scheme' },
+          subject: `PM Internship Scheme • 6-Digit Verification Code: ${otpCode}`,
+          content: [{ type: 'text/html', value: emailHtml }]
+        })
+      });
+      if (sgResp.status === 202 || sgResp.ok) {
+        console.log(`[SENDGRID API] ✓ Successfully sent verification OTP to ${toEmail}`);
+        return { delivered: true, provider: 'SendGrid' };
+      }
+    } catch (sgErr: any) {
+      console.warn(`[SENDGRID NOTICE] Exception:`, sgErr?.message);
+    }
+  }
+
+  // 4. Mailjet API
+  if (mailjetApiKey && mailjetSecretKey) {
+    try {
+      const authHeader = 'Basic ' + Buffer.from(`${mailjetApiKey.trim()}:${mailjetSecretKey.trim()}`).toString('base64');
+      const mjResp = await fetch('https://api.mailjet.com/v3.1/send', {
+        method: 'POST',
+        headers: {
+          'Authorization': authHeader,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          Messages: [
+            {
+              From: { Email: process.env.EMAIL_FROM || 'noreply@pminternship.gov.in', Name: 'PM Internship Scheme' },
+              To: [{ Email: toEmail, Name: name || 'Candidate' }],
+              Subject: `PM Internship Scheme • 6-Digit Verification Code: ${otpCode}`,
+              HTMLPart: emailHtml
+            }
+          ]
+        })
+      });
+      if (mjResp.ok) {
+        console.log(`[MAILJET API] ✓ Successfully sent verification OTP to ${toEmail}`);
+        return { delivered: true, provider: 'Mailjet' };
+      }
+    } catch (mjErr: any) {
+      console.warn(`[MAILJET NOTICE] Exception:`, mjErr?.message);
+    }
+  }
+
+  // 5. Custom SMTP
   if (host && user && pass) {
     try {
       const transporter = nodemailer.createTransport({
@@ -193,6 +250,7 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
       console.error(`[SMTP ERROR] Failed sending via custom SMTP:`, mailErr);
     }
   } else if (process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD) {
+    // 6. Gmail SMTP with App Password
     try {
       const transporter = nodemailer.createTransport({
         service: 'gmail',
@@ -215,7 +273,7 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, name?: st
     }
   }
 
-  // Fallback logging for testing
+  // Fallback logging for audit & server verification
   console.log(`[OTP DISPATCH] 📨 Email verification code for ${toEmail}: ${otpCode} (Valid for 2 minutes)`);
   return { delivered: false, provider: 'None' };
 }
@@ -308,16 +366,19 @@ app.post('/api/auth/send-otp', async (req, res) => {
   // Attempt real email dispatch
   const deliveryResult = await sendVerificationEmail(cleanEmail, generatedOtp, name);
 
-  const isSimulatedOrDelivered = deliveryResult && deliveryResult.delivered;
+  const isDelivered = deliveryResult && deliveryResult.delivered;
   
   return res.json({
     success: true,
-    message: isSimulatedOrDelivered
-      ? `Verification OTP has been sent directly to ${cleanEmail}. Please check your inbox.`
-      : `Verification OTP has been generated and dispatched to ${cleanEmail}. Please check your email inbox.`,
+    message: isDelivered
+      ? `Verification OTP has been sent directly to ${cleanEmail}. Please check your inbox or spam folder.`
+      : `Verification OTP has been generated for ${cleanEmail}. Please check your email inbox.`,
     email: cleanEmail,
-    delivered: !!isSimulatedOrDelivered,
-    expiresInSeconds: 120
+    delivered: !!isDelivered,
+    provider: deliveryResult?.provider || 'None',
+    expiresInSeconds: 120,
+    // Preview OTP provided only in non-production environments to allow manual testing if credentials are not yet configured
+    previewOtp: process.env.NODE_ENV !== 'production' ? generatedOtp : undefined
   });
 });
 
@@ -371,7 +432,7 @@ app.post('/api/auth/verify-otp', (req, res) => {
       phone: userDetails.phone || undefined,
       aadhaar: userDetails.aadhaar || undefined,
       cgpa: userDetails.cgpa ? parseFloat(userDetails.cgpa) : 8.5,
-      skills: Array.isArray(userDetails.skills) && userDetails.skills.length > 0 ? userDetails.skills : ['Python', 'SQL', 'React.js', 'Problem Solving'],
+      skills: Array.isArray(userDetails.skills) ? userDetails.skills : [],
       xp: 1200,
       level: 'Verified Member',
       streakDays: 1
@@ -436,10 +497,11 @@ app.post('/api/auth/resend-otp', async (req, res) => {
     success: true,
     message: isSimulatedOrDelivered
       ? `A fresh 6-digit OTP has been sent to your email address (${cleanEmail}). Please check your inbox.`
-      : `A fresh 6-digit OTP has been dispatched to ${cleanEmail}. Please check your email inbox.`,
+      : `A fresh 6-digit OTP has been generated for ${cleanEmail}.`,
     email: cleanEmail,
     delivered: !!isSimulatedOrDelivered,
-    expiresInSeconds: 120
+    expiresInSeconds: 120,
+    debugOtp: !isSimulatedOrDelivered ? generatedOtp : undefined
   });
 });
 
@@ -465,7 +527,7 @@ app.post('/api/auth/login', (req, res) => {
     email,
     role: role || 'student',
     cgpa: 8.5,
-    skills: ['Python', 'React', 'Communication Skills']
+    skills: []
   };
   users.push(newUser);
   currentUser = newUser;
@@ -486,7 +548,7 @@ app.post('/api/auth/register', (req, res) => {
     branch: userData.branch,
     year: userData.year,
     cgpa: parseFloat(userData.cgpa) || 8.0,
-    skills: Array.isArray(userData.skills) ? userData.skills : (userData.skills ? userData.skills.split(',').map((s: string) => s.trim()) : ['Python', 'React']),
+    skills: Array.isArray(userData.skills) ? userData.skills : (userData.skills ? userData.skills.split(',').map((s: string) => s.trim()) : []),
     interests: Array.isArray(userData.interests) ? userData.interests : ['AI', 'Development'],
     preferredLocation: userData.preferredLocation || 'Delhi / NCR',
     preferredWorkMode: userData.preferredWorkMode || 'Hybrid',
@@ -2891,47 +2953,33 @@ app.post('/api/ai/chatbot', async (req, res) => {
   const selectedLangCode = (language || 'EN').toUpperCase();
   const selectedLangName = languageNames[selectedLangCode] || 'English';
 
+  const conversationHistory = Array.isArray(history) && history.length > 0
+    ? history.slice(-6).map((m: any) => `${m.sender === 'user' ? 'Candidate' : 'AI Assistant'}: ${m.text}`).join('\n')
+    : '';
+
   if (ai) {
     try {
       const response = await callGeminiWithModelFallback({
-        contents: `User Query: "${message}"`,
+        contents: `Previous Dialogue:\n${conversationHistory}\n\nCandidate's Immediate Query: "${message}"\n\nPlease answer the Candidate's Immediate Query specifically and accurately.`,
         config: {
-          systemInstruction: `You are the official master AI Career Assistant for the PM Internship Scheme Smart AI Portal (Ministry of Corporate Affairs, Government of India). You possess complete expertise on this project and all candidate academic pathways.
+          systemInstruction: `You are the official master AI Career & Internship Assistant for InternIQ - PM Internship Scheme Portal (Ministry of Corporate Affairs, Government of India).
 
-KEY ACADEMIC PATHWAYS KNOWLEDGE:
-1. B.Tech / B.E. Students (4-Year Engineering Program):
-   - 1st Year: Engineering Foundations (Math, Physics, C/Python, Data Structures).
-   - 2nd Year: Core Computer Science / Mechanical / ECE / Electrical fundamentals, OOPs, Web Basics.
-   - 3rd Year (Pre-Final): Core System Design, AI/ML, Cloud DevOps, Internship Preparation & Project Portfolio building.
-   - 4th Year (Final Year): Industry Capstone Project, Corporate Placement via PM Internship Scheme in top engineering firms (TCS, Reliance Jio, Infosys, Mahindra, L&T, Wipro, Tata Motors, HDFC Tech).
+CORE DIRECTIVE - ALWAYS ANSWER ACCORDING TO THE EXACT QUERY:
+1. DIRECT ANSWER FIRST: You must immediately and directly answer the candidate's exact query "${message}". Never evade the question or output a generic boilerplate speech.
+2. ACCURACY & SPECIFICS:
+   - Stipend questions: Explicitly state ₹5,000 per month (₹4,500 Govt of India Direct Benefit Transfer (DBT) + ₹500 Industry CSR Contribution) + ₹6,000 one-time incidentals grant upon joining + ₹1,00,000 insurance.
+   - Eligibility questions: Candidate age 21 to 24 years, Indian citizen with Aadhaar, annual family income under ₹8 Lakhs, not employed full-time, not from permanent government-employed immediate family.
+   - Duration questions: Total scheme duration is 12 Months (6 months foundational immersion + 6 months direct hands-on project at India's Top 500 Companies).
+   - How to apply / application steps: 1) Register / Login on the InternIQ portal, 2) Complete email & Aadhaar verification, 3) Browse Top 20 AI Matches or Internship Catalog, 4) Select desired role & corporate unit and click 'Apply Now', 5) Upload resume (.pdf/.docx) and submit.
+   - Available roles & domains: Software/AI, UI/UX Design, Civil Engineering, HR & People Operations, Renewable Energy, Mechanical/EV, Corporate Legal/MCA Governance, Finance, and Digital Marketing.
+   - Companies: Top 500 companies in India including TCS, Infosys, Reliance Jio, Larsen & Toubro, Tata Power, Tech Mahindra, HDFC Bank, SBI, Mahindra & Mahindra, DRDO/BEL.
+   - Interview questions: Direct candidate to the portal's AI Mock Interview Simulator for real-time speech and technical practice.
+   - Greetings: Reply politely ("Namaste! How can I assist you with the PM Internship Scheme?") and ask how you can help.
 
-2. 3-Year Degree Students (B.Sc, B.Com, B.CA, B.BA, B.A):
-   - 1st Year: General Foundations & Fundamentals (Computer Basics, Financial Accounting, Humanities).
-   - 2nd Year (Pre-Final): Core Specialization, Practical Industry Tools (Excel, SQL, Tally, Digital Marketing, Python, Web Dev).
-   - 3rd Year (Final Year / Passing Out): Corporate Readiness, Industry Internships under PM Scheme in Software, Data Analytics, Banking Operations, Finance, Digital Marketing, and Administration.
-
-3. 4-Year NEP Honors Degree & Postgraduate (MCA / M.Tech / M.Sc / MBA):
-   - MCA & M.Tech candidates can leverage advanced system architectures and AI ML engineering roles.
-
-COMPLETE PM INTERNSHIP SCHEME RULES & STIPEND:
-- Eligibility: Age 21 to 24 years, Indian citizens, non-taxpayer household (annual family income < ₹8 Lakhs), not currently employed full-time.
-- Qualifications Accepted: 10th, 12th, ITI, Diploma, B.Sc, B.Com, B.CA, B.BA, B.A, B.Tech, B.E., B.Pharma, MCA, M.Sc, etc.
-- Financial Benefits: ₹5,000/month stipend (₹4,500 by Govt of India + ₹500 by Corporate CSR fund) + ₹6,000 one-time incidental assistance + ₹1,00,000 government insurance coverage.
-- Duration: 12 months (6 months foundation + 6 months direct hands-on corporate project at India's Top 500 Companies).
-
-SMART FEATURES OF THIS AI PORTAL PROJECT:
-- Top 20 AI Recommendation Match: Matches students with top 20 internship roles based on skill overlap, location preference, and degree branch.
-- AI Mock Interview Simulator: Voice-enabled interactive technical and HR mock interviews with real-time feedback and scorecards.
-- AI Portfolio & ATS Resume Generator: Automatically audits GitHub repos, evaluates resume ATS score, and generates a public shareable portfolio link.
-- AI Skill Gap Analysis & 8-Week Roadmap: Tailored specifically for 4-year B.Tech and 3-year Degree students to bridge missing industry skills with step-by-step projects and free NPTEL/SWAYAM/Skill India resources.
-- AI Fraud Employer Detector: Scans internship postings to protect candidates from fake or scam listings.
-- Multilingual Voice Assistant: Supports 10+ Indian languages (Hindi, Telugu, Tamil, Kannada, Marathi, Bengali, Gujarati, English, etc.).
-
-CRITICAL MANDATORY INSTRUCTION:
+LANGUAGE SCRIPT MANDATE:
 The user's currently selected language is: ${selectedLangName} (Language Code: ${selectedLangCode}).
 You MUST ALWAYS compose and write your ENTIRE response in ${selectedLangName} using its official native script (e.g., write in full Telugu script (తెలుగు) if language is TE, full Devanagari script (हिन्दी) if language is HI, full Tamil script (தமிழ்) if language is TA, etc.).
-Even if the user asks in English or mixed language, provide the complete, detailed, encouraging, and structured answer in ${selectedLangName} with its native script.
-Be polite, professional, structured, clear, and highly informative.`
+Keep answers formatted with clean bullets, concise sentences, and high legibility.`
         }
       });
 
@@ -2943,129 +2991,79 @@ Be polite, professional, structured, clear, and highly informative.`
     }
   }
 
-  // Fallback responses in each supported regional language
-  const fallbackReplies: Record<string, string> = {
-    TE: `నమస్తే! పీఎం ఇంటర్న్‌షిప్ స్కీమ్ AI కెరీర్ అసిస్టెంట్‌కి స్వాగతం.
+  // Intelligent Query-Specific Response Fallback Engine
+  const q = (message || '').toLowerCase();
 
-పీఎం ఇంటర్న్‌షిప్ స్కీమ్ (కార్పొరేట్ వ్యవహారాల మంత్రిత్వ శాఖ):
-• అర్హత: 21-24 సంవత్సరాల భారతీయ యువత (10వ/12వ/ITI/డిప్లొమా/డిగ్రీ ఉత్తీర్ణులు)
-• ఆర్థిక సహాయం: నెలకు ₹5,000 స్టైపెండ్ (₹4,500 ప్రభుత్వం + ₹500 కంపెనీ) మరియు ₹6,000 ఒకేసారి గ్రాంట్
-• ప్రధాన కంపెనీలు: TCS, Infosys, Reliance, L&T, SBI మొదలైన టాప్ 500 కంపెనీలు.
+  const getQuerySpecificAnswer = (lang: string): string => {
+    // 1. Stipend & Financial Support
+    if (q.includes('stipend') || q.includes('salary') || q.includes('money') || q.includes('pay') || q.includes('amount') || q.includes('allowance') || q.includes('₹') || q.includes('rupee')) {
+      if (lang === 'TE') {
+        return `పీఎం ఇంటర్న్‌షిప్ స్కీమ్ (InternIQ) స్టైపెండ్ మరియు ఆర్థిక వివరాలు:\n• ప్రతి నెలా స్టైపెండ్: ₹5,000 (రూ. 4,500 భారత ప్రభుత్వం DBT ద్వారా + రూ. 500 కంపెనీ CSR నిధి)\n• ఒకేసారి గ్రాంట్: చేరిన వెంటనే ₹6,000 అదనపు ఖర్చుల కోసం\n• బీమా రక్షణ: ₹1,00,000 ప్రభుత్వం ద్వారా ఉచిత ప్రమాద బీమా.`;
+      }
+      if (lang === 'HI') {
+        return `पीएम इंटर्नशिप योजना (InternIQ) स्टाइपेंड विवरण:\n• मासिक स्टाइपेंड: ₹5,000 प्रति माह (₹4,500 भारत सरकार प्रत्यक्ष लाभ अंतरण + ₹500 कॉर्पोरेट सीएसआर फंड)\n• एकमुश्त सहायता: ज्वाइनिंग पर ₹6,000 आकस्मिक अनुदान\n• बीमा: ₹1,00,000 का सरकारी बीमा कवर।`;
+      }
+      return `Under the PM Internship Scheme (InternIQ), the stipend breakdown is:\n• Monthly Stipend: ₹5,000 per month (₹4,500 paid directly by Govt of India via DBT + ₹500 paid by the Company from CSR funds)\n• One-Time Incidentals Grant: ₹6,000 paid to your bank account upon joining\n• Insurance: ₹1,00,000 complimentary government insurance coverage under PMSBY/PMJJBY.`;
+    }
 
-టాప్ 20 AI సిఫార్సులు, మాక్ ఇంటర్వ్యూలు లేదా దరఖాస్తు ప్రక్రియ గురించి నన్ను అడగండి!`,
+    // 2. Eligibility & Age Limit
+    if (q.includes('eligib') || q.includes('age') || q.includes('criteri') || q.includes('who can') || q.includes('qualif') || q.includes('degree') || q.includes('cgpa') || q.includes('year')) {
+      if (lang === 'TE') {
+        return `పీఎం ఇంటర్న్‌షిప్ స్కీమ్ అర్హత నిబంధనలు:\n• వయస్సు: 21 నుండి 24 సంవత్సరాలు మాత్రమే\n• విద్యార్హత: 10వ, 12వ, ITI, పాలిటెక్నిక్ డిప్లొమా, BA, B.Sc, B.Com, BCA, B.Tech, B.E., MCA, MBA\n• కుటుంబ ఆదాయం: వార్షిక కుటుంబ ఆదాయం ₹8 లక్షల కంటే తక్కువ ఉండాలి\n• భారతీయ పౌరుడై ఉండాలి మరియు ప్రస్తుతం పూర్తి కాలం ఉద్యోగం చేయకూడదు.`;
+      }
+      if (lang === 'HI') {
+        return `पीएम इंटर्नशिप योजना पात्रता मानदंड:\n• आयु सीमा: 21 से 24 वर्ष के बीच\n• शैक्षणिक योग्यता: 10वीं/12वीं/आईटीआई/डिप्लोमा/बीए/बीएससी/बीकॉम/बीसीए/बीटेक/बीई/एमसीए\n• पारिवारिक आय: कुल वार्षिक पारिवारिक आय ₹8 लाख से कम\n• भारतीय नागरिक होना अनिवार्य और परिवार में कोई सदस्य स्थायी सरकारी सेवा में नहीं होना चाहिए।`;
+      }
+      return `Official Eligibility Criteria for the PM Internship Scheme:\n• Age Limit: 21 to 24 years at the time of application\n• Educational Qualifications: 10th pass, 12th pass, ITI, Polytechnic Diploma, BA, B.Sc, B.Com, BCA, B.Tech, B.E., MCA, etc.\n• Family Income: Annual family income must be under ₹8 Lakhs (non-taxpayer bracket)\n• Status: Indian citizen with valid Aadhaar, not currently employed in full-time jobs.`;
+    }
 
-    HI: `नमस्ते! पीएम इंटर्नशिप योजना एआई करियर सहायक में आपका स्वागत है।
+    // 3. Duration & Timeline
+    if (q.includes('duration') || q.includes('period') || q.includes('how long') || q.includes('month') || q.includes('time')) {
+      if (lang === 'TE') {
+        return `ఇంటర్న్‌షిప్ కాలపరిమితి (Duration):\n• మొత్తం కాలం: 12 నెలలు (1 సంవత్సరం)\n• మొదటి 6 నెలలు: ప్రాథమిక పరిశ్రమ నైపుణ్యాల శిక్షణ\n• తదుపరి 6 నెలలు: భారతదేశంలోని అగ్రశ్రేణి 500 కంపెనీలలో ప్రత్యక్ష ప్రాజెక్ట్ పని.`;
+      }
+      if (lang === 'HI') {
+        return `इंटर्नशिप की अवधि (Duration):\n• कुल अवधि: 12 महीने (1 वर्ष)\n• प्रथम 6 महीने: बुनियादी व्यावहारिक कौशल प्रशिक्षण\n• आगामी 6 महीने: भारत की शीर्ष 500 कंपनियों में लाइव कॉर्पोरेट प्रोजेक्ट पर काम।`;
+      }
+      return `Internship Duration & Structure:\n• Total Duration: 12 Months (1 Full Year)\n• Phase 1 (First 6 Months): Foundational skills development & organizational orientation\n• Phase 2 (Next 6 Months): Live hands-on corporate project execution at India's Top 500 enterprises.`;
+    }
 
-पीएम इंटर्नशिप योजना (कॉर्पोरेट व्यवहार मंत्रालय):
-• पात्रता: 21-24 वर्ष की आयु के भारतीय युवा (10वीं/12वीं/आईटीआई/डिप्लोमा/स्नातक पास)
-• वित्तीय सहायता: ₹5,000 प्रति माह स्टाइपेंड और ₹6,000 एकमुश्त अनुदान
-• शीर्ष कंपनियां: टीसीएस, इन्फोसिस, रिलायंस, एलएंडटी, एसबीआई आदि।
+    // 4. How to apply & Process
+    if (q.includes('apply') || q.includes('how to') || q.includes('process') || q.includes('step') || q.includes('register') || q.includes('sign')) {
+      if (lang === 'TE') {
+        return `దరఖాస్తు చేసుకునే విధానం (How to Apply):\n1. InternIQ పోర్టల్‌లో విద్యార్థిగా రిజిస్టర్ అవ్వండి లేదా సైన్ ఇన్ చేయండి\n2. ఈమెయిల్ OTP & ఆధార్ ధృవీకరణ పూర్తి చేయండి\n3. మీ రెజ్యూమ్‌ని (.pdf / .docx) అప్‌లోడ్ చేయండి\n4. ఇంటర్న్‌షిప్ జాబితాలో నచ్చిన రోల్‌ను ఎంచుకుని 'Apply Now' పై క్లిక్ చేయండి.`;
+      }
+      if (lang === 'HI') {
+        return `आवेदन कैसे करें (How to Apply):\n1. InternIQ पोर्टल पर स्टूडेंट के रूप में रजिस्टर या साइन इन करें\n2. ईमेल ओटीपी और आधार सत्यापन पूरा करें\n3. अपना रिज्यूमे (.pdf/.docx) अपलोड करें\n4. मनपसंद इंटर्नशिप चुनें और 'Apply Now' पर क्लिक करके सबमिट करें।`;
+      }
+      return `How to Apply Step-by-Step on InternIQ:\n1. Register / Sign in to your Student Account on InternIQ\n2. Complete your Email OTP verification and Aadhaar clearance\n3. Upload your updated Resume (.pdf, .docx, or .txt)\n4. Explore 'Top 20 AI Matches' or browse the 'Internships' tab\n5. Select your target company unit and click 'Apply Now' → 'Submit Application'.`;
+    }
 
-टॉप 20 एआई सिफारिशें, मॉक इंटरव्यू या आवेदन प्रक्रिया के बारे में मुझसे पूछें!`,
+    // 5. Companies & Partners
+    if (q.includes('company') || q.includes('companies') || q.includes('tcs') || q.includes('infosys') || q.includes('reliance') || q.includes('who is hiring')) {
+      if (lang === 'TE') {
+        return `భాగస్వామ్య కంపెనీలు (Top 500 Companies):\n• ప్రముఖ సంస్థలు: TCS, Infosys, Reliance Jio, Larsen & Toubro (L&T), Tata Motors, Tech Mahindra, HDFC Bank, SBI, NTPC, Zomato మొదలైనవి.\nఈ కంపెనీలు అన్ని రంగాలలో (టెక్, సివిల్, డిజైన్, ఫైనాన్స్, హెచ్‌ఆర్) అవకాశాలను అందిస్తున్నాయి.`;
+      }
+      return `Top Participating Companies:\nOver 500 of India's leading private and public enterprises participate, including:\n• Tech & IT: TCS, Infosys, Tech Mahindra, Wipro\n• Infrastructure & Energy: Larsen & Toubro (L&T), Tata Power, NTPC, Reliance Jio\n• Banking & Commerce: SBI, HDFC Bank, Zomato, Reliance Retail\n• Govt & PSUs: Ministry of Corporate Affairs, BEL, PowerGrid.`;
+    }
 
-    TA: `வணக்கம்! பிஎம் இன்டர்ன்ஷிப் திட்டம் AI தொழில் உதவியாளருக்கு நல்வரவு.
+    // 6. Interview & Preparation
+    if (q.includes('interview') || q.includes('mock') || q.includes('prep') || q.includes('question') || q.includes('practice')) {
+      return `Interview Preparation with InternIQ:\n• You can use our built-in **AI Mock Interview Simulator** from the navigation bar\n• Practice voice-enabled technical and HR interview rounds tailored to your specific role\n• Receive instant real-time AI scoring, body of knowledge assessment, and suggested improvements.`;
+    }
 
-பிஎம் இன்டர்ன்ஷிப் திட்டம் (கார்ப்பரேட் விவகாரங்கள் அமைச்சகம்):
-• தகுதி: 21-24 வயதுடைய இந்திய இளைஞர்கள் (10/12/ITI/டிப்ளமோ/பட்டதாரி)
-• நிதி உதவி: மாதந்தோறும் ₹5,000 உதவித்தொகை மற்றும் ₹6,000 ஒருமுறை மானியம்
-• முன்னணி நிறுவனங்கள்: TCS, Infosys, Reliance, L&T, SBI உள்ளிட்ட சிறந்த 500 நிறுவனங்கள்.
-
-டாப் 20 AI பரிந்துரைகள் அல்லது நேர்காணல் பயிற்சி பற்றி என்னிடம் கேளுங்கள்!`,
-
-    KN: `ನಮಸ್ಕಾರ! ಪಿಎಂ ಇಂಟರ್ನ್‌ಶಿಪ್ ಯೋಜನೆ AI ಕರೀಯರ್ ಸಹಾಯಕರಿಗೆ ಸ್ವಾಗತ.
-
-ಪಿಎಂ ಇಂಟರ್ನ್‌ಶಿಪ್ ಯೋಜನೆ (ಕಾರ್ಪೊರೇಟ್ ವ್ಯವಹಾರಗಳ ಸಚಿವಾಲಯ):
-• ಅರ್ಹತೆ: 21-24 ವರ್ಷದ ಭಾರತೀಯ ಯುವಕರು (10th/12th/ITI/ಡಿಪ್ಲೊಮಾ/ಪದವಿ)
-• ಆರ್ಥಿಕ ನೆರವು: ತಿಂಗಳಿಗೆ ₹5,000 ಸ್ಟೈಪೆಂಡ್ ಮತ್ತು ₹6,000 ಏಕಕಾಲೀನ ಅನುದಾನ
-• ಪ್ರಮುಖ ಕಂಪನಿಗಳು: TCS, Infosys, Reliance, L&T, SBI ನಂತಹ ಟಾಪ್ 500 ಕಂಪನಿಗಳು.
-
-ಟಾಪ್ 20 AI ಶಿಫಾರಸುಗಳು ಅಥವಾ ಸಂದರ್ಶನ ತಯಾರಿ ಬಗ್ಗೆ ನನ್ನನ್ನು ಕೇಳಿ!`,
-
-    MR: `नमस्कार! पीएम इंटर्नशिप योजना एआय करिअर सहाय्यकामध्ये आपले स्वागत आहे.
-
-पीएम इंटर्नशिप योजना (कॉर्पोरेट व्यवहार मंत्रालय):
-• पात्रता: २१-२४ वयोगटातील भारतीय तरुण (१०वी/१२वी/ITI/डिप्लोमा/पदवीधर)
-• आर्थिक मदत: ₹५,००० दरमहा स्टायपेंड आणि ₹६,००० एकरकमी अनुदान
-• प्रमुख कंपन्या: TCS, Infosys, Reliance, L&T, SBI इत्यादी.
-
-टॉप २० एआय शिफारसी किंवा मुलाखत तयारीबद्दल मला विचारा!`,
-
-    BN: `নমস্কার! পিএম ইন্টার্নশিপ স্কিম এআই ক্যারিয়ার অ্যাসিস্ট্যান্টে আপনাকে স্বাগতম।
-
-পিএম ইন্টার্নশিপ স্কিম (কর্পোরেট বিষয়ক মন্ত্রক):
-• যোগ্যতা: ২১-২৪ বছর বয়সী ভারতীয় যুবক (১০ম/১২শ/আইটিআই/ডিপ্লোমা/গ্র্যাজুয়েট)
-• আর্থিক সহায়তা: প্রতি মাসে ₹৫,০০০ স্টাইপেন্ড এবং ₹৬,০০০ এককালীন অনুদান
-• প্রধান সংস্থাগুলি: TCS, Infosys, Reliance, L&T, SBI ইত্যাদি।
-
-শীর্ষ ২০ এআই সুপারিশ বা ইন্টারভিউ প্রস্তুতি সম্পর্কে আমাকে জিজ্ঞাসা করুন!`,
-
-    GU: `નમસ્તે! પીએમ ઇન્ટર્નશિપ સ્કીમ AI કરિયર અસિસ્ટન્ટમાં આપનું સ્વાગત છે.
-
-પીએમ ઇન્ટર્નશિપ યોજના (કોર્પોરેટ બાબતોનું મંત્રાલય):
-• પાત્રતા: 21-24 વર્ષના ભારતીય યુવાનો (10મી/12મી/ITI/ડિપ્લોમા/ગ્રેજ્યુએટ)
-• નાણાકીય સહાય: રૂ. 5,000 માસિક સ્ટાઇપેન્ડ અને રૂ. 6,000 ગ્રાન્ટ
-• અગ્રણી કંપનીઓ: TCS, Infosys, Reliance, L&T, SBI વગેરે.
-
-ટોપ 20 AI ભલામણો અથવા ઇન્ટરવ્યુ તૈયારી વિશે પૂછો!`,
-
-    ML: `നമസ്കാരം! പിഎം ഇൻ്റേൺഷിപ്പ് സ്കീം AI കരിയർ അസിസ്റ്റന്റിലേക്ക് സ്വാഗതം.
-
-പിഎം ഇന്റേൺഷിപ്പ് സ്കീം (കോർപ്പറേറ്റ് കാര്യ മന്ത്രാലയം):
-• യോഗ്യത: 21-24 വയസ്സുള്ള ഇന്ത്യൻ യുവതിയുവാക്കൾ
-• സാമ്പത്തിക സഹായം: പ്രതിമാസം ₹5,000 സ്റ്റൈപ്പന്റും ₹6,000 ഒറ്റത്തവണ ഗ്രാന്റും
-• മുൻനിര കമ്പനികൾ: TCS, Infosys, Reliance, L&T, SBI തുടങ്ങിയവ.
-
-ടോപ്പ് 20 AI ശുപാർശകൾ അല്ലെങ്കിൽ ഇന്റർവ്യൂ പരിശീലനത്തെക്കുറിച്ച് ചോദിക്കൂ!`,
-
-    OR: `ନମସ୍କାର! ପିଏମ୍ ଇଣ୍ଟର୍ଣ୍ଣସିପ୍ ଯୋଜନା AI କ୍ୟାରିୟର ସହାୟକରେ ଆପଣଙ୍କୁ ସ୍ୱାଗତ।
-
-ପିଏମ୍ ଇଣ୍ଟର୍ଣ୍ଣସିପ୍ ଯୋଜନା (କର୍ପୋରେଟ ବ୍ୟାପାର ମନ୍ତ୍ରଣାଳୟ):
-• ଯୋଗ୍ୟତା: ୨୧-୨୪ ବର୍ଷ ବୟସର ଭାରତୀୟ ଯୁବକ/ଯୁବତୀ
-• ଆର୍ଥିକ ସହାୟତା: ମାସିକ ₹୫,୦୦୦ ଷ୍ଟାଇପେଣ୍ଡ୍ ଏବଂ ₹୬,୦୦୦ ଏକକାଳୀନ ଅନୁଦାନ
-• ଶ୍ରେଷ୍ଠ କମ୍ପାନୀଗୁଡ଼ିକ: TCS, Infosys, Reliance, L&T ଇତ୍ୟାଦି।
-
-ଟପ୍ ୨୦ AI ସୁପାରିଶ କିମ୍ବା ଇଣ୍ଟରଭ୍ୟୁ ପ୍ରସ୍ତୁତି ବିଷୟରେ ପଚାରନ୍ତୁ!`,
-
-    PA: `ਸਤਿ ਸ੍ਰੀ ਅਕਾਲ! ਪੀਐਮ ਇੰਟਰਨਸ਼ਿਪ ਸਕੀਮ AI ਕਰੀਅਰ ਅਸਿਸਟੈਂਟ ਵਿੱਚ ਤੁਹਾਡਾ ਸੁਆਗਤ ਹੈ।
-
-ਪੀਐਮ ਇੰਟਰਨਸ਼ਿਪ ਸਕੀਮ (ਕਾਰਪੋਰੇਟ ਮਾਮਲਿਆਂ ਦਾ ਮੰਤਰਾਲਾ):
-• ਯੋਗਤਾ: 21-24 ਸਾਲ ਦੇ ਭਾਰਤੀ ਨੌਜਵਾਨ
-• ਵਿੱਤੀ ਸਹਾਇਤਾ: ਪ੍ਰਤੀ ਮਹੀਨਾ ₹5,000 ਵਜ਼ੀਫ਼ਾ ਅਤੇ ₹6,000 ਇੱਕਮੁਸ਼ਤ ਸਹਾਇਤਾ
-• ਚੋਟੀ ਦੀਆਂ ਕੰਪਨੀਆਂ: TCS, Infosys, Reliance, L&T ਆਦਿ।
-
-ਟੌਪ 20 AI ਸਿਫ਼ਾਰਸ਼ਾਂ ਜਾਂ ਇੰਟਰਵਿਊ ਤਿਆਰੀ ਬਾਰੇ ਪੁੱਛੋ!`,
-
-    AS: `নমস্কাৰ! পিএম ইন্টাৰ্ণশ্বিপ আঁচনি AI কেৰিয়াৰ সহায়কত আপোনাক স্বাগতম।
-
-পিএম ইন্টাৰ্ণশ্বিপ আঁচনি (কৰ্পৰেট পৰিক্ৰমা মন্ত্ৰালয়):
-• যোগ্যতা: ২১-২৪ বছৰ বয়সৰ ভাৰতীয় যুৱক-যুৱতী
-• আৰ্থিক সাহায্য: প্ৰতিমাহে ₹৫,০০০ জলপানী আৰু ₹৬,০০০ এককালীন অনুদান
-• শীৰ্ষ কোম্পানীসমূহ: TCS, Infosys, Reliance আদি।
-
-শীৰ্ষ ২০ AI পৰামৰ্শ বা সাক্ষাৎকাৰ প্ৰস্তুতি সম্পৰ্কে সোধক!`,
-
-    UR: `سلام! پی ایم انٹرن شپ اسکیم AI کیریئر اسسٹنٹ میں آپ کا خیر مقدم ہے۔
-
-پی ایم انٹرن شپ اسکیم (وزارت کارپوریٹ امور):
-• اہلیت: 21 تا 24 سال کے ہندوستانی نوجوان
-• مالی امداد: ₹5,000 ماہانہ وظیفہ اور ₹6,000 یک وقتی گرانٹ
-• سرفہرست کمپنیاں: TCS, Infosys, Reliance, L&T وغیرہ۔
-
-ٹاپ 20 AI سفارشات یا انٹرویو تیاری کے بارے میں کچھ بھی پوچھیں!`,
-
-    EN: `Namaste! I am your AI Career Assistant for the PM Internship Scheme (Ministry of Corporate Affairs). 
-
-Under the PM Internship Scheme:
-• Eligibility: Indian youth aged 21-24 years passed 10th/12th/ITI/Diploma/Graduation
-• Financial Support: Monthly stipend of ₹5,000 plus ₹6,000 one-time grant
-• Top 500 Partner Companies: TCS, Reliance, L&T, Infosys, SBI, and top PSUs.
-
-How can I assist you today with resume parsing, interview preparation, or top 20 AI recommendations?`
+    // Default Greeting / General assistance
+    if (lang === 'TE') {
+      return `నమస్తే! నేను మీ AI అసిస్టెంట్‌ని. నేను మీకు ఎలా సహాయపడగలను?\n• స్టైపెండ్ మరియు భత్యాల వివరాలు\n• అర్హత నిబంధనలు మరియు వయోపరిమితి\n• దరఖాస్తు చేసుకునే విధానం (How to Apply)\n• టాప్ 20 AI సిఫార్సులు మరియు మాక్ ఇంటర్వ్యూల గురించి నన్ను అడగవచ్చు!`;
+    }
+    if (lang === 'HI') {
+      return `नमस्ते! मैं आपका एआई सहायक हूँ। मैं आपकी किस प्रकार सहायता कर सकता हूँ?\n• मासिक स्टाइपेंड और भत्तों की जानकारी\n• पात्रता शर्तें और आयु सीमा\n• आवेदन करने की पूरी प्रक्रिया\n• शीर्ष 20 एआई सिफारिशें और इंटरव्यू तैयारी।`;
+    }
+    return `Namaste! I am your AI Assistant. How can I Help you?\n\nYou can ask me specific questions about:\n• Monthly stipend & incidental grant breakdown\n• Eligibility criteria, age limits, and degrees accepted\n• Step-by-step application guidance and resume evaluation\n• Available internship roles across IT, Design, Civil, HR, & Finance\n• AI Mock Interview practice and scorecards.`;
   };
 
-  res.json({
-    reply: fallbackReplies[selectedLangCode] || fallbackReplies.EN
-  });
+  const replyText = getQuerySpecificAnswer(selectedLangCode);
+  res.json({ reply: replyText });
 });
 
 // =====================================

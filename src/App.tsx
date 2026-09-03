@@ -254,7 +254,7 @@ export default function App() {
         college: 'Degree University / Institute',
         branch: 'Computer Science & Engineering',
         cgpa: 8.5,
-        skills: ['Python', 'React.js', 'Machine Learning', 'TypeScript', 'SQL'],
+        skills: [],
         githubUrl: '',
         linkedinUrl: '',
         xp: 1450,
@@ -264,7 +264,7 @@ export default function App() {
     }
     localStorage.setItem('pm_scheme_user', JSON.stringify(newUser));
     setUser(newUser);
-    setCurrentPage('dashboard');
+    setCurrentPage('home');
   };
 
   const handleNavigate = (tab: string) => {
@@ -479,7 +479,7 @@ export default function App() {
             onLogin={(loggedInUser) => {
               localStorage.setItem('pm_scheme_user', JSON.stringify(loggedInUser));
               setUser(loggedInUser);
-              handleNavigate('dashboard');
+              handleNavigate('home');
             }}
           />
         );

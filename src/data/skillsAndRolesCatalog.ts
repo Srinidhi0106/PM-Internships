@@ -170,6 +170,131 @@ export const VALID_ROLE_CATEGORIES: RoleCategory[] = [
         coreSkills: ['AutoCAD', 'SolidWorks', 'CATIA', 'ANSYS', 'Engineering Drawing']
       }
     ]
+  },
+  {
+    sector: 'Design, Creative & User Experience (UI/UX)',
+    roles: [
+      {
+        title: 'UI/UX Designer & Product Prototyper',
+        description: 'User interface design, Figma wireframing, design systems, usability research, and interactive prototyping.',
+        suitedDegrees: 'B.Des / B.Tech / B.Sc / Any Degree',
+        coreSkills: ['Figma', 'UI/UX Design', 'Wireframing', 'Prototyping', 'User Research', 'Design Systems']
+      },
+      {
+        title: 'Product Design & Visual Media Associate',
+        description: 'Visual branding, vector graphic illustration, product assets, and marketing creatives.',
+        suitedDegrees: 'B.Des / B.A / Any Graduate',
+        coreSkills: ['Adobe Photoshop', 'Adobe Illustrator', 'Figma', 'Visual Design', 'Branding']
+      },
+      {
+        title: 'Technical Content & Documentation Specialist',
+        description: 'Developer documentation, API reference guides, release notes, and technical articles.',
+        suitedDegrees: 'B.A / B.Sc / BCA / B.Tech / Any Degree',
+        coreSkills: ['Technical Writing', 'Markdown', 'Documentation', 'Communication Skills', 'Content Strategy']
+      }
+    ]
+  },
+  {
+    sector: 'Human Resources & People Operations',
+    roles: [
+      {
+        title: 'HR & Talent Acquisition Specialist',
+        description: 'End-to-end recruitment pipelines, candidate screening, interview scheduling, and employer branding.',
+        suitedDegrees: 'BBA / MBA / B.A / B.Com / Any Graduate',
+        coreSkills: ['Recruitment', 'Talent Acquisition', 'HR Analytics', 'Interview Coordination', 'Communication Skills']
+      },
+      {
+        title: 'People Operations & HR Analytics Trainee',
+        description: 'HR metrics tracking, employee onboarding experience, performance appraisal systems, and payroll ops.',
+        suitedDegrees: 'BBA / MBA / B.Com',
+        coreSkills: ['HR Analytics', 'Advanced Excel', 'Employee Engagement', 'HRIS', 'People Operations']
+      }
+    ]
+  },
+  {
+    sector: 'Civil, Infrastructure & Built Environment',
+    roles: [
+      {
+        title: 'Civil & Structural Design Engineer',
+        description: 'Structural modeling, concrete analysis, AutoCAD drafting, and construction site quality inspection.',
+        suitedDegrees: 'B.Tech Civil / Diploma Civil',
+        coreSkills: ['AutoCAD', 'STAAD Pro', 'Structural Analysis', 'Concrete Technology', 'Site Supervision']
+      },
+      {
+        title: 'BIM Modeler & Smart Construction Specialist',
+        description: 'Building Information Modeling (BIM), 3D architectural coordination, and Revit modeling.',
+        suitedDegrees: 'B.Arch / B.Tech Civil',
+        coreSkills: ['Revit', 'BIM', 'AutoCAD', 'Quantity Surveying', 'Construction Management']
+      }
+    ]
+  },
+  {
+    sector: 'Renewable Energy, Climate Tech & Sustainability',
+    roles: [
+      {
+        title: 'Solar PV & Clean Energy Systems Trainee',
+        description: 'Rooftop & utility-scale solar PV system sizing, irradiance modeling, and electrical grid interconnection.',
+        suitedDegrees: 'B.Tech Electrical / Renewable / Mechanical',
+        coreSkills: ['Solar PV', 'PVSyst', 'Electrical Circuits', 'Renewable Energy', 'CAD Design']
+      },
+      {
+        title: 'Sustainability & ESG Compliance Analyst',
+        description: 'Carbon footprint auditing, corporate ESG reporting, sustainability metrics, and green standards.',
+        suitedDegrees: 'B.Sc / B.Tech / MBA / Environmental Science',
+        coreSkills: ['ESG Reporting', 'Sustainability Analysis', 'Carbon Accounting', 'Environmental Regulations']
+      }
+    ]
+  },
+  {
+    sector: 'Supply Chain, Logistics & Operations',
+    roles: [
+      {
+        title: 'Supply Chain & Logistics Operations Trainee',
+        description: 'Inventory management, warehouse logistics, route dispatch optimization, and vendor tracking.',
+        suitedDegrees: 'BBA / B.Com / B.Tech / Any Graduate',
+        coreSkills: ['Supply Chain Management', 'Logistics', 'Advanced Excel', 'Inventory Control', 'ERP Systems']
+      },
+      {
+        title: 'Procurement & Vendor Operations Associate',
+        description: 'Purchase orders, vendor evaluation, contract management, and RFP documentation.',
+        suitedDegrees: 'B.Com / BBA / MBA',
+        coreSkills: ['Vendor Management', 'Procurement', 'Negotiation', 'Contract Management', 'SAP']
+      }
+    ]
+  },
+  {
+    sector: 'Healthcare, Pharma & Biotechnology',
+    roles: [
+      {
+        title: 'Bioinformatics & Computational Biology Trainee',
+        description: 'Genomic sequence analysis, protein modeling, molecular docking, and Python bioinformatics.',
+        suitedDegrees: 'B.Sc / B.Tech Biotech / Bioinformatics',
+        coreSkills: ['Bioinformatics', 'Python', 'Genomics', 'Molecular Docking', 'Data Analysis']
+      },
+      {
+        title: 'Clinical Data Management & Quality Specialist',
+        description: 'Clinical trial protocols, electronic data capture (EDC), GCP guidelines, and regulatory validation.',
+        suitedDegrees: 'B.Pharma / M.Pharma / B.Sc Life Sciences',
+        coreSkills: ['Clinical Research', 'GCP Compliance', 'Regulatory Affairs', 'Data Verification', 'Quality Control']
+      }
+    ]
+  },
+  {
+    sector: 'Corporate Legal, Governance & Public Policy',
+    roles: [
+      {
+        title: 'Corporate Legal & Compliance Trainee',
+        description: 'Regulatory filings, MCA corporate compliance, agreement reviews, and statutory research.',
+        suitedDegrees: 'LLB / B.A. LLB / B.Com / CS Trainee',
+        coreSkills: ['Corporate Law', 'Legal Research', 'Contract Review', 'MCA Compliance', 'Due Diligence']
+      },
+      {
+        title: 'Public Policy & Administration Research Associate',
+        description: 'Government scheme impact evaluation, citizen service analytics, and public administration research.',
+        suitedDegrees: 'B.A / B.Sc / Public Policy / Economics',
+        coreSkills: ['Public Policy', 'Policy Research', 'Data Analysis', 'Report Writing', 'Governance']
+      }
+    ]
   }
 ];
 

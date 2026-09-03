@@ -29,6 +29,7 @@ import { LanguageCode, SUPPORTED_LANGUAGES, getTranslation } from '../translatio
 import { LanguageDropdown } from './LanguageDropdown';
 import { pmSchemeLogo, pmModiHeadshot } from '../assets/images';
 import { useTimezone, SUPPORTED_TIMEZONES } from '../context/TimezoneContext';
+import { ScrollingAnnouncementTicker } from './ScrollingAnnouncementTicker';
 
 interface HeaderNavbarProps {
   user: User;
@@ -101,8 +102,8 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
       <div className="bg-gradient-to-r from-amber-600 via-white to-emerald-600 h-1 w-full" />
       <div className="bg-slate-100 dark:bg-slate-950 px-4 py-1 text-xs text-slate-700 dark:text-slate-300 flex flex-wrap items-center justify-between border-b border-slate-200/60 dark:border-slate-800/60">
         <div className="flex items-center space-x-3">
-          <span className="inline-flex items-center gap-1 font-semibold text-slate-800 dark:text-slate-200">
-            <span className="text-amber-600">🇮🇳</span> {getTranslation(language, 'govIndia')}
+          <span className="inline-flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-200">
+            <span className="text-amber-600">🇮🇳</span> InternIQ
           </span>
           <span className="hidden sm:inline text-slate-400">|</span>
           <span className="hidden sm:inline font-medium">{getTranslation(language, 'mca')}</span>
@@ -192,41 +193,53 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
           {/* Role Switcher */}
           <div className="relative">
-            <button
-              onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
-              className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50"
-            >
-              <UserCheck className="w-3 h-3 text-amber-500" />
-              <span className="capitalize">
-                {user.role === 'student' ? getTranslation(language, 'studentView') : user.role === 'company' ? getTranslation(language, 'companyView') : getTranslation(language, 'adminView')}
-              </span>
-              <ChevronDown className="w-3 h-3" />
-            </button>
-            {roleDropdownOpen && (
-              <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-50">
-                <button
-                  onClick={() => { onRoleSwitch('student'); setRoleDropdownOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 ${user.role === 'student' ? 'font-bold text-indigo-600' : ''}`}
-                >
-                  <span>{getTranslation(language, 'studentView')}</span>
-                  {user.role === 'student' && <CheckCircle2 className="w-3 h-3 text-indigo-600" />}
-                </button>
-                <button
-                  onClick={() => { onRoleSwitch('company'); setRoleDropdownOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 ${user.role === 'company' ? 'font-bold text-emerald-600' : ''}`}
-                >
-                  <span>{getTranslation(language, 'companyView')}</span>
-                  {user.role === 'company' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
-                </button>
-                <button
-                  onClick={() => { onRoleSwitch('admin'); setRoleDropdownOpen(false); }}
-                  className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 ${user.role === 'admin' ? 'font-bold text-amber-600' : ''}`}
-                >
-                  <span>{getTranslation(language, 'adminView')}</span>
-                  {user.role === 'admin' && <CheckCircle2 className="w-3 h-3 text-amber-600" />}
-                </button>
-              </div>
-            )}
+            {/* Role Switcher (Student View is default) */}
+            {(() => {
+              const currentRole = (user.role || 'STUDENT').toLowerCase();
+              return (
+                <div className="relative">
+                  <button
+                    onClick={() => setRoleDropdownOpen(!roleDropdownOpen)}
+                    className="flex items-center gap-1 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 px-2 py-0.5 rounded text-xs font-semibold text-slate-800 dark:text-slate-200 shadow-2xs hover:bg-slate-50"
+                  >
+                    <UserCheck className="w-3 h-3 text-amber-500" />
+                    <span className="capitalize">
+                      {currentRole === 'company'
+                        ? getTranslation(language, 'companyView')
+                        : currentRole === 'admin'
+                        ? getTranslation(language, 'adminView')
+                        : getTranslation(language, 'studentView')}
+                    </span>
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+                  {roleDropdownOpen && (
+                    <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-50">
+                      <button
+                        onClick={() => { onRoleSwitch('student'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'student' ? 'font-bold text-indigo-600' : ''}`}
+                      >
+                        <span>{getTranslation(language, 'studentView')} (Default)</span>
+                        {currentRole === 'student' && <CheckCircle2 className="w-3 h-3 text-indigo-600" />}
+                      </button>
+                      <button
+                        onClick={() => { onRoleSwitch('company'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'company' ? 'font-bold text-emerald-600' : ''}`}
+                      >
+                        <span>{getTranslation(language, 'companyView')}</span>
+                        {currentRole === 'company' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
+                      </button>
+                      <button
+                        onClick={() => { onRoleSwitch('admin'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'admin' ? 'font-bold text-amber-600' : ''}`}
+                      >
+                        <span>{getTranslation(language, 'adminView')}</span>
+                        {currentRole === 'admin' && <CheckCircle2 className="w-3 h-3 text-amber-600" />}
+                      </button>
+                    </div>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
@@ -250,8 +263,11 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
           <div>
             <div className="flex items-center gap-1.5">
-              <span className="font-extrabold text-slate-900 dark:text-white text-lg tracking-tight">
-                {getTranslation(language, 'govIndia')}
+              <span className="font-black text-slate-900 dark:text-white text-xl tracking-tight">
+                InternIQ
+              </span>
+              <span className="text-[10px] font-bold bg-amber-100 text-amber-900 dark:bg-amber-950/80 dark:text-amber-300 border border-amber-300 dark:border-amber-700 px-1.5 py-0.2 rounded">
+                AI Powered
               </span>
             </div>
             <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -426,6 +442,11 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           </div>
         </div>
       </nav>
+
+      {/* Official Government Scrolling Text Ticker - active under Home and About Scheme */}
+      {['home', 'landing', 'about'].includes(activeTab) && (
+        <ScrollingAnnouncementTicker onNavigate={setActiveTab} variant="navbar" />
+      )}
 
       {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (

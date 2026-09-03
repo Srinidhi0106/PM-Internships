@@ -34,6 +34,7 @@ export const en: Record<string, string> = {
   adminView: "Admin / Ministry View",
   liveGovtPortal: "Live Govt Portal • 1850+ Active Roles",
   selectLanguage: "Select Language:",
+  chatbotGreeting: "Namaste! I am your AI Assistant. How can I Help you?",
 
   // Landing Hero
   heroTag: "PM Internship Scheme • Ministry of Corporate Affairs • Government of India",
@@ -203,7 +204,6 @@ export const en: Record<string, string> = {
   pmCertificate: "PM Scheme Certificate",
   downloadCert: "Download Official Certificate",
   chatbotTitle: "PM Internship AI Assistant",
-  chatbotGreeting: "Namaste! I am your PM Internship AI Assistant. Ask me anything about eligibility, stipend, AI recommendations, or interview prep!",
   stipendChip: "Stipend Info",
   stipendQueryPrompt: "What is the PM Internship stipend and eligibility?",
   aiRecChip: "AI Recommendation",
