@@ -344,7 +344,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               linkedinHeadline: data.profile.linkedinHeadline || data.linkedinHeadline,
               linkedinScore: data.profile.linkedinScore || data.linkedinScore || 95,
               linkedinAnalysis: data.profile.linkedinAnalysis || data.linkedinAnalysis,
-              githubUrl: data.githubUrl || payload.githubUrl || githubUrl || user.githubUrl || 'https://github.com/srinidhi0106',
+              githubUrl: data.githubUrl || payload.githubUrl || githubUrl || user.githubUrl || '',
               githubScore: data.githubScore || 90,
               githubAnalysis: data.githubAnalysis
             }
@@ -360,7 +360,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               sectionsDetailed: data.sectionsDetailed,
               linkedinUrl: data.linkedinUrl || payload.linkedinUrl || linkedinUrl,
               linkedinScore: data.linkedinScore || 95,
-              githubUrl: data.githubUrl || payload.githubUrl || githubUrl || user.githubUrl || 'https://github.com/srinidhi0106',
+              githubUrl: data.githubUrl || payload.githubUrl || githubUrl || user.githubUrl || '',
               githubScore: data.githubScore || 90,
               githubAnalysis: data.githubAnalysis
             };
@@ -825,7 +825,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 font-bold block mb-1 uppercase text-[10px]">Candidate Name</span>
-              <span className="font-bold text-slate-900 dark:text-white text-sm">{parsedData.name || 'Srinidhi Veldi'}</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm">{parsedData.name || user.name || 'Verified Candidate'}</span>
             </div>
 
             <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
@@ -840,7 +840,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
 
             <div className="p-4 bg-slate-50 dark:bg-slate-950 rounded-2xl border border-slate-100 dark:border-slate-800">
               <span className="text-slate-400 font-bold block mb-1 uppercase text-[10px]">College / University</span>
-              <span className="font-bold text-slate-900 dark:text-white text-sm">{parsedData.college || 'Siva Sivani Degree College'}</span>
+              <span className="font-bold text-slate-900 dark:text-white text-sm">{parsedData.college || 'National Institute of Technology (NIT)'}</span>
             </div>
           </div>
 
@@ -867,12 +867,12 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               <div className="bg-slate-950/80 p-3.5 rounded-xl border border-slate-800 space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">GitHub Profile Link</span>
                 <a
-                  href={parsedData.githubUrl || 'https://github.com/srinidhi0106'}
+                  href={parsedData.githubUrl || user.githubUrl || 'https://github.com'}
                   target="_blank"
                   rel="noreferrer"
                   className="font-bold text-purple-400 hover:underline flex items-center gap-1 truncate"
                 >
-                  <span>{parsedData.githubUrl || 'https://github.com/srinidhi0106'}</span>
+                  <span>{parsedData.githubUrl || user.githubUrl || 'https://github.com/candidate'}</span>
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </div>
@@ -935,12 +935,12 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-blue-100 dark:border-blue-900/50 space-y-1">
                 <span className="text-[10px] font-bold text-slate-400 uppercase block">LinkedIn URL</span>
                 <a
-                  href={parsedData.linkedinUrl || 'https://www.linkedin.com/in/srinidhi-veldi-1a407636b/'}
+                  href={parsedData.linkedinUrl || user.linkedinUrl || 'https://linkedin.com'}
                   target="_blank"
                   rel="noreferrer"
                   className="font-bold text-blue-600 hover:underline flex items-center gap-1 truncate"
                 >
-                  <span>{parsedData.linkedinUrl || 'https://www.linkedin.com/in/srinidhi-veldi-1a407636b/'}</span>
+                  <span>{parsedData.linkedinUrl || user.linkedinUrl || 'https://linkedin.com/in/candidate'}</span>
                   <ExternalLink className="w-3 h-3 shrink-0" />
                 </a>
               </div>
@@ -964,7 +964,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
                 </li>
                 <li className="flex items-start gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
-                  <span>Showcase coursework & practical projects completed at Siva Sivani Degree College in your LinkedIn Featured section</span>
+                  <span>Showcase coursework & practical projects completed in your LinkedIn Featured section</span>
                 </li>
                 <li className="flex items-start gap-1.5">
                   <CheckCircle2 className="w-3.5 h-3.5 text-blue-600 shrink-0 mt-0.5" />
@@ -992,7 +992,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
               </div>
               <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-400 font-bold block text-[10px] uppercase">Degree College / University</span>
-                <span className="font-extrabold text-slate-900 dark:text-white">{parsedData.college || 'Siva Sivani Degree College'}</span>
+                <span className="font-extrabold text-slate-900 dark:text-white">{parsedData.college || 'National Institute of Technology (NIT)'}</span>
               </div>
               <div className="p-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800">
                 <span className="text-slate-400 font-bold block text-[10px] uppercase">Cumulative GPA</span>
@@ -1078,7 +1078,7 @@ export const ResumeParserPage: React.FC<ResumeParserPageProps> = ({
                   </span>
                 </div>
                 <p className="text-slate-600 dark:text-slate-300 text-[11px]">
-                  Developed end-to-end data analytics and predictive classification models using Python at Siva Sivani Degree College.
+                  Developed end-to-end data analytics and predictive classification models using Python.
                 </p>
                 <div className="flex items-center gap-2 text-[10px] text-slate-500 font-medium">
                   <span className="font-bold text-slate-400">Tech Stack:</span> Python, Scikit-Learn, Pandas, SQL

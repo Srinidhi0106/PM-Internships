@@ -77,7 +77,11 @@ export interface Application {
   studentSkills?: string[];
   appliedAt?: string;
   appliedDate?: string;
-  status: 'APPLIED' | 'Applied' | 'Under Review' | 'SHORTLISTED' | 'Shortlisted' | 'Interview' | 'Selected' | 'REJECTED' | 'Rejected';
+  shortlistedAt?: string;
+  selectedAt?: string;
+  offerLetterIssued?: boolean;
+  offerLetterRef?: string;
+  status: 'APPLIED' | 'Applied' | 'Under Review' | 'SHORTLISTED' | 'Shortlisted' | 'Interview' | 'SELECTED' | 'Selected' | 'REJECTED' | 'Rejected';
   aiScore?: number;
   aiCandidateRankScore?: number;
   aiRankExplanation?: string;

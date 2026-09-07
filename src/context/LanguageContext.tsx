@@ -41,19 +41,30 @@ export const syncGoogleTranslate = (langCode: LanguageCode) => {
 
   try {
     const hostname = window.location.hostname;
-    const cookieValue = googleTarget === 'en' ? '' : `/en/${googleTarget}`;
-
-    document.cookie = `googtrans=${cookieValue}; path=/;`;
-    if (hostname && hostname !== 'localhost') {
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=${hostname};`;
-      document.cookie = `googtrans=${cookieValue}; path=/; domain=.${hostname};`;
+    
+    if (googleTarget === 'en') {
+      // Strictly clear googtrans cookie when English is default/selected so Google Translate will NOT auto-translate
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+      document.cookie = 'googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=;';
+      if (hostname) {
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=${hostname};`;
+        document.cookie = `googtrans=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/; domain=.${hostname};`;
+      }
+    } else {
+      const cookieValue = `/en/${googleTarget}`;
+      document.cookie = `googtrans=${cookieValue}; path=/;`;
+      if (hostname && hostname !== 'localhost') {
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=${hostname};`;
+        document.cookie = `googtrans=${cookieValue}; path=/; domain=.${hostname};`;
+      }
     }
 
     const applyTranslation = () => {
       const selectEl = document.querySelector('.goog-te-combo') as HTMLSelectElement | null;
       if (selectEl) {
-        if (selectEl.value !== googleTarget) {
-          selectEl.value = googleTarget;
+        const targetVal = googleTarget === 'en' ? '' : googleTarget;
+        if (selectEl.value !== targetVal) {
+          selectEl.value = targetVal;
           selectEl.dispatchEvent(new Event('change', { bubbles: true }));
         }
       }
@@ -62,15 +73,21 @@ export const syncGoogleTranslate = (langCode: LanguageCode) => {
     applyTranslation();
     setTimeout(applyTranslation, 300);
     setTimeout(applyTranslation, 800);
-    setTimeout(applyTranslation, 1600);
   } catch (err) {
     console.warn('Language script sync:', err);
   }
 };
 
 export const LanguageProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  // STRICT RULE: Default language is ALWAYS English ('EN')
   const [language, setLanguageState] = useState<LanguageCode>(() => {
-    return (localStorage.getItem('language') as LanguageCode) || 'EN';
+    try {
+      const stored = localStorage.getItem('language');
+      if (stored && ['EN', 'HI', 'TE', 'TA', 'KN', 'ML', 'MR', 'BN', 'GU', 'OR', 'PA', 'AS', 'UR', 'SA', 'NE', 'MAI', 'KOK', 'KS', 'SD', 'DOI', 'MNI', 'BRX', 'SAT'].includes(stored)) {
+        return stored as LanguageCode;
+      }
+    } catch {}
+    return 'EN';
   });
 
   useEffect(() => {

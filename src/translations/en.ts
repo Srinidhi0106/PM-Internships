@@ -33,6 +33,7 @@ export const en: Record<string, string> = {
   companyView: "Company View",
   adminView: "Admin / Ministry View",
   liveGovtPortal: "Live Govt Portal • 1850+ Active Roles",
+  livePortalText: "Live Govt Portal • 1850+ Active Roles",
   selectLanguage: "Select Language:",
   chatbotGreeting: "Namaste! I am your AI Assistant. How can I Help you?",
 

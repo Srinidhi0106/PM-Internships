@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { AppliedInterview } from '../types';
 import { useTimezone, SUPPORTED_TIMEZONES, TimeFormat } from '../context/TimezoneContext';
+import { CompanyBrandLogo } from './CompanyBrandLogo';
 
 interface AppliedInterviewsTrackerProps {
   interviews: AppliedInterview[];
@@ -379,17 +380,11 @@ export const AppliedInterviewsTracker: React.FC<AppliedInterviewsTrackerProps> =
                 {/* Header Row */}
                 <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4 pb-4 border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-start space-x-3.5">
-                    <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700 shrink-0 overflow-hidden flex items-center justify-center font-black text-indigo-600">
-                      {item.companyLogo ? (
-                        <img
-                          src={item.companyLogo}
-                          alt={item.companyName}
-                          className="w-full h-full object-cover rounded-xl"
-                        />
-                      ) : (
-                        <Building2 className="w-6 h-6" />
-                      )}
-                    </div>
+                    <CompanyBrandLogo
+                      companyName={item.companyName}
+                      logoUrl={item.companyLogo}
+                      size="lg"
+                    />
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
                         <h3 className="font-extrabold text-base text-slate-900 dark:text-white">

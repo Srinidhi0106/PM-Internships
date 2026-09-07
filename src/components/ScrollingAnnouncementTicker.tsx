@@ -1,8 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Megaphone,
-  Pause,
-  Play,
   ArrowRight,
   Sparkles,
   ExternalLink
@@ -113,8 +111,6 @@ export const ScrollingAnnouncementTicker: React.FC<ScrollingAnnouncementTickerPr
   variant = 'navbar',
   className = ''
 }) => {
-  const [isPaused, setIsPaused] = useState(false);
-
   const handleItemClick = (targetTab?: string) => {
     if (targetTab && onNavigate) {
       onNavigate(targetTab);
@@ -130,14 +126,12 @@ export const ScrollingAnnouncementTicker: React.FC<ScrollingAnnouncementTickerPr
           ? 'bg-amber-500/10 dark:bg-slate-900/95 border-amber-300/60 dark:border-amber-900/40 text-slate-800 dark:text-slate-200 py-1.5'
           : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 rounded-2xl shadow-sm py-2 px-3 my-4'
       } ${className}`}
-      onMouseEnter={() => setIsPaused(true)}
-      onMouseLeave={() => setIsPaused(false)}
     >
       <div className="max-w-7xl mx-auto px-2 sm:px-4 flex items-center">
-        {/* Left Badge / Pill Indicator */}
+        {/* Left Badge Indicator styled as official portal */}
         <div className="shrink-0 flex items-center gap-2 pr-3 border-r border-amber-300 dark:border-slate-700 z-10 bg-amber-500/10 dark:bg-slate-900/95">
           <span className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-gradient-to-r from-amber-600 to-orange-600 text-white font-black text-[10px] sm:text-xs tracking-wider uppercase shadow-xs">
-            <Megaphone className="w-3.5 h-3.5 text-white animate-bounce" />
+            <Megaphone className="w-3.5 h-3.5 text-white" />
             <span className="hidden xs:inline">Updates &amp; Announcements</span>
             <span className="xs:hidden">Updates</span>
           </span>
@@ -146,29 +140,15 @@ export const ScrollingAnnouncementTicker: React.FC<ScrollingAnnouncementTickerPr
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
           </span>
-
-          {/* Pause / Play Control Toggle */}
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsPaused((prev) => !prev);
-            }}
-            className="p-1 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 rounded transition cursor-pointer"
-            title={isPaused ? 'Resume scrolling' : 'Pause scrolling'}
-            aria-label={isPaused ? 'Resume scrolling' : 'Pause scrolling'}
-          >
-            {isPaused ? <Play className="w-3 h-3 text-emerald-500" /> : <Pause className="w-3 h-3" />}
-          </button>
         </div>
 
-        {/* Continuous Scrolling Text Marquee Track */}
+        {/* Continuous Scrolling Text Marquee Track (Uninterrupted Official Portal Style) */}
         <div className="relative flex-1 overflow-hidden ml-3">
           <div
             className="flex items-center whitespace-nowrap animate-marquee"
             style={{
-              animationPlayState: isPaused ? 'paused' : 'running',
-              animationDuration: '42s'
+              animationPlayState: 'running',
+              animationDuration: '38s'
             }}
           >
             {/* Primary Items Group */}

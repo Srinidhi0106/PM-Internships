@@ -28,6 +28,7 @@ import { ALL_VALID_SKILLS } from '../data/skillsAndRolesCatalog';
 import { validateResumeFile, validateResumeText } from '../utils/resumeValidator';
 import { extractTextFromPdfAsync } from '../utils/pdfExtractor';
 import { extractTextFromDocxAsync, extractTextFromDocxClient, extractTextFromPdfClient } from '../utils/clientResumeParser';
+import { CompanyBrandLogo } from '../components/CompanyBrandLogo';
 
 interface InternshipsPageProps {
   user: User;
@@ -355,17 +356,20 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
                 <div className="space-y-3">
                   {/* Top Row: Logo & Trust Score */}
                   <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={item.companyLogo}
-                        alt={item.companyName}
-                        className="w-12 h-12 rounded-xl object-cover border border-slate-200 dark:border-slate-700"
-                        onError={(e) => {
-                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&auto=format&fit=crop&q=80';
-                        }}
-                      />
+                    <div
+                      onClick={() => setSelectedInternship(item)}
+                      className="flex items-center space-x-3 cursor-pointer group/cardHeader select-none"
+                      title="Click picture or title to view internship details"
+                    >
+                      <div className="transition-transform duration-200 group-hover/cardHeader:scale-110 shadow-xs rounded-xl">
+                        <CompanyBrandLogo
+                          companyName={item.companyName}
+                          logoUrl={item.companyLogo}
+                          size="md"
+                        />
+                      </div>
                       <div>
-                        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug">
+                        <h3 className="font-extrabold text-sm text-slate-900 dark:text-white leading-snug group-hover/cardHeader:text-indigo-600 dark:group-hover/cardHeader:text-indigo-400 transition">
                           {item.role}
                         </h3>
                         <p className="text-xs font-semibold text-slate-600 dark:text-slate-400">
@@ -663,13 +667,10 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
 
             {/* Top Modal Header */}
             <div className="flex items-start space-x-4">
-              <img
-                src={selectedInternship.companyLogo}
-                alt={selectedInternship.companyName}
-                className="w-16 h-16 rounded-2xl object-cover border border-slate-200"
-                onError={(e) => {
-                  (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=100&auto=format&fit=crop&q=80';
-                }}
+              <CompanyBrandLogo
+                companyName={selectedInternship.companyName}
+                logoUrl={selectedInternship.companyLogo}
+                size="lg"
               />
               <div>
                 <h2 className="text-xl font-bold text-slate-900 dark:text-white">{selectedInternship.role}</h2>

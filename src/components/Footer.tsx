@@ -3,6 +3,7 @@ import QRCode from 'qrcode';
 import { ShieldCheck, Mail, Phone, MapPin, ExternalLink, QrCode, Download, Smartphone, X, Check, Apple, Play, Copy, Share2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { pmSchemeLogo } from '../assets/images';
+import { AppDownloadQRModal } from './AppDownloadQRModal';
 
 interface FooterProps {
   setActiveTab: (tab: string) => void;
@@ -11,18 +12,12 @@ interface FooterProps {
 export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
   const { t } = useLanguage();
   const [showQrModal, setShowQrModal] = useState(false);
-  const [downloadSuccess, setDownloadSuccess] = useState<string | null>(null);
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showIosGuide, setShowIosGuide] = useState(false);
   const [qrDataUrl, setQrDataUrl] = useState<string>('');
-  const [copiedLink, setCopiedLink] = useState(false);
 
   useEffect(() => {
-    let appUrl = 'https://interniq.gov.in';
+    let appUrl = 'https://apps.apple.com/in/app/pm-internship-scheme/id6737554988';
     if (typeof window !== 'undefined') {
-      const currentUrl = window.location.href;
-      // Convert development URL (ais-dev-) to public share URL (ais-pre-) so phone cameras can open the app without developer login permissions
-      appUrl = currentUrl.replace('ais-dev-', 'ais-pre-');
+      appUrl = `${window.location.origin}`;
     }
     QRCode.toDataURL(appUrl, {
       width: 400,
@@ -36,51 +31,6 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
       .then((url) => setQrDataUrl(url))
       .catch((err) => console.error('Failed to generate real QR code:', err));
   }, []);
-
-  const getPublicAppUrl = () => {
-    if (typeof window !== 'undefined') {
-      return window.location.href.replace('ais-dev-', 'ais-pre-');
-    }
-    return 'https://interniq.gov.in';
-  };
-
-  const handleCopyLink = () => {
-    if (typeof navigator !== 'undefined' && navigator.clipboard) {
-      const appUrl = getPublicAppUrl();
-      navigator.clipboard.writeText(appUrl);
-      setCopiedLink(true);
-      setTimeout(() => setCopiedLink(false), 3000);
-    }
-  };
-
-  const handleSimulateDownload = async (platform: string) => {
-    if (platform === 'PWA Web App' || platform === 'Android PWA') {
-      if (deferredPrompt) {
-        deferredPrompt.prompt();
-        const { outcome } = await deferredPrompt.userChoice;
-        if (outcome === 'accepted') {
-          setDownloadSuccess('App installed on home screen successfully');
-        } else {
-          setDownloadSuccess('Installation cancelled');
-        }
-        setDeferredPrompt(null);
-      } else {
-        // Check if iOS
-        const isIos = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
-        if (isIos) {
-          setShowIosGuide(true);
-        } else {
-          setDownloadSuccess('PWA App Shortcut added / Ready to install from browser menu');
-        }
-      }
-    } else {
-      setDownloadSuccess(platform);
-    }
-
-    setTimeout(() => {
-      setDownloadSuccess(null);
-    }, 5000);
-  };
 
   return (
     <footer className="bg-slate-950 text-slate-300 border-t border-slate-800 relative">
@@ -225,14 +175,15 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
 
         {/* Resources */}
         <div>
-          <h4 className="font-bold text-white text-sm mb-4 tracking-wide uppercase text-amber-400">Resources</h4>
+          <h4 className="font-bold text-white text-sm mb-4 tracking-wide uppercase text-amber-400">GovTech & Resources</h4>
           <ul className="space-y-2.5 text-xs text-slate-400">
+            <li><button onClick={() => setActiveTab('support-grievance')} className="text-emerald-400 font-bold hover:underline transition cursor-pointer">🛡️ Support & Grievance Portal</button></li>
+            <li><button onClick={() => setActiveTab('govtech-benchmark')} className="text-amber-400 font-bold hover:underline transition cursor-pointer">🏛️ GovTech Benchmark & Upgrades</button></li>
+            <li><button onClick={() => setActiveTab('user-manual-budget')} className="text-sky-400 font-bold hover:underline transition cursor-pointer">📖 User Manual & Affordable Budget</button></li>
+            <li><button onClick={() => setActiveTab('resume-builder')} className="hover:text-amber-400 transition cursor-pointer">Resume Builder & Isolated Print</button></li>
             <li><button onClick={() => setActiveTab('ai-skill-gap')} className="hover:text-amber-400 transition cursor-pointer">Skill Gap & Roadmap Engine</button></li>
             <li><button onClick={() => setActiveTab('ai-interview')} className="hover:text-amber-400 transition cursor-pointer">Mock Interview AI</button></li>
             <li><button onClick={() => setActiveTab('resume-parser')} className="hover:text-amber-400 transition cursor-pointer">Resume Parser & ATS Audit</button></li>
-            <li><button onClick={() => setActiveTab('messages')} className="hover:text-amber-400 transition cursor-pointer">Messages & Recruiter Chat</button></li>
-            <li><button onClick={() => setActiveTab('dashboard')} className="hover:text-amber-400 transition cursor-pointer">Student Portal</button></li>
-            <li><button onClick={() => setActiveTab('contact')} className="hover:text-amber-400 transition cursor-pointer">Help & Support</button></li>
           </ul>
         </div>
 
@@ -275,137 +226,11 @@ export const Footer: React.FC<FooterProps> = ({ setActiveTab }) => {
         </p>
       </div>
 
-      {/* QR CODE MOBILE APP INTERACTIVE DOWNLOAD MODAL */}
-      {showQrModal && (
-        <div className="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4">
-          <div className="bg-slate-900 border border-slate-800 rounded-3xl max-w-md w-full p-6 text-white shadow-2xl relative space-y-5 animate-in fade-in zoom-in-95 duration-200">
-            
-            <button
-              type="button"
-              onClick={() => setShowQrModal(false)}
-              className="absolute top-4 right-4 text-slate-400 hover:text-white bg-slate-800 p-2 rounded-full transition cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
-
-            <div className="text-center space-y-2">
-              <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-950/80 px-3 py-1 rounded-full border border-amber-800/80">
-                OFFICIAL MOBILE APP
-              </span>
-              <h3 className="text-xl font-black text-white">
-                PM Internship Portal App
-              </h3>
-              <p className="text-xs text-slate-400">
-                Scan with your phone camera or download directly below to track applications & receive instant SMS alerts.
-              </p>
-            </div>
-
-            {/* High Resolution Rendered Real QR Code */}
-            <div className="bg-white p-4 rounded-2xl max-w-[240px] mx-auto border-4 border-amber-400 shadow-xl text-center space-y-2">
-              <div className="relative aspect-square flex items-center justify-center p-1 bg-white rounded-xl">
-                {qrDataUrl ? (
-                  <img
-                    src={qrDataUrl}
-                    alt="Official Scannable QR Code for PM Internship Portal"
-                    className="w-full h-full object-contain rounded-lg select-all"
-                  />
-                ) : (
-                  <div className="flex flex-col items-center justify-center text-slate-500 text-xs py-10">
-                    <QrCode className="w-12 h-12 text-slate-800 animate-pulse mb-2" />
-                    <span>Generating QR Code...</span>
-                  </div>
-                )}
-              </div>
-              <p className="text-[10px] font-black text-slate-950 uppercase tracking-wider border-t border-slate-200 pt-1.5 flex items-center justify-center gap-1">
-                <span>Scan with Camera / Google Lens</span>
-              </p>
-            </div>
-
-            {/* Direct Copy / Share Web Link Bar */}
-            <div className="bg-slate-950/80 border border-slate-800 p-2.5 rounded-xl flex items-center justify-between gap-2 text-xs">
-              <div className="truncate text-slate-400 text-[11px] font-mono select-all">
-                {getPublicAppUrl()}
-              </div>
-              <button
-                type="button"
-                onClick={handleCopyLink}
-                className="px-2.5 py-1 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-[11px] rounded-lg shrink-0 transition flex items-center gap-1 cursor-pointer"
-              >
-                {copiedLink ? (
-                  <>
-                    <Check className="w-3.5 h-3.5 text-emerald-950" />
-                    <span>Copied!</span>
-                  </>
-                ) : (
-                  <>
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy Link</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            {/* Download Notification Banner */}
-            {downloadSuccess && (
-              <div className="bg-emerald-950/80 border border-emerald-500/80 text-emerald-300 p-3 rounded-xl text-xs flex items-center gap-2 animate-in fade-in duration-150">
-                <Check className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>{downloadSuccess}</span>
-              </div>
-            )}
-
-            {/* iOS Add to Home Screen Instructions */}
-            {showIosGuide && (
-              <div className="bg-amber-950/90 border border-amber-500/80 text-amber-200 p-3.5 rounded-xl text-xs space-y-1.5 animate-in fade-in duration-150">
-                <p className="font-bold flex items-center gap-1.5 text-amber-300">
-                  <Apple className="w-4 h-4" />
-                  <span>How to install on iOS (iPhone / iPad):</span>
-                </p>
-                <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-amber-100/90">
-                  <li>Tap the <strong>Share</strong> button at the bottom of Safari.</li>
-                  <li>Scroll down and tap <strong>"Add to Home Screen"</strong>.</li>
-                  <li>Tap <strong>"Add"</strong> in the top right corner.</li>
-                </ol>
-              </div>
-            )}
-
-            {/* Direct Platform Download Buttons */}
-            <div className="space-y-2.5 pt-1">
-              <button
-                type="button"
-                onClick={() => handleSimulateDownload('Android APK (v2.4)')}
-                className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2.5 cursor-pointer"
-              >
-                <Play className="w-4 h-4 fill-white" />
-                <span>Download Android APK (v2.4 - 18MB)</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSimulateDownload('iOS TestFlight App')}
-                className="w-full py-3 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-2.5 cursor-pointer"
-              >
-                <Apple className="w-4 h-4" />
-                <span>Install iOS TestFlight App</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => handleSimulateDownload('PWA Web App')}
-                className="w-full py-2.5 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700 text-indigo-300 font-semibold text-xs rounded-xl transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Smartphone className="w-3.5 h-3.5" />
-                <span>Add PWA Shortcut to Home Screen</span>
-              </button>
-            </div>
-
-            <div className="text-center pt-1 border-t border-slate-800">
-              <p className="text-[10px] text-slate-500">
-                Requires Android 8.0+ or iOS 14.0+. Verified malware-free MCA app.
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Official PM Scheme Mobile App QR Download Modal */}
+      <AppDownloadQRModal
+        isOpen={showQrModal}
+        onClose={() => setShowQrModal(false)}
+      />
     </footer>
   );
 };

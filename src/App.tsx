@@ -10,6 +10,7 @@ import { PMCertificateModal } from './components/PMCertificateModal';
 import { NotificationSystemModal } from './components/NotificationSystemModal';
 import { CreativeIntroExperience } from './components/CreativeIntroExperience';
 import { ContestDeliverablesModal } from './components/ContestDeliverablesModal';
+import { AppDownloadQRModal } from './components/AppDownloadQRModal';
 
 import { LandingPage } from './pages/LandingPage';
 import { InternshipsPage } from './pages/InternshipsPage';
@@ -19,6 +20,7 @@ import { AIPortfolioPage } from './pages/AIPortfolioPage';
 import { AIFraudPage } from './pages/AIFraudPage';
 import { AISkillGapRoadmapPage } from './pages/AISkillGapRoadmapPage';
 import { ResumeParserPage } from './pages/ResumeParserPage';
+import { ResumeBuilderPage } from './pages/ResumeBuilderPage';
 import { AIResumeTailorPage } from './pages/AIResumeTailorPage';
 import { StudentDashboard } from './pages/StudentDashboard';
 import { CompanyDashboard } from './pages/CompanyDashboard';
@@ -27,6 +29,9 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { AboutContactPages } from './pages/AboutContactPages';
 import { MessagingReviewsPage } from './pages/MessagingReviewsPage';
 import { AuthPage } from './pages/AuthPage';
+import { SupportGrievancePage } from './pages/SupportGrievancePage';
+import { GovTechBenchmarkPage } from './pages/GovTechBenchmarkPage';
+import { UserManualBudgetPage } from './pages/UserManualBudgetPage';
 
 import { User, Internship, Application, UserRole } from './types';
 import { INITIAL_INTERNSHIPS, INITIAL_APPLICATIONS } from './data/initialData';
@@ -80,6 +85,7 @@ export default function App() {
   const [certModalOpen, setCertModalOpen] = useState<boolean>(false);
   const [notificationModalOpen, setNotificationModalOpen] = useState<boolean>(false);
   const [contestModalOpen, setContestModalOpen] = useState<boolean>(false);
+  const [appDownloadModalOpen, setAppDownloadModalOpen] = useState<boolean>(false);
 
   // Default initial candidate state (Guest / Logged out)
   const [user, setUser] = useState<User>(() => {
@@ -209,9 +215,24 @@ export default function App() {
     saveInternshipToFirestore(created);
   };
 
-  const handleUpdateApplicationStatus = (appId: string, status: 'SHORTLISTED' | 'REJECTED') => {
+  const handleUpdateApplicationStatus = (
+    appId: string,
+    status: 'APPLIED' | 'SHORTLISTED' | 'SELECTED' | 'REJECTED'
+  ) => {
+    const nowIso = new Date().toISOString();
     setApplications((prev) =>
-      prev.map((app) => (app.id === appId ? { ...app, status } : app))
+      prev.map((app) => {
+        if (app.id !== appId) return app;
+        const updated: Application = { ...app, status };
+        if (status === 'SHORTLISTED') {
+          updated.shortlistedAt = nowIso;
+        } else if (status === 'SELECTED') {
+          updated.selectedAt = nowIso;
+          updated.offerLetterIssued = true;
+          updated.offerLetterRef = `PMIS-OFFER-${Date.now().toString().slice(-6)}`;
+        }
+        return updated;
+      })
     );
     updateApplicationStatusInFirestore(appId, status);
   };
@@ -381,6 +402,9 @@ export default function App() {
       case 'resume':
       case 'parser':
         return <ResumeParserPage user={user} onUpdateUser={handleUpdateUser} onNavigate={handleNavigate} />;
+      case 'resume-builder':
+      case 'builder':
+        return <ResumeBuilderPage user={user} onNavigate={handleNavigate} />;
       case 'ai-resume-tailor':
       case 'resume-tailor':
       case 'tailor':
@@ -420,7 +444,13 @@ export default function App() {
       case 'admin-dashboard':
       case 'admin':
       case 'ministry':
-        return <AdminDashboard internships={internships} />;
+        return (
+          <AdminDashboard
+            internships={internships}
+            applications={applications}
+            onUpdateApplicationStatus={handleUpdateApplicationStatus}
+          />
+        );
       case 'dashboard':
       case 'student-dashboard':
       case 'student':
@@ -436,7 +466,13 @@ export default function App() {
             />
           );
         } else if (user.role === 'ADMIN') {
-          return <AdminDashboard internships={internships} />;
+          return (
+            <AdminDashboard
+              internships={internships}
+              applications={applications}
+              onUpdateApplicationStatus={handleUpdateApplicationStatus}
+            />
+          );
         } else {
           return (
             <StudentDashboard
@@ -458,10 +494,24 @@ export default function App() {
       case 'messaging-reviews':
       case 'chat':
         return <MessagingReviewsPage user={user} />;
+      case 'support-grievance':
+      case 'grievance':
+      case 'support':
+      case 'queries':
+      case 'helpdesk':
+        return <SupportGrievancePage onNavigate={handleNavigate} />;
+      case 'govtech-benchmark':
+      case 'benchmark':
+      case 'govt-comparison':
+        return <GovTechBenchmarkPage onNavigate={handleNavigate} />;
+      case 'user-manual-budget':
+      case 'manual':
+      case 'budget':
+      case 'user-guide':
+        return <UserManualBudgetPage onNavigate={handleNavigate} />;
       case 'about':
       case 'contact':
       case 'help':
-      case 'support':
       case 'faq':
       case 'terms':
       case 'privacy':
@@ -524,6 +574,7 @@ export default function App() {
         onRoleSwitch={handleRoleSwitch}
         openVoiceSearch={() => setVoiceModalOpen(true)}
         openNotifications={() => setNotificationModalOpen(true)}
+        openAppDownload={() => setAppDownloadModalOpen(true)}
         onLogout={handleLogout}
       />
 
@@ -588,6 +639,12 @@ export default function App() {
         isOpen={contestModalOpen}
         onClose={() => setContestModalOpen(false)}
         onNavigate={handleNavigate}
+      />
+
+      {/* Official PM Scheme Mobile App QR Download Modal */}
+      <AppDownloadQRModal
+        isOpen={appDownloadModalOpen}
+        onClose={() => setAppDownloadModalOpen(false)}
       />
 
       {/* Global Footer */}

@@ -37,8 +37,17 @@ export const ContestDeliverablesModal: React.FC<ContestDeliverablesModalProps> =
 }) => {
   const [activeTab, setActiveTab] = useState<'DELIVERABLES' | 'AI_MODEL_BENCHMARK' | 'SRS_DOCS' | 'DEMO_SCRIPT'>('DELIVERABLES');
   const [copiedCode, setCopiedCode] = useState(false);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
 
   if (!isOpen) return null;
+
+  const triggerFeedback = (msg: string, callback?: () => void) => {
+    setActionFeedback(msg);
+    setTimeout(() => {
+      setActionFeedback(null);
+      if (callback) callback();
+    }, 500);
+  };
 
   const handleCopyArchitecture = () => {
     const archSummary = `PM INTERNSHIP SCHEME - AI RECOMMENDATION PLATFORM
@@ -47,7 +56,11 @@ AI Accuracy: 89.4% Top-5 Recommendation Precision (Collaborative + Content-Based
 Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of Corporate Affairs`;
     navigator.clipboard?.writeText(archSummary);
     setCopiedCode(true);
-    setTimeout(() => setCopiedCode(false), 2500);
+    setActionFeedback('✓ Architecture summary copied to clipboard!');
+    setTimeout(() => {
+      setCopiedCode(false);
+      setActionFeedback(null);
+    }, 2500);
   };
 
   return (
@@ -62,14 +75,14 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
             <div>
               <div className="flex items-center gap-2">
                 <span className="text-[10px] uppercase font-extrabold tracking-wider bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 px-2 py-0.5 rounded-full">
-                  Real Time Project Design Contest • Siva Sivani Degree College
+                  National PM Internship Scheme • MCA Technical Specification
                 </span>
                 <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold">
                   MCA Problem Statement
                 </span>
               </div>
               <h2 className="text-xl font-black text-slate-900 dark:text-white mt-1">
-                Contest Deliverables & AI Technical Specification
+                Project Deliverables & AI Technical Specification
               </h2>
             </div>
           </div>
@@ -111,6 +124,15 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
 
         {/* Modal Body */}
         <div className="p-6 overflow-y-auto flex-1 space-y-6 text-slate-800 dark:text-slate-200 text-xs leading-relaxed">
+          {actionFeedback && (
+            <div className="p-3 bg-gradient-to-r from-amber-500 to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-md flex items-center justify-between animate-fade-in">
+              <span className="flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-slate-950" />
+                <span>{actionFeedback}</span>
+              </span>
+              <Check className="w-4 h-4 text-slate-950" />
+            </div>
+          )}
           
           {/* TAB 1: ALL 6 DELIVERABLES CHECKLIST */}
           {activeTab === 'DELIVERABLES' && (
@@ -122,7 +144,7 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     100% Submission Ready Compliance Matrix
                   </h4>
                   <p className="text-amber-800 dark:text-amber-300 text-xs mt-0.5">
-                    All requirements from the Department of Computer Science (Siva Sivani Degree College) and Ministry of Corporate Affairs problem statement have been systematically implemented and verified live.
+                    All requirements from the Ministry of Corporate Affairs (MCA) PM Internship Scheme technical specification have been systematically implemented and verified live.
                   </p>
                 </div>
               </div>
@@ -134,11 +156,11 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     title: 'Fully Working Web + Mobile Application',
                     status: 'COMPLETED & LIVE',
                     color: 'emerald',
-                    desc: 'Responsive single-page and multi-portal architecture supporting Student Portal, Corporate Recruiter Portal, and Ministry Governance Desk with 4 Indian languages (English, Hindi, Telugu, Tamil).',
-                    action: () => {
+                    desc: 'Responsive single-page and multi-portal architecture supporting Student Portal, Corporate Recruiter Portal, and Ministry Governance Desk with Indian languages.',
+                    action: () => triggerFeedback('Opening Student Candidate Portal...', () => {
                       onClose();
                       if (onNavigate) onNavigate('dashboard');
-                    },
+                    }),
                     btnText: 'Open Student Portal →'
                   },
                   {
@@ -147,10 +169,10 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     status: 'VERIFIED ON 12,500 SAMPLES',
                     color: 'indigo',
                     desc: 'Ensemble Hybrid Model combining Collaborative Filtering, Content-Based Cosine Similarity, and NLP Vector Embeddings with explainable factor breakdown (XAI). Exceeds 75% accuracy mandate.',
-                    action: () => {
+                    action: () => triggerFeedback('Launching AI Recommendation Engine...', () => {
                       onClose();
                       if (onNavigate) onNavigate('ai-recommendation');
-                    },
+                    }),
                     btnText: 'Test AI Match Engine →'
                   },
                   {
@@ -159,7 +181,7 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     status: 'INCLUDED & INTERACTIVE',
                     color: 'purple',
                     desc: 'Formal IEEE-format Software Requirements Specification, Entity-Relationship Architecture, Data Flow Diagrams, Security Zero-Trust Audit, and User Handbook.',
-                    action: () => setActiveTab('SRS_DOCS'),
+                    action: () => triggerFeedback('Loading Software Requirements Specification (SRS)...', () => setActiveTab('SRS_DOCS')),
                     btnText: 'View Full SRS Docs →'
                   },
                   {
@@ -168,7 +190,7 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     status: 'READY FOR JURY',
                     color: 'amber',
                     desc: 'Structured 5-stage demonstration script covering candidate profile creation, resume parsing, AI internship matchmaking, DBT stipend simulation, and certificate generation.',
-                    action: () => setActiveTab('DEMO_SCRIPT'),
+                    action: () => triggerFeedback('Loading 5-Stage Live Demonstration Script...', () => setActiveTab('DEMO_SCRIPT')),
                     btnText: 'Read Demo Script →'
                   },
                   {
@@ -186,16 +208,16 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     status: 'DEPLOYED & OPERATIONAL',
                     color: 'rose',
                     desc: 'Real-time responsive Cloud container deployment on Google Cloud Run with instantaneous sub-2-second latency and zero-downtime scalability.',
-                    action: () => {
+                    action: () => triggerFeedback('Returning to Live Application...', () => {
                       onClose();
                       if (onNavigate) onNavigate('home');
-                    },
+                    }),
                     btnText: 'Return to Live App →'
                   }
                 ].map((item) => (
                   <div
                     key={item.num}
-                    className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3"
+                    className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col justify-between space-y-3 hover:border-amber-400 transition"
                   >
                     <div className="space-y-2">
                       <div className="flex items-center justify-between">
@@ -217,7 +239,7 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
                     <button
                       type="button"
                       onClick={item.action}
-                      className="w-full py-2.5 px-3 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold rounded-xl text-xs transition cursor-pointer text-center flex items-center justify-center gap-1.5"
+                      className="w-full py-2.5 px-3 bg-slate-100 hover:bg-amber-500 hover:text-slate-950 active:scale-95 dark:bg-slate-800 dark:hover:bg-amber-500 dark:hover:text-slate-950 text-slate-900 dark:text-white font-bold rounded-xl text-xs transition-all duration-150 cursor-pointer text-center flex items-center justify-center gap-1.5 shadow-xs"
                     >
                       <span>{item.btnText}</span>
                     </button>
@@ -404,7 +426,7 @@ Target: 10,000,000 Indian Youth, Tier-2/3 & Rural Equity Matching, Ministry of C
         <div className="p-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-2 text-xs text-slate-500 font-medium">
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-            <span>Siva Sivani Real Time Project Contest • Department of Computer Science</span>
+            <span>Ministry of Corporate Affairs • National Technical Project Implementation</span>
           </div>
 
           <div className="flex items-center gap-2">

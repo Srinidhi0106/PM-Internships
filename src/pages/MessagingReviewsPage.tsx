@@ -400,7 +400,32 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  const handleSendMessage = (customText?: string) => {
+  const handleClearCurrentChat = () => {
+    setConversations((prev) =>
+      prev.map((c) => {
+        if (c.id === selectedConvId) {
+          return {
+            ...c,
+            lastActive: 'Active now',
+            messages: [
+              {
+                id: `init-${Date.now()}`,
+                sender: 'company',
+                text: `Hello! I am ${c.contactPerson} from ${c.companyName}. Welcome to our live PM Internship Scheme talent desk. Feel free to ask me anything regarding the ${c.roleTitle} opening, required skills, selection rounds, or the ₹5,000 monthly DBT stipend!`,
+                timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true }),
+                status: 'read'
+              }
+            ]
+          };
+        }
+        return c;
+      })
+    );
+    setToastMessage(`Started fresh real-time chat with ${selectedConv.companyName}!`);
+    setTimeout(() => setToastMessage(null), 3000);
+  };
+
+  const handleSendMessage = async (customText?: string) => {
     const textToSend = customText || messageInput.trim();
     if (!textToSend || !selectedConv) return;
 
@@ -431,23 +456,24 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
       setMessageInput('');
     }
 
-    // Simulate smart enterprise recruiter reply
+    // Call real-time recruiter desk AI backend
     setIsTypingReply(true);
-    setTimeout(() => {
-      let replyText = `Thank you for your message regarding the PM Internship Scheme at ${selectedConv.companyName}. Our talent desk has logged your response, and our team will update your candidate portal shortly!`;
-      
-      const lower = textToSend.toLowerCase();
-      if (lower.includes('interview') || lower.includes('schedule')) {
-        replyText = `Our technical interview assessment is conducted through the AI Mock Interview simulator. Once you achieve an 80%+ benchmark score, our panel sends the official Google Meet invite!`;
-      } else if (lower.includes('stipend') || lower.includes('money') || lower.includes('payment') || lower.includes('5000')) {
-        replyText = `The ₹5,000 monthly allowance (₹4,500 from MCA + ₹500 corporate CSR) is directly credited via Direct Benefit Transfer (DBT) into your Aadhaar-seeded bank account by the 1st week of every month.`;
-      } else if (lower.includes('relocation') || lower.includes('6000') || lower.includes('grant')) {
-        replyText = `The one-time ₹6,000 incidental and relocation grant is disbursed upon joining confirmation and submission of your joining report on the MCA portal.`;
-      } else if (lower.includes('ppo') || lower.includes('full time') || lower.includes('job') || lower.includes('convert')) {
-        replyText = `Top performers under the PM Internship Scheme are eligible for Pre-Placement Offers (PPOs) into Junior Executive & Associate Engineer roles at ${selectedConv.companyName}.`;
-      } else if (lower.includes('resume') || lower.includes('cv') || lower.includes('portfolio') || lower.includes('attached')) {
-        replyText = `Your verified resume and ATS score have been attached to your recruiter dashboard. The hiring manager is currently reviewing domain matching.`;
-      }
+
+    try {
+      const response = await fetch('/api/messages/reply', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          companyName: selectedConv.companyName,
+          contactPerson: selectedConv.contactPerson,
+          roleTitle: selectedConv.roleTitle,
+          message: textToSend,
+          history: selectedConv.messages
+        })
+      });
+
+      const data = await response.json();
+      const replyText = data?.reply || `Thank you for asking! For ${selectedConv.roleTitle} at ${selectedConv.companyName}, our recruitment desk is reviewing candidate profiles daily. Please make sure to complete your profile verification.`;
 
       const replyFormattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
 
@@ -471,8 +497,33 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
           return c;
         })
       );
+    } catch (err) {
+      console.warn('Recruiter reply error:', err);
+      // Fallback smart reply
+      const replyFormattedTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+      const fallbackReply: ChatMessage = {
+        id: `reply-${Date.now()}`,
+        sender: selectedConv.id === 'conv-mca' ? 'mca' : 'company',
+        text: `Thank you for your question regarding ${selectedConv.roleTitle}. Under the PM Internship Scheme, our team at ${selectedConv.companyName} evaluates verified candidates on domain skills, problem-solving, and adaptability.`,
+        timestamp: replyFormattedTime,
+        status: 'read'
+      };
+
+      setConversations((prev) =>
+        prev.map((c) => {
+          if (c.id === selectedConvId) {
+            return {
+              ...c,
+              lastActive: 'Active just now',
+              messages: [...c.messages, fallbackReply]
+            };
+          }
+          return c;
+        })
+      );
+    } finally {
       setIsTypingReply(false);
-    }, 1200);
+    }
   };
 
   const handleUpvoteReview = (reviewId: string) => {
@@ -703,12 +754,22 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
 
                 <button
                   type="button"
+                  onClick={handleClearCurrentChat}
+                  title="Clear history and start fresh real-time chat"
+                  className="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 dark:hover:bg-slate-800 rounded-lg transition text-xs font-semibold flex items-center gap-1 cursor-pointer border border-transparent hover:border-emerald-200"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-500" />
+                  <span className="hidden sm:inline text-[10px]">New Live Chat</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={handleResetCurrentChat}
                   title="Reset to fresh live timestamp session"
                   className="p-1.5 text-slate-400 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-slate-800 rounded-lg transition text-xs font-semibold flex items-center gap-1 cursor-pointer border border-transparent hover:border-purple-200"
                 >
                   <RotateCcw className="w-3.5 h-3.5" />
-                  <span className="hidden sm:inline text-[10px]">Reset Chat</span>
+                  <span className="hidden sm:inline text-[10px]">Reset Timestamps</span>
                 </button>
               </div>
             </div>
@@ -792,6 +853,28 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
               )}
 
               <div ref={messagesEndRef} />
+            </div>
+
+            {/* Real-Time Question Suggestions */}
+            <div className="px-4 py-2 bg-slate-50/80 dark:bg-slate-950/80 border-t border-slate-200 dark:border-slate-800 flex items-center gap-1.5 overflow-x-auto text-[11px] scrollbar-none">
+              <span className="text-slate-400 shrink-0 font-medium">Ask:</span>
+              {[
+                "What skills are required?",
+                "How is the interview conducted?",
+                "When will ₹5,000 stipend be credited?",
+                "Can this lead to a full-time PPO?",
+                "Is work from home / hybrid allowed?"
+              ].map((q, idx) => (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => handleSendMessage(q)}
+                  disabled={isTypingReply}
+                  className="px-2.5 py-1 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-purple-500 hover:text-purple-600 transition whitespace-nowrap cursor-pointer shrink-0 font-medium disabled:opacity-50"
+                >
+                  {q}
+                </button>
+              ))}
             </div>
 
             {/* Message Input Box */}

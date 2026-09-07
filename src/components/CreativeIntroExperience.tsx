@@ -23,6 +23,65 @@ export const SUPPORTED_INTRO_LANGUAGES: {
   { code: 'GU', nativeLabel: 'ગુજરાતી', englishLabel: 'Gujarati' }
 ];
 
+const SCHEME_TITLES: Partial<Record<LanguageCode, { primary: string; secondary: string; motto: string; vision: string; enterBtn: string }>> = {
+  EN: {
+    primary: "PRIME MINISTER'S INTERNSHIP SCHEME",
+    secondary: "GOVERNMENT OF INDIA • MINISTRY OF CORPORATE AFFAIRS",
+    motto: "TRUTH ALONE TRIUMPHS",
+    vision: "Empowering 1 Crore Indian Youth with top 500 enterprise internships, certified industry skills, and ₹5,000 monthly DBT stipend.",
+    enterBtn: "Part Curtains & Enter Scheme Portal"
+  },
+  HI: {
+    primary: "प्रधानमंत्री इंटर्नशिप योजना",
+    secondary: "भारत सरकार • कॉर्पोरेट कार्य मंत्रालय",
+    motto: "सत्यमेव जयते",
+    vision: "शीर्ष 500 उद्यमों में इंटर्नशिप, प्रमाणित उद्योग कौशल और ₹5,000 मासिक डीबीटी के साथ 1 करोड़ भारतीय युवाओं का सशक्तिकरण।",
+    enterBtn: "पर्दा हटाएं और पोर्टल में प्रवेश करें"
+  },
+  TE: {
+    primary: "ప్రధాన మంత్రి ఇంటర్న్‌షిప్ పథకం",
+    secondary: "భారత ప్రభుత్వం • కార్పొరేట్ వ్యవహారాల మంత్రిత్వ శాఖ",
+    motto: "సత్యమేవ జయతే",
+    vision: "టాప్ 500 కంపెనీలలో ఇంటర్న్‌షిప్‌లు, సర్టిఫైడ్ నైపుణ్యాలు మరియు నెలకు ₹5,000 డీబీటీతో 1 కోటి మంది భారతీయ యువతకు సాధికారత.",
+    enterBtn: "తెర తొలగించి పోర్టల్‌లోకి ప్రవేశించండి"
+  },
+  TA: {
+    primary: "பிரதம மந்திரி இன்டர்ன்ஷிப் திட்டம்",
+    secondary: "இந்திய அரசு • கார்ப்பரேட் விவகாரங்கள் அமைச்சகம்",
+    motto: "வாய்மையே வெல்லும்",
+    vision: "முதல் 500 நிறுவனங்களில் இன்டர்ன்ஷிப், தொழில் சான்றிதழ் மற்றும் ₹5,000 மாதாந்திர உதவித்தொகையுடன் 1 கோடி இளைஞர்களுக்கு அதிகாரம்.",
+    enterBtn: "திரை விலக்கி போர்ட்டலில் நுழையவும்"
+  },
+  KN: {
+    primary: "ಪ್ರಧಾನ ಮಂತ್ರಿ ಇಂಟರ್ನ್‌ಶಿಪ್ ಯೋಜನೆ",
+    secondary: "ಭಾರತ ಸರ್ಕಾರ • ಕಾರ್ಪೊರೇಟ್ ವ್ಯವಹಾರಗಳ ಸಚಿವಾಲಯ",
+    motto: "ಸತ್ಯಮೇವ ಜಯತೆ",
+    vision: "ಟಾಪ್ 500 ಕಂಪನಿಗಳಲ್ಲಿ ಇಂಟರ್ನ್‌ಶಿಪ್, ಉದ್ಯಮ ಕೌಶಲ್ಯಗಳು ಮತ್ತು ₹5,000 ಮಾಸಿಕ ಡಿಬಿಟಿಯೊಂದಿಗೆ 1 ಕೋಟಿ ಯುವಕರ ಸಬಲೀಕರಣ.",
+    enterBtn: "ಪರದೆ ಸರಿಸಿ ಪೋರ್ಟಲ್‌ಗೆ ಪ್ರವೇಶಿಸಿ"
+  },
+  MR: {
+    primary: "प्रधानमंत्री इंटर्नशिप योजना",
+    secondary: "भारत सरकार • कॉर्पोरेट कार्य मंत्रालय",
+    motto: "सत्यमेव जयते",
+    vision: "शीर्ष 500 उद्योगांमध्ये इंटर्नशिप, उद्योग कौशल्ये आणि ₹5,000 मासिक डीबीटीद्वारे 1 कोटी भारतीय तरुणांचे सक्षमीकरण.",
+    enterBtn: "पडदा बाजूला करा आणि पोर्टलमध्ये प्रवेश करा"
+  },
+  BN: {
+    primary: "প্রধানমন্ত্রী ইন্টার্নশিপ যোজনা",
+    secondary: "ভারত সরকার • কর্পোরেট বিষয়ক মন্ত্রণালয়",
+    motto: "সত্যমেব জয়তে",
+    vision: "শীর্ষ ৫০০ শিল্পে ইন্টার্নশিপ, সার্টিফাইড শিল্প দক্ষতা এবং ₹৫,০০০ মাসিক ডিবিটি সহ ১ কোটি ভারতীয় যুবকের ক্ষমতায়ন।",
+    enterBtn: "পর্দা সরান এবং পোর্টালে প্রবেশ করুন"
+  },
+  GU: {
+    primary: "પ્રધાનમંત્રી ઇન્ટર્નશિપ યોજના",
+    secondary: "ભારત સરકાર • કોર્પોરેટ બાબતોનું મંત્રાલય",
+    motto: "સત્યમેવ જયતે",
+    vision: "ટોચના 500 સાહસોમાં ઇન્ટર્નશિપ, પ્રમાણિત કૌશલ્ય અને ₹5,000 માસિક ડીબીટી સાથે 1 કરોડ ભારતીય યુવાનોનું સશક્તિકરણ.",
+    enterBtn: "પડદો હટાવો અને પોર્ટલમાં પ્રવેશ કરો"
+  }
+};
+
 // Web Audio API synthesizer for the realistic buzz whoosh & crisp crystal "ting" chime
 function playCurtainTingSound() {
   try {
@@ -92,6 +151,12 @@ export function CreativeIntroExperience({ onComplete }: CreativeIntroExperienceP
   const [phase, setPhase] = useState<number>(0); // 0: Curtains initial, 1: Chakra glow, 2: Royal Title, 3: Full Glory
   const [isMobileDevice, setIsMobileDevice] = useState(false);
   const [selectedLang, setSelectedLang] = useState<LanguageCode>(language || 'EN');
+
+  useEffect(() => {
+    if (language) {
+      setSelectedLang(language);
+    }
+  }, [language]);
 
   const isExitingRef = useRef(false);
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
@@ -568,64 +633,81 @@ export function CreativeIntroExperience({ onComplete }: CreativeIntroExperienceP
             <span className="w-10 sm:w-16 h-px bg-gradient-to-l from-transparent via-amber-500 to-amber-600" />
           </div>
 
-          {/* National Motto: Satyameva Jayate */}
-          <motion.div
-            initial={{ opacity: 0, letterSpacing: '0.3em' }}
-            animate={{
-              opacity: phase >= 1 ? 1 : 0,
-              letterSpacing: isMobileDevice ? '0.15em' : '0.25em'
-            }}
-            transition={{ duration: 0.9, ease: 'easeOut' }}
-            className="text-[10px] sm:text-xs font-bold text-slate-800 uppercase mb-2 flex items-center gap-2"
-          >
-            <span className="w-6 sm:w-8 h-px bg-gradient-to-r from-transparent to-[#FF9933]" />
-            <span className="text-slate-900 font-serif tracking-wider font-extrabold">सत्यमेव जयते</span>
-            <span className="text-amber-500">•</span>
-            <span className="text-slate-800 font-extrabold tracking-widest">TRUTH ALONE TRIUMPHS</span>
-            <span className="w-6 sm:w-8 h-px bg-gradient-to-l from-transparent to-[#138808]" />
-          </motion.div>
+          {/* National Motto: Satyameva Jayate / Localized */}
+          {(() => {
+            const langData = SCHEME_TITLES[selectedLang] || SCHEME_TITLES.EN;
+            return (
+              <>
+                <motion.div
+                  initial={{ opacity: 0, letterSpacing: '0.3em' }}
+                  animate={{
+                    opacity: phase >= 1 ? 1 : 0,
+                    letterSpacing: isMobileDevice ? '0.15em' : '0.25em'
+                  }}
+                  transition={{ duration: 0.9, ease: 'easeOut' }}
+                  className="text-[10px] sm:text-xs font-bold text-slate-800 uppercase mb-2 flex items-center gap-2"
+                >
+                  <span className="w-6 sm:w-8 h-px bg-gradient-to-r from-transparent to-[#FF9933]" />
+                  <span className="text-slate-900 font-serif tracking-wider font-extrabold">{langData.motto}</span>
+                  {selectedLang === 'EN' && (
+                    <>
+                      <span className="text-amber-500">•</span>
+                      <span className="text-slate-800 font-extrabold tracking-widest">TRUTH ALONE TRIUMPHS</span>
+                    </>
+                  )}
+                  {selectedLang === 'HI' && (
+                    <>
+                      <span className="text-amber-500">•</span>
+                      <span className="text-slate-800 font-extrabold tracking-widest">सत्यमेव जयते</span>
+                    </>
+                  )}
+                  <span className="w-6 sm:w-8 h-px bg-gradient-to-l from-transparent to-[#138808]" />
+                </motion.div>
 
-          {/* Majestic Scheme Heading with High Contrast on Plain White */}
-          <motion.div
-            initial={{ opacity: 0, y: 25 }}
-            animate={{
-              opacity: phase >= 2 ? 1 : 0,
-              y: phase >= 2 ? 0 : 25
-            }}
-            transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-            className="relative px-2"
-          >
-            <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 font-serif drop-shadow-xs">
-              प्रधानमंत्री इंटर्नशिप योजना
-              <span className="block mt-1.5 text-xl sm:text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-r from-[#D97706] via-[#B45309] to-[#047857] bg-clip-text text-transparent drop-shadow-xs font-sans">
-                PRIME MINISTER’S INTERNSHIP SCHEME
-              </span>
-            </h1>
-          </motion.div>
+                {/* Majestic Scheme Heading with High Contrast - Synchronized to specified language */}
+                <motion.div
+                  initial={{ opacity: 0, y: 25 }}
+                  animate={{
+                    opacity: phase >= 2 ? 1 : 0,
+                    y: phase >= 2 ? 0 : 25
+                  }}
+                  transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                  className="relative px-2"
+                >
+                  <h1 className="text-2xl sm:text-4xl md:text-5xl font-extrabold tracking-tight text-slate-900 font-serif drop-shadow-xs">
+                    {langData.primary}
+                    <span className="block mt-1.5 text-xl sm:text-3xl md:text-4xl font-black tracking-tight bg-gradient-to-r from-[#D97706] via-[#B45309] to-[#047857] bg-clip-text text-transparent drop-shadow-xs font-sans">
+                      {langData.secondary}
+                    </span>
+                  </h1>
+                </motion.div>
 
-          {/* Tricolor & Gold Accent Bar */}
-          <motion.div
-            initial={{ width: 0, opacity: 0 }}
-            animate={{
-              width: phase >= 2 ? (isMobileDevice ? '150px' : '200px') : '0px',
-              opacity: phase >= 2 ? 1 : 0
-            }}
-            transition={{ duration: 1.1, delay: 0.15 }}
-            className="h-1 rounded-full bg-gradient-to-r from-[#FF9933] via-amber-400 to-[#138808] my-2.5 sm:my-3 shadow-sm"
-          />
+                {/* Tricolor & Gold Accent Bar */}
+                <motion.div
+                  initial={{ width: 0, opacity: 0 }}
+                  animate={{
+                    width: phase >= 2 ? (isMobileDevice ? '150px' : '200px') : '0px',
+                    opacity: phase >= 2 ? 1 : 0
+                  }}
+                  transition={{ duration: 1.1, delay: 0.15 }}
+                  className="h-1 rounded-full bg-gradient-to-r from-[#FF9933] via-amber-400 to-[#138808] my-2.5 sm:my-3 shadow-sm"
+                />
 
-          {/* Vision Statement */}
-          <motion.p
-            initial={{ opacity: 0, y: 15 }}
-            animate={{
-              opacity: phase >= 3 ? 1 : 0,
-              y: phase >= 3 ? 0 : 15
-            }}
-            transition={{ duration: 0.8, delay: 0.1 }}
-            className="text-[11px] sm:text-xs md:text-sm text-slate-700 font-medium max-w-lg leading-relaxed px-3 mb-4"
-          >
-            Empowering <span className="font-bold text-amber-700">1 Crore Indian Youth</span> with top 500 enterprise internships, certified industry skills, and <span className="font-bold text-emerald-700">₹5,000 monthly DBT</span>.
-          </motion.p>
+                {/* Vision Statement in selected language */}
+                <motion.p
+                  initial={{ opacity: 0, y: 15 }}
+                  animate={{
+                    opacity: phase >= 3 ? 1 : 0,
+                    y: phase >= 3 ? 0 : 15
+                  }}
+                  transition={{ duration: 0.8, delay: 0.1 }}
+                  className="text-[11px] sm:text-xs md:text-sm text-slate-700 font-medium max-w-lg leading-relaxed px-3 mb-4"
+                >
+                  {langData.vision}
+                </motion.p>
+              </>
+            );
+          })()}
 
           {/* MULTILINGUAL LANGUAGE SELECTION */}
           <motion.div
@@ -671,7 +753,7 @@ export function CreativeIntroExperience({ onComplete }: CreativeIntroExperienceP
                 className="group relative px-6 sm:px-8 py-2.5 sm:py-3 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-600 hover:to-orange-600 text-slate-950 font-black text-xs sm:text-sm shadow-xl flex items-center gap-2.5 transition transform hover:scale-105 active:scale-95 cursor-pointer ring-4 ring-amber-400/30"
               >
                 <Sparkles className="w-4 h-4 text-slate-950 animate-spin" style={{ animationDuration: '6s' }} />
-                <span>Part Curtains & Enter Scheme Portal</span>
+                <span>{(SCHEME_TITLES[selectedLang] || SCHEME_TITLES.EN).enterBtn}</span>
                 <ArrowRight className="w-4 h-4 text-slate-950 transition-transform group-hover:translate-x-1" />
               </button>
             </div>

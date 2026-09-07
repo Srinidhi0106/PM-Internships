@@ -929,7 +929,7 @@ export const AIPortfolioPage: React.FC<AIPortfolioPageProps> = ({ user, onNaviga
                   <div className="space-y-1">
                     <span className="text-[11px] font-bold text-blue-400 block">Target Headline Formula:</span>
                     <p className="text-[11px] text-slate-300 bg-slate-900 p-2 rounded border border-slate-800">
-                      "B.Sc (AI & ML) at Siva Sivani Degree College | Python • Machine Learning • Data Analytics | Aspiring PM Scheme Fellow"
+                      "B.Tech (Computer Science & AI) | Python • Machine Learning • Data Analytics | Aspiring PM Scheme Fellow"
                     </p>
                   </div>
                   <div className="space-y-1 pt-1">

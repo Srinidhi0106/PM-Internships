@@ -236,7 +236,7 @@ export function extractCandidateNameClient(
   linkedinUrl?: string,
   email?: string
 ): string {
-  // 1. From LinkedIn URL slug (e.g. linkedin.com/in/srinidhi-veldi-1a407636b -> Srinidhi Veldi)
+  // 1. From LinkedIn URL slug (e.g. linkedin.com/in/rohan-sharma-1a407636b -> Rohan Sharma)
   if (linkedinUrl) {
     const match = linkedinUrl.match(/linkedin\.com\/in\/([a-zA-Z0-9_-]+)/i);
     if (match && match[1]) {
@@ -251,7 +251,7 @@ export function extractCandidateNameClient(
     }
   }
 
-  // 2. From File Name (e.g. Srinidhi_Resume.pdf, Srinidhi_Veldi_CV.pdf)
+  // 2. From File Name (e.g. Rahul_Resume.pdf, Candidate_CV.pdf)
   if (fileName) {
     const baseName = fileName
       .replace(/\.[a-zA-Z0-9]+$/, '')
@@ -289,7 +289,7 @@ export function extractCandidateNameClient(
     }
   }
 
-  // 4. From email (e.g. srinidhiveldi14@gmail.com -> Srinidhi Veldi)
+  // 4. From email (e.g. candidate@gmail.com -> Candidate)
   const effectiveEmail = email || (text ? (text.match(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/) || [])[0] : '');
   if (effectiveEmail) {
     const userPart = effectiveEmail.split('@')[0].replace(/[0-9]+$/, '');
@@ -315,7 +315,7 @@ export function extractEducationDetailsClient(text: string): { college: string; 
   const t = text.toLowerCase();
 
   // College matching
-  const collegeRegex = /(?:Siva\s*Sivani\s*Degree\s*College|S\s*R\s*Junior\s*College|Sreenidhi\s*Global\s*School|(?:[A-Z][a-zA-Z&.'-]+\s+){1,6}(?:Degree\s*College|Junior\s*College|College\s*of\s*[A-Za-z]+|College|University|Institute\s*of\s*Technology|Institute\s*of\s*Science|Institute\s*of\s*Engineering|Institute|School|Academy|IIT\s+[A-Za-z]+|NIT\s+[A-Za-z]+|BITS\s+[A-Za-z]+|IIIT\s+[A-Za-z]+|Polytechnic))/g;
+  const collegeRegex = /(?:[A-Z][a-zA-Z&.'-]+\s+){1,6}(?:Degree\s*College|Junior\s*College|College\s*of\s*[A-Za-z]+|College|University|Institute\s*of\s*Technology|Institute\s*of\s*Science|Institute\s*of\s*Engineering|Institute|School|Academy|IIT\s+[A-Za-z]+|NIT\s+[A-Za-z]+|BITS\s+[A-Za-z]+|IIIT\s+[A-Za-z]+|Polytechnic)/g;
 
   const matches = text.match(collegeRegex);
   if (matches && matches.length > 0) {
@@ -337,9 +337,6 @@ export function extractEducationDetailsClient(text: string): { college: string; 
       if (/EDUCATION|Academics/i.test(match)) return '';
       return match;
     }).replace(/^(?:and|to|while|growing|solutions|innovative)\s+/i, '').trim();
-    if (college.toLowerCase().includes('siva sivani')) {
-      college = 'Siva Sivani Degree College';
-    }
   }
 
   // Branch matching
@@ -392,7 +389,7 @@ export function extractEducationDetailsClient(text: string): { college: string; 
     }
   }
 
-  return { college: college || 'Siva Sivani Degree College', branch, cgpa: cgpa || 8.94 };
+  return { college: college || 'National Institute of Technology', branch, cgpa: cgpa || 8.94 };
 }
 
 /**
@@ -553,7 +550,7 @@ export async function parseResumeAndAuditClient(params: {
     text,
     fileName,
     linkedinUrl || existingUser?.linkedinUrl,
-    emailMatch ? emailMatch[0] : (existingUser?.email || 'srinidhiveldi14@gmail.com')
+    emailMatch ? emailMatch[0] : (existingUser?.email || 'candidate@gmail.com')
   );
 
   const education = extractEducationDetailsClient(text);
@@ -564,7 +561,7 @@ export async function parseResumeAndAuditClient(params: {
 
   // Clean and extract GitHub info
   const rawGh = githubUrl || existingUser?.githubUrl || (text.match(/github\.com\/([a-zA-Z0-9_-]+)/i) || [])[1] || '';
-  const ghUsername = rawGh.replace(/^https?:\/\/github\.com\//i, '').replace(/\/.*$/, '').trim() || 'srinidhi0106';
+  const ghUsername = rawGh.replace(/^https?:\/\/github\.com\//i, '').replace(/\/.*$/, '').trim() || (existingUser?.name ? existingUser.name.toLowerCase().replace(/[^a-z0-9]/g, '') : 'candidate');
 
   const githubAnalysis = {
     username: ghUsername,
@@ -573,24 +570,24 @@ export async function parseResumeAndAuditClient(params: {
     repositoriesCount: 8,
     topLanguages: ['Python', 'TypeScript', 'SQL', 'JavaScript', 'HTML/CSS'],
     commitFrequency: 'Regular Active Committer (Top 10% student percentile)',
-    openSourceSummary: 'Multiple public repositories with active code commits and ML utilities',
+    openSourceSummary: 'Multiple public repositories with active code commits and utilities',
     codeQualityScore: 88,
     suggestions: [
-      'Pin top 2 featured AI/ML repositories with comprehensive READMEs and architectural diagrams',
-      'Add live hosted demo links (e.g. HuggingFace Spaces / Vercel) in repository description headers',
+      'Pin top 2 featured repositories with comprehensive READMEs and architectural diagrams',
+      'Add live hosted demo links in repository description headers',
       'Add open-source LICENSE and automated CI/CD GitHub Actions test workflows'
     ]
   };
 
   return {
     isValidResume: true,
-    name: candidateName !== 'Candidate' ? candidateName : (existingUser?.name || 'Srinidhi Veldi'),
-    email: emailMatch ? emailMatch[0] : (existingUser?.email || 'srinidhiveldi14@gmail.com'),
+    name: candidateName !== 'Candidate' ? candidateName : (existingUser?.name || 'Verified Candidate'),
+    email: emailMatch ? emailMatch[0] : (existingUser?.email || 'candidate@gmail.com'),
     phone: phoneMatch ? phoneMatch[0] : (existingUser?.phone || '+91 98765 43210'),
-    college: education.college || existingUser?.college || 'Siva Sivani Degree College',
-    branch: education.branch || existingUser?.branch || 'B.Sc (Artificial Intelligence & Machine Learning)',
+    college: education.college || existingUser?.college || 'National Institute of Technology',
+    branch: education.branch || existingUser?.branch || 'B.Tech / B.Sc (Technical Specialization)',
     cgpa: education.cgpa || existingUser?.cgpa || 8.94,
-    skills: skills.length > 0 ? skills : (existingUser?.skills || ['Python', 'Machine Learning', 'Artificial Intelligence', 'SQL', 'JavaScript', 'Pandas', 'NumPy', 'Excel']),
+    skills: skills.length > 0 ? skills : (existingUser?.skills && existingUser.skills.length > 0 ? existingUser.skills : []),
     atsScore,
     atsScoreBreakdown: {
       keywordMatch: 94,
@@ -604,34 +601,34 @@ export async function parseResumeAndAuditClient(params: {
         institution: education.college,
         cgpa: `${education.cgpa || 8.94} / 10`,
         status: 'Verified PM Scheme Academic Record',
-        coursework: ['Artificial Intelligence', 'Machine Learning', 'Data Structures & Algorithms', 'Database Management (SQL)', 'Statistical Analytics']
+        coursework: ['Data Structures & Algorithms', 'Database Management', 'Core Engineering Concepts']
       },
       contact: {
-        name: candidateName !== 'Candidate' ? candidateName : (existingUser?.name || 'Srinidhi Veldi'),
-        email: emailMatch ? emailMatch[0] : (existingUser?.email || 'srinidhiveldi14@gmail.com'),
+        name: candidateName !== 'Candidate' ? candidateName : (existingUser?.name || 'Verified Candidate'),
+        email: emailMatch ? emailMatch[0] : (existingUser?.email || 'candidate@gmail.com'),
         phone: phoneMatch ? phoneMatch[0] : (existingUser?.phone || '+91 98765 43210'),
-        location: 'Hyderabad, Telangana, India',
+        location: 'New Delhi, India',
         linkedinVerified: Boolean(linkedinUrl || existingUser?.linkedinUrl),
         githubVerified: Boolean(githubUrl || existingUser?.githubUrl || ghUsername)
       },
       skillsCategorized: {
-        languages: ['Python', 'SQL', 'JavaScript', 'TypeScript'],
-        aiAndData: ['Machine Learning', 'Artificial Intelligence', 'Deep Learning', 'Pandas', 'NumPy', 'Data Analytics'],
-        webAndTools: ['React.js', 'Git & GitHub', 'REST APIs', 'FastAPI', 'Docker Basics'],
-        coreCompetencies: ['Problem Solving', 'Data Structures', 'Statistical Modeling', 'Predictive Analysis']
+        languages: skills.filter(s => ['Python', 'SQL', 'JavaScript', 'TypeScript', 'Java', 'C++'].includes(s)),
+        aiAndData: skills.filter(s => ['Machine Learning', 'Data Analysis', 'Deep Learning', 'Pandas', 'SQL'].includes(s)),
+        webAndTools: skills.filter(s => ['React', 'Git', 'Docker', 'REST APIs', 'Node.js'].includes(s)),
+        coreCompetencies: ['Problem Solving', 'Communication', 'Teamwork']
       },
       projects: [
         {
-          title: 'Predictive Machine Learning & Data Pipeline Model',
-          techStack: ['Python', 'Scikit-Learn', 'Pandas', 'SQL'],
-          impactMetrics: '94.2% accuracy model with automated feature engineering pipelines',
-          description: `Engineered end-to-end data analytics and predictive classification models at ${education.college}.`,
-          atsRating: '96% High Impact'
+          title: 'Technical Implementation & Data Modeling Project',
+          techStack: skills.slice(0, 4),
+          impactMetrics: 'High accuracy performance with modular architecture',
+          description: `Engineered project modules and algorithms at ${education.college}.`,
+          atsRating: '95% High Impact'
         },
         {
-          title: 'PM Internship Portal AI Recommendation & Skill Engine',
-          techStack: ['React.js', 'TypeScript', 'Tailwind CSS', 'AI APIs'],
-          impactMetrics: 'Sub-second applicant parsing and structured ATS scoring matrix',
+          title: 'PM Internship Solution & Candidate Matching Platform',
+          techStack: ['React.js', 'TypeScript', 'Tailwind CSS'],
+          impactMetrics: 'Sub-second applicant parsing and structured scoring matrix',
           description: 'Created candidate intelligence and real-time eligibility evaluation portal.',
           atsRating: '94% High Impact'
         }
@@ -639,15 +636,15 @@ export async function parseResumeAndAuditClient(params: {
     },
     projects: [
       {
-        title: `${education.branch} Machine Learning Pipeline`,
-        description: `Developed AI and predictive modeling pipelines with high accuracy using Python at ${education.college}.`
+        title: `${education.branch} Technical Project`,
+        description: `Developed engineering solutions and workflows at ${education.college}.`
       },
       {
-        title: 'PM Internship Portal Analytics & Skill Matching',
-        description: 'Engineered intelligent data extraction and ATS auditing workflows.'
+        title: 'PM Internship Portal Application',
+        description: 'Engineered intelligent candidate matching and auditing workflows.'
       }
     ],
-    linkedinUrl: linkedinUrl || existingUser?.linkedinUrl || 'https://www.linkedin.com/in/srinidhi-veldi-1a407636b/',
+    linkedinUrl: linkedinUrl || existingUser?.linkedinUrl || 'https://www.linkedin.com/in/internship-candidate',
     linkedinHeadline: headline,
     linkedinScore: 95,
     linkedinAnalysis: {

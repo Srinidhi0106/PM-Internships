@@ -82,14 +82,14 @@ export async function validateResumeFile(file: File): Promise<ValidationResult> 
   const rawFileName = file.name || '';
   const lowerName = rawFileName.toLowerCase().trim();
 
-  // 1. Validate File Extension (Strictly PDF, DOCX, DOC, TXT only)
-  const validExtensions = ['.pdf', '.docx', '.doc', '.txt'];
+  // 1. Validate File Extension (Strictly PDF, DOCX, DOC, TXT, and Image Formats: PNG, JPG, JPEG, WEBP)
+  const validExtensions = ['.pdf', '.docx', '.doc', '.txt', '.png', '.jpg', '.jpeg', '.webp'];
   const hasValidExt = validExtensions.some((ext) => lowerName.endsWith(ext));
 
   if (!hasValidExt) {
     return {
       isValid: false,
-      error: 'Upload the correct file document [only resume]. Only PDF, DOCX, DOC, and TXT resume files are supported. Image files, spreadsheets, and other formats are strictly rejected.'
+      error: 'Upload the correct file document [only resume]. Supported formats are PDF, DOCX, DOC, TXT, and Image formats (PNG, JPG, JPEG, WEBP).'
     };
   }
 

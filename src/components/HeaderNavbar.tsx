@@ -22,7 +22,8 @@ import {
   Bell,
   Clock,
   Film,
-  Play
+  Play,
+  QrCode
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { LanguageCode, SUPPORTED_LANGUAGES, getTranslation } from '../translations';
@@ -42,6 +43,7 @@ interface HeaderNavbarProps {
   onRoleSwitch: (role: UserRole) => void;
   openVoiceSearch: () => void;
   openNotifications?: () => void;
+  openAppDownload?: () => void;
   onLogout?: () => void;
 }
 
@@ -56,6 +58,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   onRoleSwitch,
   openVoiceSearch,
   openNotifications,
+  openAppDownload,
   onLogout
 }) => {
   const { timeFormat, setTimeFormat, timezone, setTimezone, selectedZone, currentTime } = useTimezone();
@@ -88,6 +91,10 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
     { id: 'ai-skill-gap', label: getTranslation(language, 'aiSkillGapNav') },
     { id: 'ai-fraud', label: getTranslation(language, 'aiFraudNav') },
     { id: 'resume-parser', label: getTranslation(language, 'resumeParserNav') },
+    { id: 'resume-builder', label: 'Resume Builder' },
+    { id: 'support-grievance', label: 'Support & Queries' },
+    { id: 'govtech-benchmark', label: 'GovTech Benchmark' },
+    { id: 'user-manual-budget', label: 'Manual & Budget' },
     { id: 'messages', label: getTranslation(language, 'messagesNav') || 'Messages & Reviews' },
     { id: 'dashboard', label: getTranslation(language, 'studentPortal') },
     { id: 'company-dashboard', label: getTranslation(language, 'recruiterPortalNav') },
@@ -318,6 +325,18 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
           {/* Multi-Language Dropdown Switcher */}
           <LanguageDropdown variant="desktop" />
 
+          {/* App Download QR Modal Trigger */}
+          {openAppDownload && (
+            <button
+              onClick={openAppDownload}
+              className="relative px-2.5 py-1.5 rounded-lg bg-amber-50 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900 transition cursor-pointer flex items-center gap-1.5 text-xs font-black shadow-2xs"
+              title="Download PM Internship Scheme Mobile App via QR Code"
+            >
+              <QrCode className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="hidden lg:inline">App QR</span>
+            </button>
+          )}
+
           {/* Notification Hub Trigger */}
           {openNotifications && (
             <button
@@ -438,7 +457,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
           <div className="hidden xl:flex items-center space-x-2 text-xs font-medium text-slate-500 shrink-0 ml-4">
             <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-ping" />
-            <span>{getTranslation(language, 'livePortalText')}</span>
+            <span>{getTranslation(language, 'livePortalText') !== 'livePortalText' ? getTranslation(language, 'livePortalText') : 'Live Govt Portal • 1,850+ Active Roles'}</span>
           </div>
         </div>
       </nav>

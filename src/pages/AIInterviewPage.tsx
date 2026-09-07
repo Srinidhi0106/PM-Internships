@@ -25,11 +25,13 @@ import {
   HelpCircle,
   Check,
   Settings2,
-  Sliders
+  Sliders,
+  Printer
 } from 'lucide-react';
 import { User, AIInterviewSession, AIInterviewQuestion } from '../types';
 import { useLanguage } from '../context/LanguageContext';
 import { aiInterviewerAvatar } from '../assets/images';
+import { InterviewScorecardModal } from '../components/InterviewScorecardModal';
 
 interface AIInterviewPageProps {
   user: User;
@@ -87,6 +89,7 @@ export const AIInterviewPage: React.FC<AIInterviewPageProps> = ({ user, onNaviga
   const [meetingViewMode, setMeetingViewMode] = useState<'gallery' | 'spotlight'>('gallery');
   const [showInMeetingNotes, setShowInMeetingNotes] = useState(false);
   const [showScreenShare, setShowScreenShare] = useState(false);
+  const [showScorecardModal, setShowScorecardModal] = useState(false);
 
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -546,7 +549,8 @@ export const AIInterviewPage: React.FC<AIInterviewPageProps> = ({ user, onNaviga
 
     try {
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 1800);
+      // Allow up to 8 seconds for Gemini 2.5 Flash to thoroughly evaluate answer accuracy
+      const timeoutId = setTimeout(() => controller.abort(), 8000);
 
       const res = await fetch('/api/ai/interview', {
         method: 'POST',
@@ -584,8 +588,24 @@ export const AIInterviewPage: React.FC<AIInterviewPageProps> = ({ user, onNaviga
         calcScore = 0;
         feedbackText = 'No answer was provided for this question (Score: 0/100). In a live PM Internship interview, answering each question thoroughly using the STAR framework is required to earn points.';
       } else {
-        calcScore = Math.min(94, Math.max(45, 55 + Math.floor(answer.length / 8)));
-        feedbackText = `Response recorded (${calcScore}/100). Demonstrated relevant subject awareness for ${session.role}. Consider structuring with specific STAR metrics in future rounds.`;
+        const cleanAns = answer.trim();
+        const isRepetitiveGibberish = /(.)\1{3,}/.test(cleanAns) || /^(.)\1+$/.test(cleanAns);
+        const isTrivialNonAnswer = /^(idk|dont know|don't know|no idea|pass|wrong|nothing|none|sddd|asdf|qwerty|na|n\/a|skip)$/i.test(cleanAns);
+        const hasVeryFewLetters = cleanAns.replace(/[^a-zA-Z]/g, '').length < 6;
+
+        if (isRepetitiveGibberish || isTrivialNonAnswer || hasVeryFewLetters) {
+          calcScore = 5;
+          feedbackText = `Incorrect / Insufficient response (Score: ${calcScore}/100). The entered answer "${cleanAns}" does not answer the technical question asked for ${session.role}. In a formal evaluation, explain the relevant architecture, libraries, or methodologies to receive credit.`;
+        } else {
+          const hasTechnicalTerms = /(algorithm|data|model|system|process|framework|function|database|api|component|design|performance|test|analysis|method)/i.test(cleanAns);
+          if (!hasTechnicalTerms && cleanAns.length < 25) {
+            calcScore = 20;
+            feedbackText = `Incorrect / Incomplete answer (${calcScore}/100). The response lacks domain-specific reasoning and fails to explain key concepts for ${session.role}. Elaborate with concrete technical examples.`;
+          } else {
+            calcScore = Math.min(88, Math.max(30, 40 + Math.floor(cleanAns.length / 12)));
+            feedbackText = `Response recorded for ${session.role} (${calcScore}/100). Foundational concepts covered. Recommend structuring next answers with explicit STAR metrics.`;
+          }
+        }
       }
 
       const updatedQuestions = [...session.questions];
@@ -598,7 +618,7 @@ export const AIInterviewPage: React.FC<AIInterviewPageProps> = ({ user, onNaviga
 
       const nextIndex = currentQIndex + 1;
       const isComplete = nextIndex >= session.questions.length;
-      const totalScore = updatedQuestions.reduce((acc, q) => acc + (q.score || 0), 0);
+      const totalScore = updatedQuestions.reduce((acc, q) => acc + (typeof q.score === 'number' ? q.score : 0), 0);
       const avgScore = Math.round(totalScore / updatedQuestions.length);
 
       const updatedSession: AIInterviewSession = {
@@ -916,69 +936,12 @@ export const AIInterviewPage: React.FC<AIInterviewPageProps> = ({ user, onNaviga
         })
       });
 
-      const scorecardDoc = `===============================================================
-GOVERNMENT OF INDIA - MINISTRY OF CORPORATE AFFAIRS
-PM INTERNSHIP SCHEME - OFFICIAL AI MOCK INTERVIEW SCORECARD
-===============================================================
-
-Candidate Name: ${user.name || 'Candidate'}
-Candidate Email: ${user.email || 'N/A'}
-Candidate College: ${user.college || 'N/A'}
-Target Role: ${session.role}
-Evaluating Enterprise: ${company}
-Date of Assessment: ${new Date().toLocaleDateString('en-IN')}
-Session Reference ID: ${session.id}
-
----------------------------------------------------------------
-OVERALL ASSESSMENT PERFORMANCE SCORE: ${session.overallScore}% / 100%
-STATUS: RECOMMENDED FOR INTERNSHIP PLACEMENT
----------------------------------------------------------------
-
-DETAILED QUESTION TRANSCRIPT & AI EVALUATION:
-
-${session.questions
-  .map(
-    (q, idx) => `
-[QUESTION ${idx + 1}] Score: ${q.score || 85}/100
-Question: "${q.questionText}"
-
-Candidate Response:
-"${q.userAnswer || 'No response recorded'}"
-
-AI Panel Officer Feedback & Analysis:
-${q.feedback}
----------------------------------------------------------------`
-  )
-  .join('\n')}
-
-Key Technical Strengths:
-- Articulate technical reasoning & adherence to STAR methodology.
-- High domain match with ${session.role}.
-
-AI Recommended Next Steps:
-- Review system architecture and Big-O algorithm analysis.
-- Practice mock interviews on PM Internship AI Simulator.
-
-===============================================================
-Verified Official AI Assessment Document - PM Internship Scheme
-===============================================================`;
-
-      const blob = new Blob([scorecardDoc], { type: 'text/plain;charset=utf-8' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = `PM_Scheme_Interview_Scorecard_${user.name?.replace(/\s+/g, '_') || 'Candidate'}.txt`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-
-      setSaveSuccessMessage('Scorecard saved to candidate profile and downloaded to your device!');
+      setShowScorecardModal(true);
+      setSaveSuccessMessage('Scorecard generated and verified for candidate profile!');
       setTimeout(() => setSaveSuccessMessage(null), 6000);
     } catch (err) {
       console.error('Error saving scorecard:', err);
-      setSaveSuccessMessage('Scorecard recorded in session history!');
-      setTimeout(() => setSaveSuccessMessage(null), 5000);
+      setShowScorecardModal(true);
     } finally {
       setLoading(false);
     }
@@ -1202,50 +1165,131 @@ Verified Official AI Assessment Document - PM Internship Scheme
             </div>
           )}
 
-          <div className="text-center space-y-3 border-b border-slate-100 dark:border-slate-800 pb-6">
-            <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto text-3xl font-black shadow-inner border-2 border-emerald-300 dark:border-emerald-700">
-              {session.overallScore}%
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
-              Mock Interview Completed!
-            </h2>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Evaluated for <strong>{session.role}</strong> at <strong>{company}</strong>
-            </p>
-          </div>
+          {(() => {
+            const computedOverall = session.questions.length > 0
+              ? Math.round(session.questions.reduce((sum, q) => sum + (typeof q.score === 'number' ? q.score : 0), 0) / session.questions.length)
+              : (session.overallScore || 0);
+            const isPassed = computedOverall >= 50;
+            const isExemplary = computedOverall >= 75;
 
-          <div className="space-y-4">
-            <h3 className="text-sm font-bold uppercase tracking-wider text-slate-400 flex items-center gap-2">
-              <FileText className="w-4 h-4 text-indigo-500" />
-              <span>Detailed Question Transcript & STAR Evaluation</span>
-            </h3>
-
-            {session.questions.map((q, idx) => (
-              <div
-                key={q.id}
-                className="p-5 rounded-2xl bg-slate-50 dark:bg-slate-950 border border-slate-200 dark:border-slate-800 space-y-3 text-xs"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <span className="font-bold text-slate-900 dark:text-white text-sm">
-                    Q{idx + 1}: {q.questionText}
-                  </span>
-                  <span className="shrink-0 font-black text-xs text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950 px-3 py-1 rounded-full border border-indigo-200 dark:border-indigo-800">
-                    {q.score || 85}/100
-                  </span>
+            return (
+              <>
+                <div className="text-center space-y-3 border-b border-slate-100 dark:border-slate-800 pb-6">
+                  <div
+                    className={`w-24 h-24 rounded-full flex flex-col items-center justify-center mx-auto text-3xl font-black shadow-lg border-4 ${
+                      isPassed
+                        ? isExemplary
+                          ? 'bg-emerald-50 dark:bg-emerald-950 text-emerald-600 dark:text-emerald-400 border-emerald-400'
+                          : 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-400 border-amber-400'
+                        : 'bg-rose-50 dark:bg-rose-950 text-rose-600 dark:text-rose-400 border-rose-400'
+                    }`}
+                  >
+                    <span>{computedOverall}%</span>
+                    <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Score</span>
+                  </div>
+                  <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                    {isPassed
+                      ? isExemplary
+                        ? 'Exemplary Mock Assessment!'
+                        : 'Mock Assessment Completed'
+                      : 'Needs Improvement — Practice Recommended'}
+                  </h2>
+                  <p className="text-xs sm:text-sm text-slate-500">
+                    Evaluated for <strong>{session.role}</strong> at <strong>{company}</strong>
+                  </p>
+                  <div className="pt-1">
+                    <span
+                      className={`inline-flex items-center gap-1.5 text-xs font-black px-4 py-1.5 rounded-full border ${
+                        isPassed
+                          ? 'bg-emerald-50 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300 dark:border-emerald-800'
+                          : 'bg-rose-50 text-rose-800 border-rose-300 dark:bg-rose-950 dark:text-rose-300 dark:border-rose-800'
+                      }`}
+                    >
+                      {isPassed ? '✓ Qualified for Enterprise Interview Round' : '❌ Below 50% Threshold — Review Feedback Below & Retake'}
+                    </span>
+                  </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
-                  <span className="text-slate-400 block font-bold text-[10px] uppercase">Your Response:</span>
-                  <p className="text-slate-700 dark:text-slate-300 italic pt-1 font-medium">{q.userAnswer || 'No answer recorded'}</p>
-                </div>
+                <div className="space-y-4">
+                  <h3 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <span className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-indigo-500" />
+                      Detailed Technical Evaluation & STAR Critique
+                    </span>
+                    <span className="text-xs font-semibold text-slate-400">
+                      {session.questions.length} Question{session.questions.length > 1 ? 's' : ''} Evaluated
+                    </span>
+                  </h3>
 
-                <div className="text-emerald-900 dark:text-emerald-200 bg-emerald-50 dark:bg-emerald-950/50 p-3.5 rounded-xl border border-emerald-200 dark:border-emerald-900/60 space-y-1">
-                  <span className="font-bold block text-emerald-800 dark:text-emerald-300">AI Assessment Officer Feedback:</span>
-                  <p className="leading-relaxed">{q.feedback || 'Excellent adherence to technical competencies and structured reasoning.'}</p>
+                  {session.questions.map((q, idx) => {
+                    const qScore = typeof q.score === 'number' ? q.score : 0;
+                    const isWrong = qScore <= 35;
+                    const isPartial = qScore > 35 && qScore < 70;
+
+                    return (
+                      <div
+                        key={q.id || idx}
+                        className={`p-5 rounded-2xl border space-y-3 text-xs transition ${
+                          isWrong
+                            ? 'bg-rose-50/40 dark:bg-rose-950/20 border-rose-200 dark:border-rose-900/60'
+                            : isPartial
+                            ? 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-200 dark:border-amber-900/60'
+                            : 'bg-emerald-50/40 dark:bg-emerald-950/20 border-emerald-200 dark:border-emerald-900/60'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <span className="font-bold text-slate-900 dark:text-white text-sm">
+                            Q{idx + 1}: {q.questionText}
+                          </span>
+                          <span
+                            className={`shrink-0 font-black text-xs px-3 py-1 rounded-full border flex items-center gap-1 ${
+                              isWrong
+                                ? 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950 dark:text-rose-300'
+                                : isPartial
+                                ? 'bg-amber-100 text-amber-800 border-amber-300 dark:bg-amber-950 dark:text-amber-300'
+                                : 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-950 dark:text-emerald-300'
+                            }`}
+                          >
+                            {isWrong ? '❌ Incorrect' : isPartial ? '⚠️ Partial' : '✓ Proficient'}: {qScore}/100
+                          </span>
+                        </div>
+
+                        <div className="bg-white dark:bg-slate-900 p-3.5 rounded-xl border border-slate-200 dark:border-slate-800">
+                          <span className="text-slate-400 block font-bold text-[10px] uppercase">
+                            Candidate's Submitted Answer:
+                          </span>
+                          <p className="text-slate-700 dark:text-slate-300 italic pt-1 font-medium">
+                            "{q.userAnswer || 'No answer recorded (Skipped)'}"
+                          </p>
+                        </div>
+
+                        <div
+                          className={`p-3.5 rounded-xl border space-y-1 ${
+                            isWrong
+                              ? 'bg-rose-100/70 dark:bg-rose-950/50 border-rose-300 dark:border-rose-900 text-rose-900 dark:text-rose-200'
+                              : isPartial
+                              ? 'bg-amber-100/70 dark:bg-amber-950/50 border-amber-300 dark:border-amber-900 text-amber-900 dark:text-amber-200'
+                              : 'bg-emerald-100/70 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-900 text-emerald-900 dark:text-emerald-200'
+                          }`}
+                        >
+                          <span className="font-extrabold block uppercase tracking-wider text-[11px]">
+                            {isWrong
+                              ? '❌ AI Assessment Officer Critique (Marked as Wrong):'
+                              : isPartial
+                              ? '⚠️ AI Assessment Officer Critique (Needs Improvement):'
+                              : '✓ AI Assessment Officer Critique (Proficient STAR Response):'}
+                          </span>
+                          <p className="leading-relaxed font-medium">
+                            {q.feedback || 'Assessment completed against PM Scheme benchmarks.'}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
-              </div>
-            ))}
-          </div>
+              </>
+            );
+          })()}
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-slate-200 dark:border-slate-800">
             <button
@@ -1253,10 +1297,10 @@ Verified Official AI Assessment Document - PM Internship Scheme
                 setSession(null);
                 setCurrentAnswer('');
               }}
-              className="px-6 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center gap-2 cursor-pointer"
+              className="px-5 py-3 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs rounded-xl hover:bg-slate-200 dark:hover:bg-slate-700 transition flex items-center gap-2 cursor-pointer"
             >
               <RotateCcw className="w-4 h-4" />
-              <span>Configure Another Interview</span>
+              <span>Retake / New Interview</span>
             </button>
 
             <div className="flex flex-wrap items-center gap-2.5">
@@ -1279,12 +1323,20 @@ Verified Official AI Assessment Document - PM Internship Scheme
               )}
 
               <button
+                onClick={() => setShowScorecardModal(true)}
+                className="px-5 py-3 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition shadow-md cursor-pointer border border-slate-700"
+              >
+                <Printer className="w-4 h-4 text-amber-400" />
+                <span>Print Official Scorecard</span>
+              </button>
+
+              <button
                 onClick={handleSaveScorecard}
                 disabled={loading}
                 className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl flex items-center gap-2 transition shadow-md cursor-pointer"
               >
-                <Download className="w-4 h-4" />
-                <span>{loading ? 'Saving...' : 'Save & Download Scorecard'}</span>
+                <Award className="w-4 h-4" />
+                <span>{loading ? 'Saving...' : 'View & Download Scorecard'}</span>
               </button>
             </div>
           </div>
@@ -1441,7 +1493,7 @@ Verified Official AI Assessment Document - PM Internship Scheme
                         className="w-full bg-slate-950 border border-slate-700 rounded-lg p-1.5 text-[11px] text-white focus:outline-none focus:ring-1 focus:ring-amber-400"
                       >
                         <option value="ananya">Dr. Ananya Sharma (Infosys Senior Evaluator)</option>
-                        <option value="srinidhi">Ms. Srinidhi (Corporate Panelist)</option>
+                        <option value="priya">Ms. Priya Rao (Corporate Panelist)</option>
                       </select>
                     </div>
 
@@ -1885,6 +1937,17 @@ Verified Official AI Assessment Document - PM Internship Scheme
             />
           </div>
         </div>
+      )}
+
+      {/* Official Government AI Assessment Scorecard Modal */}
+      {session && (
+        <InterviewScorecardModal
+          isOpen={showScorecardModal}
+          onClose={() => setShowScorecardModal(false)}
+          session={session}
+          user={user}
+          companyName={company}
+        />
       )}
     </div>
   );

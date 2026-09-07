@@ -310,10 +310,18 @@ export async function saveApplicationToFirestore(appData: Application): Promise<
 }
 
 /** Update Application Status in Firestore */
-export async function updateApplicationStatusInFirestore(appId: string, status: 'SHORTLISTED' | 'REJECTED' | 'PENDING'): Promise<void> {
+export async function updateApplicationStatusInFirestore(
+  appId: string,
+  status: 'APPLIED' | 'SHORTLISTED' | 'SELECTED' | 'REJECTED' | 'PENDING' | string,
+  extraUpdates?: Record<string, any>
+): Promise<void> {
   try {
     const appRef = doc(db, 'applications', appId);
-    await updateDoc(appRef, { status });
+    await updateDoc(appRef, {
+      status,
+      updatedAt: new Date().toISOString(),
+      ...(extraUpdates || {})
+    });
   } catch (err) {
     console.error('Error updating application status in Firestore:', err);
   }

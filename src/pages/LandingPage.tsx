@@ -26,7 +26,11 @@ import {
   Play,
   Wand2,
   FileText,
-  FileCheck2
+  FileCheck2,
+  Headphones,
+  FileEdit,
+  HelpCircle,
+  CreditCard
 } from 'lucide-react';
 import { LanguageCode, getTranslation } from '../translations';
 import { useLanguage } from '../context/LanguageContext';
@@ -417,10 +421,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span>{t('heroTag', 'PM INTERNSHIP SCHEME • MINISTRY OF CORPORATE AFFAIRS • GOVT OF INDIA')}</span>
             </div>
 
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.08] text-slate-900 dark:text-white">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.18] text-slate-900 dark:text-white">
               <span className="block">{t('youthPower', 'YOUTH POWER.')}</span>
               <span className="block">{t('unlockingProgress', 'UNLOCKING PROGRESS.')}</span>
-              <span className="block mt-1 bg-gradient-to-r from-orange-500 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
+              <span className="inline-block mt-1 pt-1 pb-3 pr-3 leading-normal overflow-visible bg-gradient-to-r from-orange-500 via-teal-600 to-emerald-600 bg-clip-text text-transparent">
                 {t('heroSubHeading', 'InternIQ Career Intelligence')}
               </span>
             </h1>
@@ -820,13 +824,19 @@ export const LandingPage: React.FC<LandingPageProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           
           {/* Card 0: AI ATS Resume Tailor */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-resume-tailor')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-resume-tailor'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-indigo-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-indigo-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Wand2 className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-indigo-600 transition-colors">
                   {t('aiResumeTailorTitle', 'AI ATS Resume Tailor')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -834,24 +844,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-resume-tailor')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('aiResumeTailorNav', 'AI ATS Resume Tailor')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-indigo-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('aiResumeTailorNav', 'Launch Resume Tailor')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 1: Interview AI */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-interview')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-interview'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-teal-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-teal-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Mic className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-teal-600 transition-colors">
                   {t('interviewAiTitle', 'Interview AI')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -859,24 +871,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-interview')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-teal-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('interviewAiTitle', 'Interview AI')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-teal-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('interviewAiTitle', 'Start Interview')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 2: Portfolio AI */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-portfolio')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-portfolio'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 dark:hover:border-amber-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-amber-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-amber-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <FileSearch className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-amber-600 transition-colors">
                   {t('portfolioAiTitle', 'Portfolio AI')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -884,24 +898,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-portfolio')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-amber-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('portfolioAiTitle', 'Portfolio AI')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-amber-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('portfolioAiTitle', 'Audit Portfolio')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 3: AI Fraud Detection */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-fraud')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-fraud'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-rose-400 dark:hover:border-rose-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-rose-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-rose-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <ShieldCheck className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-rose-600 transition-colors">
                   {t('fraudAiTitle', 'AI Fraud Detection')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -909,24 +925,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-fraud')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-rose-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('fraudDesk', 'Fraud Desk')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-rose-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('fraudDesk', 'Check Fraud Desk')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 4: Resume Parser */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('resume-parser')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('resume-parser'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-400 dark:hover:border-blue-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-blue-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-blue-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <FileCheck className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-blue-600 transition-colors">
                   {t('step1Title', 'Resume Parser')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -934,24 +952,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('resume-parser')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-blue-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('parseResume', 'Parse Resume')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-blue-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('parseResume', 'Extract Skills')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 5: Explainable Insights & Skill Gap */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-skill-gap')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-skill-gap'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 dark:hover:border-emerald-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-emerald-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-emerald-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-emerald-600 transition-colors">
                   {t('insightsTitle', 'Skill Gap & Roadmap')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -959,24 +979,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-skill-gap')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-emerald-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('aiSkillGapNav', 'Skill Gap Roadmap')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-emerald-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('aiSkillGapNav', 'View Roadmap')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 6: AI Smart Recommendations */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('ai-recommendation')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('ai-recommendation'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-indigo-400 dark:hover:border-indigo-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-indigo-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-indigo-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Sparkles className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-indigo-600 transition-colors">
                   {t('aiRecommendation', 'Top 20 AI Recommendation Match')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -984,24 +1006,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('ai-recommendation')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-indigo-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('tryAiRecommendation', 'Try AI Recommendation')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-indigo-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('tryAiRecommendation', 'Find AI Matches')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 7: Student Portal & Gamification */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('dashboard')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('dashboard'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-sky-400 dark:hover:border-sky-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-sky-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-sky-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Users className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-sky-600 transition-colors">
                   {t('studentPortal', 'Student Portal')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1009,24 +1033,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('dashboard')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-sky-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('studentPortal', 'Student Portal')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-sky-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('studentPortal', 'Open Student Desk')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 8: Employer & Recruiter Portal */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('company-dashboard')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('company-dashboard'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-slate-600 dark:hover:border-slate-400 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-slate-800 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-slate-800 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Building2 className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-slate-700 dark:group-hover:text-slate-300 transition-colors">
                   {t('recruiterPortalNav', 'Employer & Recruiter Portal')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1034,24 +1060,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('company-dashboard')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-slate-800 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-slate-800 transition flex items-center gap-1.5 w-fit pt-1">
               <span>{t('employerAccess', 'Employer Access')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 9: Browse All Internships */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('internships')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('internships'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-cyan-400 dark:hover:border-cyan-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-cyan-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-cyan-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <Briefcase className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-cyan-600 transition-colors">
                   {t('exploreAllInternships', 'Explore All Internships')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1059,24 +1087,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('internships')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-cyan-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('browseOpportunities', 'Browse Opportunities')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-cyan-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('browseOpportunities', 'Browse Positions')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 10: Messaging & Reviews */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('messages')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('messages'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-purple-400 dark:hover:border-purple-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-purple-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-purple-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <MessageSquare className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-purple-600 transition-colors">
                   {t('messagingReviewsTitle', 'Messaging & Reviews')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1084,24 +1114,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('messages')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-purple-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('messages', 'Messages')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-purple-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('messages', 'Open Inbox & Ratings')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 11: Platform Analytics */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('analytics')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('analytics'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-violet-400 dark:hover:border-violet-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-violet-600 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-violet-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <TrendingUp className="w-5 h-5" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-violet-600 transition-colors">
                   {t('platformAnalyticsTitle', 'Platform Analytics')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1109,24 +1141,26 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('analytics')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-violet-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('viewAnalytics', 'View Analytics')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-violet-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('viewAnalytics', 'View Charts & Demand')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
           {/* Card 12: Ministry Admin Desk */}
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-5 shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between space-y-4">
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('admin-dashboard')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('admin-dashboard'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
             <div className="space-y-4">
-              <div className="w-full h-11 rounded-2xl bg-slate-950 flex items-center px-3.5 text-white shadow-xs">
+              <div className="w-full h-11 rounded-2xl bg-slate-950 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
                 <ShieldCheck className="w-5 h-5 text-amber-400" />
               </div>
               <div className="space-y-1">
-                <h3 className="font-extrabold text-slate-900 dark:text-white text-base">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-amber-600 transition-colors">
                   {t('ministryAdminDeskTitle', 'Ministry Admin Desk')}
                 </h3>
                 <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
@@ -1134,14 +1168,91 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 </p>
               </div>
             </div>
-            <button
-              type="button"
-              onClick={() => setActiveTab('admin')}
-              className="text-xs font-bold text-indigo-950 dark:text-indigo-400 hover:text-amber-600 transition flex items-center gap-1 cursor-pointer w-fit"
-            >
-              <span>{t('adminDesk', 'Admin Desk')}</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-amber-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>{t('adminDesk', 'Ministry Oversight Desk')}</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 13: Professional Resume Builder (Word Document Features) */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('resume-builder')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('resume-builder'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-emerald-700 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
+                <FileEdit className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-emerald-600 transition-colors">
+                  Resume Builder (Word Controls)
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Microsoft Word formatting, Calibri/Times fonts, custom sizes, bold/italic styles, left/center alignment and instant PDF export.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-emerald-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>Open Resume Builder</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 14: Support & Grievance Helpdesk */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('support')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('support'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-orange-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
+                <HelpCircle className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-orange-600 transition-colors">
+                  Support & Citizen Grievances
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  24x7 toll-free helpline (1800 11 6033), MCA contact desk, ticket submission, and escalation matrix for candidates & employers.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-orange-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>Contact Support Desk</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 15: Contest Showcase & Benchmarking */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('contest-showcase')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('contest-showcase'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-amber-500 flex items-center px-3.5 text-slate-950 shadow-xs group-hover:scale-[1.02] transition-transform font-black">
+                <CheckCircle2 className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-amber-600 transition-colors">
+                  Contest Showcase & SRS
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Government benchmarking, portal comparison matrix, live architecture, and technical SRS deliverables.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-amber-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>View Contest Proofs</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
           </div>
 
         </div>
