@@ -79,20 +79,29 @@ export const GovTechBenchmarkPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-10 animate-in fade-in">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 sm:p-10 shadow-xl border border-indigo-500/20 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-xs font-bold uppercase tracking-wider">
-          <span>🇮🇳</span>
-          <span>Aatmanirbhar Bharat • Digital India GovTech Benchmark</span>
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat GovTech Benchmark */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 sm:p-10 shadow-sm space-y-4">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+            <span>🇮🇳</span>
+            <span>Aatmanirbhar Bharat • Digital India GovTech Benchmark</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+            How InternIQ Solves The Critical Gaps in Existing Government Portals
+          </h1>
+
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed">
+            An objective architectural and user-experience comparison between existing national portals (pminternship.mca.gov.in, internship.aicte-india.org, ncs.gov.in) and InternIQ's next-generation AI platform.
+          </p>
         </div>
-
-        <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-          How InternIQ Solves The Critical Gaps in Existing Government Portals
-        </h1>
-
-        <p className="text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed">
-          An objective architectural and user-experience comparison between existing national portals (pminternship.mca.gov.in, internship.aicte-india.org, ncs.gov.in) and InternIQ's next-generation AI platform.
-        </p>
 
         {/* Impact Highlights */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">

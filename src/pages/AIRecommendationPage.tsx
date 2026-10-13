@@ -538,13 +538,20 @@ export const AIRecommendationPage: React.FC<AIRecommendationPageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden space-y-6">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Career Matchmaker */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm space-y-6">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-indigo-50 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 px-3.5 py-1 rounded-full text-xs font-bold">
-            <Brain className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-            <span>AI SMART INTERNSHIP RECOMMENDATION ENGINE • PM SCHEME</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+            <Brain className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+            <span>🇮🇳 Aatmanirbhar Bharat • AI Smart Career Matchmaker & Recommendations</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
             AI Smart Career Matchmaker & Recommendations
@@ -556,67 +563,67 @@ export const AIRecommendationPage: React.FC<AIRecommendationPageProps> = ({
           </p>
         </div>
 
-        {/* Primary Sub-Tab Switcher for AI Hub (Aligning with Slides 7, 8, 9) */}
+        {/* Primary Sub-Tab Switcher with Aatmanirbhar Bharat styling & tactile button animations */}
         <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <button
               onClick={() => setActiveSubTab('recommendations')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 activeSubTab === 'recommendations'
-                  ? 'bg-amber-500 text-slate-950 shadow-md ring-2 ring-amber-500/30'
+                  ? 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] text-slate-950 shadow-md ring-2 ring-orange-500/30'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              <span>Top Recommendations (Slide 7)</span>
+              <span>Top Recommendations</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('match-engine')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 activeSubTab === 'match-engine'
-                  ? 'bg-indigo-600 text-white shadow-md ring-2 ring-indigo-500/30'
+                  ? 'bg-[#081845] text-white shadow-md ring-2 ring-blue-500/30'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <Cpu className="w-4 h-4" />
-              <span>AI Match Engine & Simulator (Slide 8)</span>
+              <span>AI Match Engine & Simulator</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('insights')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 activeSubTab === 'insights'
-                  ? 'bg-emerald-600 text-white shadow-md ring-2 ring-emerald-500/30'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white shadow-md ring-2 ring-emerald-500/30'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <TrendingUp className="w-4 h-4" />
-              <span>Explainable AI & SHAP (Slide 8)</span>
+              <span>Explainable AI & SHAP</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('career-path')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 activeSubTab === 'career-path'
                   ? 'bg-purple-600 text-white shadow-md ring-2 ring-purple-500/30'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <Compass className="w-4 h-4" />
-              <span>Career Path Prediction (Slide 8)</span>
+              <span>Career Path Prediction</span>
             </button>
 
             <button
               onClick={() => setActiveSubTab('sentiment-reviews')}
-              className={`px-3.5 py-2 rounded-xl text-xs font-black transition flex items-center gap-1.5 cursor-pointer ${
+              className={`px-3.5 py-2 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer shadow-xs ${
                 activeSubTab === 'sentiment-reviews'
                   ? 'bg-teal-600 text-white shadow-md ring-2 ring-teal-500/30'
                   : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               <MessageSquare className="w-4 h-4" />
-              <span>Review Sentiment & Feedback (Slide 8)</span>
+              <span>Review Sentiment & Feedback</span>
             </button>
           </div>
 

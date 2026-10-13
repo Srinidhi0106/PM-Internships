@@ -173,32 +173,39 @@ Issue Description: Received an unauthorized communication demanding fees/persona
   };
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Fraud & Scam Remediation Center */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-800 px-3 py-1 rounded-full text-xs font-bold">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
             <ShieldAlert className="w-3.5 h-3.5 text-rose-600 dark:text-rose-400" />
-            <span>AI FRAUD & SCAM DETECTION DESK</span>
+            <span>🇮🇳 Aatmanirbhar Bharat • Zero-Trust Fraud Auditor & Remediation Center</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
             Zero-Trust Fraud Auditor & Remediation Center
           </h1>
-          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl font-medium">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl font-medium leading-relaxed">
             Advanced AI detection for suspicious internship offers, illegal registration fee demands, fake offer letters, and instant step-by-step solutions on how to overcome and report fraud.
           </p>
         </div>
       </div>
 
-      {/* Navigation Sub-Tabs: Scanner, Examples, How to Overcome */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-6 text-xs font-bold overflow-x-auto pb-1">
+      {/* Navigation Sub-Tabs: Scanner, Examples, How to Overcome with tactile button animations */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-3 text-xs font-bold overflow-x-auto pb-1">
         <button
           type="button"
           onClick={() => setActiveTab('SCANNER')}
-          className={`pb-2.5 transition border-b-2 shrink-0 cursor-pointer ${
+          className={`px-3.5 py-2 rounded-xl transition-all duration-150 active:scale-95 shrink-0 cursor-pointer ${
             activeTab === 'SCANNER'
-              ? 'border-rose-600 text-rose-600 dark:text-rose-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+              ? 'bg-rose-600 text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           AI Fraud Scanner
@@ -206,10 +213,10 @@ Issue Description: Received an unauthorized communication demanding fees/persona
         <button
           type="button"
           onClick={() => setActiveTab('EXAMPLES')}
-          className={`pb-2.5 transition border-b-2 shrink-0 cursor-pointer ${
+          className={`px-3.5 py-2 rounded-xl transition-all duration-150 active:scale-95 shrink-0 cursor-pointer ${
             activeTab === 'EXAMPLES'
-              ? 'border-rose-600 text-rose-600 dark:text-rose-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+              ? 'bg-[#081845] text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           Common Scam Examples ({SCAM_EXAMPLES.length})
@@ -217,10 +224,10 @@ Issue Description: Received an unauthorized communication demanding fees/persona
         <button
           type="button"
           onClick={() => setActiveTab('HOW_TO_OVERCOME')}
-          className={`pb-2.5 transition border-b-2 shrink-0 cursor-pointer ${
+          className={`px-3.5 py-2 rounded-xl transition-all duration-150 active:scale-95 shrink-0 cursor-pointer ${
             activeTab === 'HOW_TO_OVERCOME'
-              ? 'border-rose-600 text-rose-600 dark:text-rose-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           How to Overcome & Safety Solutions

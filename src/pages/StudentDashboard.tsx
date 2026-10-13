@@ -17,7 +17,10 @@ import {
   TrendingUp,
   Target,
   Calendar,
-  Layers
+  Layers,
+  Landmark,
+  CreditCard,
+  ShieldCheck
 } from 'lucide-react';
 import { User, Application, Internship, AppliedInterview } from '../types';
 import { GamificationLevelUp } from '../components/GamificationLevelUp';
@@ -46,7 +49,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   onNavigate
 }) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'applications' | 'interviews' | 'progress' | 'levelup' | 'certificate' | 'profile'>('applications');
+  const [activeTab, setActiveTab] = useState<'applications' | 'interviews' | 'progress' | 'levelup' | 'certificate' | 'dbt-banking' | 'profile'>('applications');
   const [editingName, setEditingName] = useState(user.name || '');
   const [editingCollege, setEditingCollege] = useState(user.college || 'IIT Delhi');
   const [editingBranch, setEditingBranch] = useState(user.branch || 'Computer Science Engineering');
@@ -148,60 +151,68 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Profile Overview Header */}
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center border-2 border-amber-300 shadow-md">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Profile Overview Header - Aatmanirbhar Bharat Aesthetic */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex items-center space-x-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 via-amber-500 to-amber-400 text-slate-950 font-black text-2xl flex items-center justify-center border-2 border-orange-300 ring-4 ring-orange-400/20 shadow-md">
             {(user?.name || 'S').charAt(0).toUpperCase()}
           </div>
           <div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-black text-slate-900 dark:text-white">{user?.name || 'Student Candidate'}</h1>
-              <span className="text-[10px] bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800 px-2.5 py-0.5 rounded-full font-bold">
-                Student Candidate
+              <span className="text-[11px] bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 px-3 py-0.5 rounded-full font-black shadow-2xs flex items-center gap-1">
+                <span>🇮🇳</span>
+                <span>Aatmanirbhar Yuva</span>
               </span>
               {user?.email && (
-                <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                  <span>✓</span> Verified Email
+                <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                  <span>✓</span> Verified DigiLocker/Email
                 </span>
               )}
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
               {user?.email && <span className="text-slate-900 dark:text-white font-semibold">{user.email} • </span>}
-              {user?.college || 'Degree College'} ({user?.branch || 'General Studies'}) • CGPA: {user?.cgpa || 8.5} / 10
+              {user?.college || 'Degree College'} ({user?.branch || 'General Studies'}) • CGPA: <strong className="text-orange-600 dark:text-orange-400 font-bold">{user?.cgpa || 8.5} / 10</strong>
             </p>
           </div>
         </div>
 
-        {/* Quick Stats Pill */}
-        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 text-xs font-bold">
+        {/* Quick Stats Pill with Tricolor Accents */}
+        <div className="relative z-10 flex items-center gap-4 bg-white/80 dark:bg-slate-800/90 backdrop-blur-xs p-3.5 rounded-2xl border-2 border-orange-200/80 dark:border-slate-700 text-xs font-bold shadow-2xs">
           <div>
-            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase">Applications</span>
-            <span className="text-amber-600 dark:text-amber-400 text-base font-extrabold">{myApplications.length}</span>
+            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-black">Applications</span>
+            <span className="text-orange-600 dark:text-orange-400 text-base font-black">{myApplications.length}</span>
           </div>
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700" />
           <div>
-            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase">Interviews</span>
-            <span className="text-indigo-600 dark:text-indigo-400 text-base font-extrabold">{appliedInterviews.length}</span>
+            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-black">Interviews</span>
+            <span className="text-indigo-600 dark:text-indigo-400 text-base font-black">{appliedInterviews.length}</span>
           </div>
           <div className="w-px h-8 bg-slate-200 dark:bg-slate-700" />
           <div>
-            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase">XP Points</span>
-            <span className="text-emerald-600 dark:text-emerald-400 text-base font-extrabold">{user.xp || 1450}</span>
+            <span className="text-slate-500 dark:text-slate-400 block text-[10px] uppercase font-black">XP Points</span>
+            <span className="text-emerald-600 dark:text-emerald-400 text-base font-black">{user.xp || 1450}</span>
           </div>
         </div>
       </div>
 
-      {/* AI Career Roadmap Quick Access Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-5 border border-indigo-800/60 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+      {/* AI Career Roadmap Quick Access Banner - National Aesthetic */}
+      <div className="bg-gradient-to-r from-[#081845] via-slate-900 to-[#043927] text-white rounded-3xl p-5 border-2 border-orange-400/30 shadow-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3.5">
-          <div className="w-11 h-11 rounded-2xl bg-amber-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
+          <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-[#FF9933] to-orange-500 text-slate-950 flex items-center justify-center font-black shrink-0 shadow-md">
             <Brain className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <h3 className="text-sm font-black text-white">AI Skill Gap Analysis & 8-Week Roadmap</h3>
-              <span className="text-[10px] bg-amber-500/20 text-amber-300 border border-amber-400/30 px-2 py-0.5 rounded-full font-bold">Recommended</span>
+              <span className="text-[10px] bg-orange-500/20 text-orange-300 border border-orange-400/40 px-2 py-0.5 rounded-full font-bold">Recommended</span>
             </div>
             <p className="text-xs text-slate-300">Identify missing corporate skills for {user.branch || 'your domain'} & generate a step-by-step project roadmap.</p>
           </div>
@@ -209,7 +220,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         {onNavigate && (
           <button
             onClick={() => onNavigate('ai-skill-gap')}
-            className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition shrink-0 cursor-pointer flex items-center gap-1.5"
+            className="px-4 py-2.5 bg-gradient-to-r from-[#FF9933] to-orange-500 hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition shrink-0 cursor-pointer flex items-center gap-1.5"
           >
             <span>Launch Roadmap Engine</span>
             <ChevronRight className="w-4 h-4" />
@@ -217,14 +228,14 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         )}
       </div>
 
-      {/* Tabs Row */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-6 sm:space-x-8 text-xs font-bold overflow-x-auto">
+      {/* Tabs Row with Aatmanirbhar Bharat Tricolor Highlights */}
+      <div className="flex border-b-2 border-slate-200 dark:border-slate-800 space-x-2 sm:space-x-4 text-xs font-bold overflow-x-auto pb-0.5">
         <button
           onClick={() => setActiveTab('applications')}
-          className={`pb-3 transition border-b-2 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 shrink-0 cursor-pointer ${
             activeTab === 'applications'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           My Applications ({myApplications.length})
@@ -232,57 +243,69 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('interviews')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'interviews'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
-          <Calendar className="w-3.5 h-3.5 text-indigo-500" />
+          <Calendar className="w-3.5 h-3.5 text-blue-600" />
           <span>Applied Interviews ({appliedInterviews.length})</span>
         </button>
 
         <button
           onClick={() => setActiveTab('progress')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'progress'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
-          <TrendingUp className="w-3.5 h-3.5 text-indigo-500" />
+          <TrendingUp className="w-3.5 h-3.5 text-indigo-600" />
           <span>Internship Progress (12 Mo)</span>
         </button>
 
         <button
           onClick={() => setActiveTab('levelup')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
             activeTab === 'levelup'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+          <Sparkles className="w-3.5 h-3.5 text-orange-500" />
           <span>Level Up & Badges</span>
         </button>
 
         <button
           onClick={() => setActiveTab('certificate')}
-          className={`pb-3 transition border-b-2 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 shrink-0 cursor-pointer ${
             activeTab === 'certificate'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           PM Scheme Certificate
         </button>
 
         <button
+          onClick={() => setActiveTab('dbt-banking')}
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+            activeTab === 'dbt-banking'
+              ? 'border-[#138808] text-emerald-700 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300'
+          }`}
+        >
+          <Landmark className="w-3.5 h-3.5 text-emerald-600" />
+          <span>In-Portal Banking (DBT)</span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('profile')}
-          className={`pb-3 transition border-b-2 shrink-0 ${
+          className={`pb-3 px-3 transition border-b-2 shrink-0 cursor-pointer ${
             activeTab === 'profile'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           Edit Candidate Profile
@@ -380,9 +403,9 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
                         <button
                           type="button"
                           onClick={() => handleOpenOfferLetter(app, item)}
-                          className="text-xs font-black text-slate-950 flex items-center gap-1.5 px-3.5 py-1.5 bg-amber-500 hover:bg-amber-600 rounded-xl shadow-xs transition cursor-pointer"
+                          className="text-xs font-black text-slate-950 flex items-center gap-1.5 px-3.5 py-1.5 bg-gradient-to-r from-[#FF9933] via-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 rounded-xl shadow-xs transition cursor-pointer"
                         >
-                          <Award className="w-3.5 h-3.5" />
+                          <Award className="w-3.5 h-3.5 text-slate-950" />
                           <span>View Official Offer Letter</span>
                         </button>
                       )}
@@ -545,25 +568,32 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         <GamificationLevelUp user={user} />
       )}
 
-      {/* TAB CONTENT: CERTIFICATE GENERATOR */}
+      {/* TAB CONTENT: CERTIFICATE GENERATOR WITH AATMANIRBHAR BHARAT STYLING */}
       {activeTab === 'certificate' && (
-        <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xl space-y-6 text-center max-w-2xl mx-auto">
-          <div className="w-16 h-16 bg-amber-100 dark:bg-amber-950 text-amber-600 rounded-2xl flex items-center justify-center mx-auto">
-            <Award className="w-8 h-8" />
+        <div className="relative overflow-hidden bg-gradient-to-r from-orange-500/10 via-white dark:via-slate-900/90 to-emerald-500/10 p-8 rounded-3xl border-2 border-orange-300/80 dark:border-emerald-800/80 shadow-xl space-y-6 text-center max-w-2xl mx-auto">
+          <div className="w-16 h-16 bg-gradient-to-tr from-orange-500 to-amber-400 text-slate-950 rounded-2xl flex items-center justify-center mx-auto shadow-md">
+            <Award className="w-8 h-8 text-slate-950" />
           </div>
 
           <div className="space-y-2">
+            <div className="inline-flex items-center gap-1.5 bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 px-3 py-0.5 rounded-full text-[11px] font-black">
+              <span>🇮🇳</span>
+              <span>AATMANIRBHAR BHARAT DIGITAL CREDENTIAL</span>
+            </div>
             <h2 className="text-2xl font-black text-slate-900 dark:text-white">
               PM Internship Completion Certificate
             </h2>
-            <p className="text-xs text-slate-500 leading-relaxed">
-              Issued by the Ministry of Corporate Affairs (Government of India) upon successful completion of your 12-month PM Internship tenure.
+            <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+              Issued by the Ministry of Corporate Affairs (Government of India) upon successful completion of your 12-month PM Internship tenure under the national mission.
             </p>
           </div>
 
-          <div className="border-2 border-dashed border-slate-200 dark:border-slate-800 p-6 rounded-2xl space-y-2 text-left bg-slate-50 dark:bg-slate-950 text-xs">
-            <p className="font-bold text-slate-900 dark:text-white">Certificate Preview:</p>
-            <p className="text-slate-600 dark:text-slate-400">
+          <div className="border-2 border-dashed border-orange-300 dark:border-slate-800 p-6 rounded-2xl space-y-2 text-left bg-white/80 dark:bg-slate-950 text-xs shadow-2xs">
+            <p className="font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+              <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+              <span>Verified Certificate Preview:</span>
+            </p>
+            <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
               "This is to certify that <strong>{user?.name || 'Candidate'}</strong> from <strong>{user?.college || 'Institution'}</strong> has completed the official PM Internship Scheme program with exemplary distinction."
             </p>
           </div>
@@ -571,15 +601,174 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           <button
             disabled={certOtpSending}
             onClick={handleOpenCertificate}
-            className="px-8 py-3 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 text-slate-950 font-bold rounded-xl text-xs shadow-md transition inline-flex items-center gap-2 cursor-pointer"
+            className="px-8 py-3 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 disabled:opacity-50 text-slate-950 font-black rounded-xl text-xs shadow-md transition inline-flex items-center gap-2 cursor-pointer"
           >
             {certOtpSending ? (
               <span className="w-4 h-4 border-2 border-slate-950 border-t-transparent rounded-full animate-spin" />
             ) : (
-              <Download className="w-4 h-4" />
+              <Download className="w-4 h-4 text-slate-950" />
             )}
             <span>Download Official PM Scheme Certificate</span>
           </button>
+        </div>
+      )}
+
+      {/* TAB CONTENT: IN-PORTAL BANKING & DIRECT BENEFIT TRANSFER (DBT) LEDGER */}
+      {activeTab === 'dbt-banking' && (
+        <div className="space-y-6">
+          {/* Statutory Policy Guarantee Banner with Aatmanirbhar Bharat Tricolor Gradient */}
+          <div className="bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-900 to-emerald-500/15 border-2 border-orange-300 dark:border-emerald-700 rounded-3xl p-6 shadow-sm space-y-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-6 h-6 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <h2 className="text-base font-black text-slate-900 dark:text-white">
+                  🇮🇳 Mandatory In-Portal Statutory Transaction Guarantee
+                </h2>
+              </div>
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700">
+                100% In-Portal Compliance
+              </span>
+            </div>
+            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+              Under <strong>Govt of India & Ministry of Corporate Affairs (MCA)</strong> statutory regulations, once an intern is accepted by a company, <strong>all transactions must happen exclusively through this portal</strong>. No external cash payments, off-portal cheques, or private certificates are permitted. All stipend disbursals are managed via <strong>Direct Benefit Transfer (DBT) + Corporate Escrow</strong>.
+            </p>
+          </div>
+
+          {/* Bank Account & PFMS Verification Status Card */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Aadhaar NPCI Link</span>
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              </div>
+              <div className="flex items-center gap-2">
+                <CreditCard className="w-5 h-5 text-indigo-500" />
+                <span className="font-black text-slate-900 dark:text-white text-sm">NPCI Seeded Active</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-mono">
+                Aadhaar: {user.aadhaar ? `•••• •••• ${user.aadhaar.slice(-4)}` : '•••• •••• 9821'}
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Designated Bank</span>
+                <span className="text-[10px] font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-950 px-2 py-0.5 rounded">Verified</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Landmark className="w-5 h-5 text-emerald-600" />
+                <span className="font-black text-slate-900 dark:text-white text-sm">State Bank of India</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-mono">
+                A/C: SBIN••••••4921 (IFSC: SBIN0001050)
+              </p>
+            </div>
+
+            <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">PFMS Gateway ID</span>
+                <span className="text-[10px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-950 px-2 py-0.5 rounded">Govt Link</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-amber-500" />
+                <span className="font-black text-slate-900 dark:text-white text-sm">PFMS-DBT-2026-8841</span>
+              </div>
+              <p className="text-[11px] text-slate-500 font-mono">
+                Stipend Share: ₹4,500 GOI + ₹500 CSR
+              </p>
+            </div>
+          </div>
+
+          {/* In-Portal Stipend Ledger */}
+          <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm p-6 space-y-4">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <h3 className="text-base font-black text-slate-900 dark:text-white flex items-center gap-2">
+                  <Landmark className="w-5 h-5 text-emerald-600" />
+                  <span>In-Portal DBT Stipend Disbursal Ledger</span>
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Real-time transparent audit trail of monthly ₹5,000 stipends transferred exclusively via portal escrow
+                </p>
+              </div>
+              <span className="text-xs font-bold bg-amber-100 text-amber-900 dark:bg-amber-950 dark:text-amber-300 px-3 py-1 rounded-full border border-amber-300 dark:border-amber-700">
+                Total Disbursed: ₹15,000 / ₹60,000
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead>
+                  <tr className="border-b border-slate-200 dark:border-slate-800 text-slate-400 font-bold uppercase text-[10px]">
+                    <th className="py-2.5 px-3">Month</th>
+                    <th className="py-2.5 px-3">Attendance Verified</th>
+                    <th className="py-2.5 px-3">Govt Share (DBT)</th>
+                    <th className="py-2.5 px-3">Company CSR</th>
+                    <th className="py-2.5 px-3">Total Stipend</th>
+                    <th className="py-2.5 px-3">Banking Ref (UTR)</th>
+                    <th className="py-2.5 px-3">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 dark:divide-slate-800/60 font-medium">
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">Month 1 (Sep 2026)</td>
+                    <td className="py-3 px-3 text-emerald-600 font-bold">96% (Verified)</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹4,500</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹500</td>
+                    <td className="py-3 px-3 font-mono font-black text-emerald-600">₹5,000</td>
+                    <td className="py-3 px-3 font-mono text-[11px] text-slate-500">UTR-SBI-20260905-9921</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-black">
+                        Credited via DBT
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">Month 2 (Oct 2026)</td>
+                    <td className="py-3 px-3 text-emerald-600 font-bold">94% (Verified)</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹4,500</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹500</td>
+                    <td className="py-3 px-3 font-mono font-black text-emerald-600">₹5,000</td>
+                    <td className="py-3 px-3 font-mono text-[11px] text-slate-500">UTR-SBI-20261005-4418</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-black">
+                        Credited via DBT
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/40">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">Month 3 (Nov 2026)</td>
+                    <td className="py-3 px-3 text-emerald-600 font-bold">98% (Verified)</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹4,500</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹500</td>
+                    <td className="py-3 px-3 font-mono font-black text-emerald-600">₹5,000</td>
+                    <td className="py-3 px-3 font-mono text-[11px] text-slate-500">UTR-SBI-20261105-8820</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-black">
+                        Credited via DBT
+                      </span>
+                    </td>
+                  </tr>
+
+                  <tr className="hover:bg-slate-50 dark:hover:bg-slate-800/40 opacity-75">
+                    <td className="py-3 px-3 font-bold text-slate-900 dark:text-white">Month 4 (Dec 2026)</td>
+                    <td className="py-3 px-3 text-amber-600 font-bold">In-Progress</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹4,500</td>
+                    <td className="py-3 px-3 font-mono font-bold text-slate-800 dark:text-slate-200">₹500</td>
+                    <td className="py-3 px-3 font-mono font-black text-slate-700 dark:text-slate-300">₹5,000</td>
+                    <td className="py-3 px-3 font-mono text-[11px] text-amber-500">Escrow Locked</td>
+                    <td className="py-3 px-3">
+                      <span className="px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-black">
+                        Pending Milestone
+                      </span>
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 

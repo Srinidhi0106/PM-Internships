@@ -30,7 +30,11 @@ import {
   Headphones,
   FileEdit,
   HelpCircle,
-  CreditCard
+  CreditCard,
+  Scale,
+  BookOpen,
+  Landmark,
+  BarChart2
 } from 'lucide-react';
 import { LanguageCode, getTranslation } from '../translations';
 import { useLanguage } from '../context/LanguageContext';
@@ -479,7 +483,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               </button>
             </div>
 
-            {/* AI Module Direct Shortcut Buttons Grid */}
+            {/* AI Module & Portal Direct Shortcut Buttons Grid */}
             <div className="pt-2">
               <span className="text-[10px] font-black uppercase tracking-wider text-slate-500 dark:text-slate-400 block mb-1.5">
                 ⚡ {t('platformCapabilitiesSubtitle', 'Quick Launch Direct AI Tools & Portals')}:
@@ -542,6 +546,24 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <button
                   type="button"
+                  onClick={() => setActiveTab('resume-builder')}
+                  className="px-3 py-1.5 bg-violet-50 dark:bg-violet-950/60 hover:bg-violet-100 border border-violet-200 dark:border-violet-800 text-violet-900 dark:text-violet-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <FileEdit className="w-3.5 h-3.5 text-violet-600 dark:text-violet-400" />
+                  <span>Resume Builder</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('ai-recommendation')}
+                  className="px-3 py-1.5 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 border border-purple-200 dark:border-purple-800 text-purple-900 dark:text-purple-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-purple-600 dark:text-purple-400" />
+                  <span>AI Recommendations</span>
+                </button>
+
+                <button
+                  type="button"
                   onClick={() => setActiveTab('dashboard')}
                   className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 border border-sky-200 dark:border-sky-800 text-sky-900 dark:text-sky-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
@@ -551,10 +573,84 @@ export const LandingPage: React.FC<LandingPageProps> = ({
 
                 <button
                   type="button"
-                  onClick={() => setActiveTab('contest-showcase')}
-                  className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-sm ring-2 ring-amber-500/30"
+                  onClick={() => setActiveTab('support-grievance')}
+                  className="px-3 py-1.5 bg-teal-50 dark:bg-teal-950/60 hover:bg-teal-100 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
                 >
-                  <CheckCircle2 className="w-3.5 h-3.5 text-slate-950" />
+                  <HelpCircle className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <span>Support & Queries</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('govtech-benchmark')}
+                  className="px-3 py-1.5 bg-blue-50 dark:bg-blue-950/60 hover:bg-blue-100 border border-blue-200 dark:border-blue-800 text-blue-900 dark:text-blue-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Scale className="w-3.5 h-3.5 text-blue-600 dark:text-blue-400" />
+                  <span>GovTech Benchmark</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('user-manual-budget')}
+                  className="px-3 py-1.5 bg-orange-50 dark:bg-orange-950/60 hover:bg-orange-100 border border-orange-200 dark:border-orange-800 text-orange-900 dark:text-orange-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <BookOpen className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                  <span>Manual & Budget</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('messages')}
+                  className="px-3 py-1.5 bg-cyan-50 dark:bg-cyan-950/60 hover:bg-cyan-100 border border-cyan-200 dark:border-cyan-800 text-cyan-900 dark:text-cyan-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <MessageSquare className="w-3.5 h-3.5 text-cyan-600 dark:cyan-400" />
+                  <span>Messages & Reviews</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('company-dashboard')}
+                  className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-950/60 hover:bg-emerald-100 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Building2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>Recruiter Portal</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('admin-dashboard')}
+                  className="px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-200 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Landmark className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  <span>Ministry Desk</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('analytics')}
+                  className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <BarChart2 className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                  <span>Platform Analytics</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('internships')}
+                  className="px-3 py-1.5 bg-sky-50 dark:bg-sky-950/60 hover:bg-sky-100 border border-sky-200 dark:border-sky-800 text-sky-900 dark:text-sky-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                >
+                  <Briefcase className="w-3.5 h-3.5 text-sky-600 dark:text-sky-400" />
+                  <span>Explore Internships</span>
+                </button>
+
+                {/* Harmonious Contest Deliverables & SRS Pill matching other buttons perfectly */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('contest-showcase')}
+                  className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 border border-amber-200 dark:border-amber-800 text-amber-900 dark:text-amber-300 font-bold text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="View Contest Deliverables, Benchmarks & SRS Documentation"
+                >
+                  <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>Contest Deliverables & SRS</span>
                 </button>
               </div>
@@ -1251,6 +1347,60 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-amber-600 transition flex items-center gap-1.5 w-fit pt-1">
               <span>View Contest Proofs</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 16: GovTech Benchmark & National Portal Comparison */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('govtech-benchmark')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('govtech-benchmark'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-blue-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-blue-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
+                <Scale className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-blue-600 transition-colors">
+                  GovTech Benchmark & Comparison
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Head-to-head comparison with existing government portals (pminternship, aicte, ncs) and architectural improvements.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-blue-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>View Portal Benchmark</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 17: User Manual & Affordable Budget Blueprint */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('user-manual-budget')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('user-manual-budget'); }}
+            className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-orange-500 rounded-3xl p-5 shadow-xs hover:shadow-lg transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-orange-600 flex items-center px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform">
+                <BookOpen className="w-5 h-5" />
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-orange-600 transition-colors">
+                  Manual & Low-Cost Budget Guide
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  End-to-end user manuals for Students & Corporates plus ultra-affordable ₹1.87L NIC MeghRaj deployment blueprint.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-orange-600 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>Open Manual & Budget</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>

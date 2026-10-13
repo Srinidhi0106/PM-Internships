@@ -720,31 +720,38 @@ ${experiences
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-8 px-4 sm:px-6 lg:px-8 animate-in fade-in">
       <div className="max-w-7xl mx-auto space-y-6">
+        {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+        <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
         
-        {/* Top Banner Header */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-gradient-to-br from-amber-500 to-indigo-600 rounded-2xl text-white shadow-md">
-              <FileText className="w-6 h-6" />
+        {/* Top Banner Header - Aatmanirbhar Bharat ATS Resume Builder */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          {/* Subtle decorative tricolor backdrop glow */}
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+          <div className="relative z-10 flex items-center gap-3.5">
+            <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-orange-500 via-amber-500 to-amber-400 text-slate-950 font-black text-2xl flex items-center justify-center border-2 border-orange-300 ring-4 ring-orange-400/20 shadow-md">
+              <FileText className="w-7 h-7 text-slate-950" />
             </div>
             <div>
-              <div className="flex items-center gap-2">
-                <h1 className="text-xl font-extrabold text-slate-900 dark:text-white">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
                   Aatmanirbhar PM Scheme Resume Builder
                 </h1>
-                <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300">
-                  ATS Compliant
+                <span className="text-[10px] uppercase font-black px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                  <span>🇮🇳</span>
+                  <span>ATS Compliant</span>
                 </span>
               </div>
-              <p className="text-xs text-slate-500 font-medium">
-                Customize fonts, sizes, lengths & colors. Print, download, or upload existing image/PDF resumes.
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium mt-1">
+                Customize fonts, sizes, lengths & colors. Print, download, or upload existing image/PDF resumes. Zero vendor lock-in.
               </p>
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 w-full md:w-auto">
+          <div className="relative z-10 flex flex-wrap items-center gap-2 w-full md:w-auto">
             {/* Upload Existing Resume */}
             <input
               type="file"
@@ -755,7 +762,7 @@ ${experiences
             />
             <button
               onClick={() => fileInputRef.current?.click()}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-2 bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-xl transition-all duration-150 active:scale-95 cursor-pointer shadow-2xs"
               title="Upload existing resume (PDF, DOCX, or Images PNG/JPG)"
             >
               <Upload className="w-3.5 h-3.5" />
@@ -765,29 +772,29 @@ ${experiences
             {/* Microsoft Word Document Export */}
             <button
               onClick={handleDownloadWord}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-[#081845] hover:bg-[#122b75] text-white text-xs font-bold rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
               title="Download formatted Microsoft Word Document (.doc)"
             >
-              <FileDown className="w-3.5 h-3.5" />
+              <FileDown className="w-3.5 h-3.5 text-blue-300" />
               <span>Export Word (.doc)</span>
             </button>
 
             {/* Encrypted Official PDF */}
             <button
               onClick={handleDownloadPdf}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 text-xs font-black rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
               title="Download ATS Clean PDF"
             >
-              <Download className="w-3.5 h-3.5" />
+              <Download className="w-3.5 h-3.5 text-slate-950" />
               <span>Download PDF</span>
             </button>
 
             <button
               onClick={handlePrint}
-              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs transition cursor-pointer"
+              className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3.5 py-2 bg-gradient-to-r from-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white text-xs font-black rounded-xl shadow-xs transition-all duration-150 active:scale-95 cursor-pointer"
               title="Print formatted A4 Resume"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 text-white" />
               <span>Print A4</span>
             </button>
           </div>

@@ -254,43 +254,54 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-3xl p-8 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 rounded-2xl bg-amber-500 text-slate-950 font-black text-2xl flex items-center justify-center border-2 border-amber-300 shadow-md">
-            <Building2 className="w-8 h-8" />
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Corporate Recruiter Hub */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 flex items-center space-x-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-tr from-orange-500 via-amber-500 to-amber-400 text-slate-950 font-black text-2xl flex items-center justify-center border-2 border-orange-300 ring-4 ring-orange-400/20 shadow-md">
+            <Building2 className="w-8 h-8 text-slate-950" />
           </div>
           <div>
             <div className="flex flex-wrap items-center gap-2">
               <h1 className="text-2xl font-black text-slate-900 dark:text-white">
                 {user.companyName || 'Corporate Recruiter Portal'}
               </h1>
-              <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
-                <ShieldCheck className="w-3 h-3" /> MCA Partner Verified
+              <span className="text-[11px] bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 px-3 py-0.5 rounded-full font-black shadow-2xs flex items-center gap-1">
+                <span>🇮🇳</span>
+                <span>Aatmanirbhar Partner</span>
+              </span>
+              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 px-2.5 py-0.5 rounded-full font-bold flex items-center gap-1">
+                <ShieldCheck className="w-3 h-3 text-emerald-600" /> MCA CIN Active
               </span>
               <span className="text-[10px] bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 px-2.5 py-0.5 rounded-full font-mono font-bold">
                 CIN: {cinNumber}
               </span>
             </div>
-            <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 font-medium">
-              Recruiter Officer: {user.name || 'Priya Mehta'} • PM Internship Scheme National Partner Hub
+            <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
+              Recruiter Officer: <strong className="text-slate-900 dark:text-white">{user.name || 'Priya Mehta'}</strong> • PM Internship Scheme National Partner Hub
             </p>
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="relative z-10 flex flex-wrap items-center gap-3">
           <button
             onClick={() => setActiveTab('security-check')}
-            className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 border border-indigo-200 dark:border-indigo-800 rounded-xl text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            className="px-4 py-2.5 bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 shadow-xs flex items-center gap-1.5 cursor-pointer"
           >
-            <ShieldCheck className="w-4 h-4 text-indigo-600" />
+            <ShieldCheck className="w-4 h-4 text-emerald-400" />
             <span>CIN Security Check</span>
           </button>
           <button
             onClick={() => setActiveTab('post-role')}
-            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl text-xs shadow-md transition flex items-center gap-1.5 cursor-pointer"
+            className="px-5 py-2.5 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black rounded-xl text-xs shadow-md transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
           >
-            <Plus className="w-4 h-4" /> Post New Internship
+            <Plus className="w-4 h-4 text-slate-950" /> Post New Internship
           </button>
         </div>
       </div>
@@ -299,8 +310,8 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
       {notificationToast && (
         <div className="p-4 bg-emerald-50 dark:bg-emerald-950/70 border-2 border-emerald-400 dark:border-emerald-700 rounded-2xl shadow-lg flex items-start justify-between gap-3 animate-in fade-in slide-in-from-top-2">
           <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500 text-slate-950 flex items-center justify-center shrink-0 shadow-xs font-black">
-              <Mail className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-green-600 text-slate-950 flex items-center justify-center shrink-0 shadow-xs font-black">
+              <Mail className="w-5 h-5 text-white" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
@@ -325,14 +336,14 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
         </div>
       )}
 
-      {/* Tabs Bar */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-6 text-xs font-bold overflow-x-auto pb-1">
+      {/* Tabs Bar with Tricolor Active Highlights */}
+      <div className="flex border-b-2 border-slate-200 dark:border-slate-800 space-x-2 sm:space-x-4 text-xs font-bold overflow-x-auto pb-0.5">
         <button
           onClick={() => setActiveTab('candidates')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'candidates'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           <Users className="w-4 h-4" />
@@ -341,10 +352,10 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('my-roles')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'my-roles'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           <FileCheck2 className="w-4 h-4" />
@@ -353,10 +364,10 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('post-role')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'post-role'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           <Plus className="w-4 h-4" />
@@ -365,10 +376,10 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('security-check')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'security-check'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           <ShieldCheck className="w-4 h-4" />
@@ -377,10 +388,10 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('diversity-analytics')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'diversity-analytics'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#FF9933] text-orange-700 dark:text-orange-400 bg-orange-50/80 dark:bg-orange-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-300'
           }`}
         >
           <BarChart3 className="w-4 h-4" />
@@ -389,10 +400,10 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
 
         <button
           onClick={() => setActiveTab('portal-transactions')}
-          className={`pb-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer active:scale-95 ${
             activeTab === 'portal-transactions'
-              ? 'border-emerald-600 text-emerald-600 dark:text-emerald-400 font-black'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-300'
+              ? 'border-[#138808] text-emerald-700 dark:text-emerald-400 bg-emerald-50/80 dark:bg-emerald-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-300'
           }`}
         >
           <Landmark className="w-4 h-4 text-emerald-600" />
@@ -568,23 +579,49 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                       </span>
                     </div>
 
-                    {/* Candidate Action Buttons */}
+                    {/* Candidate Action Buttons & In-Portal Transaction Guarantee */}
                     <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
                       {isSelected && (
-                        <button
-                          onClick={() => handleOpenOfferLetter(app)}
-                          className="px-3.5 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs shadow-xs transition flex items-center gap-1.5 cursor-pointer"
-                        >
-                          <Award className="w-3.5 h-3.5" />
-                          <span>Issue / View Offer Letter</span>
-                        </button>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenOfferLetter(app)}
+                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#FF9933] via-orange-500 to-amber-500 hover:from-orange-400 hover:to-amber-400 text-slate-950 font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                          >
+                            <Award className="w-3.5 h-3.5 text-slate-950" />
+                            <span>Offer Letter</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedCandidateForCert(app.studentName);
+                              setActiveTab('portal-transactions');
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-bold text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            title="Disburse stipend via Govt Direct Benefit Transfer & Company Escrow only through portal"
+                          >
+                            <Landmark className="w-3.5 h-3.5" />
+                            <span>Portal Banking (DBT)</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setSelectedCandidateForCert(app.studentName);
+                              setActiveTab('portal-transactions');
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-[#081845] hover:bg-[#122b75] text-white font-bold text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            title="Issue official verified PM Internship Scheme digital completion certificate"
+                          >
+                            <FileText className="w-3.5 h-3.5" />
+                            <span>Issue Certificate</span>
+                          </button>
+                        </div>
                       )}
 
                       <div className="flex items-center gap-2 ml-auto">
                         <button
                           onClick={() => triggerStatusUpdate(app, 'REJECTED')}
                           disabled={isRejected}
-                          className="px-3 py-1.5 rounded-xl border border-rose-300 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 text-xs font-bold transition cursor-pointer disabled:opacity-40"
+                          className="px-3 py-1.5 rounded-xl border border-rose-300 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950 text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-40"
                         >
                           Reject
                         </button>
@@ -592,7 +629,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                         <button
                           onClick={() => triggerStatusUpdate(app, 'SHORTLISTED')}
                           disabled={isShortlisted}
-                          className="px-3.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs shadow-xs transition cursor-pointer disabled:opacity-40"
+                          className="px-3.5 py-1.5 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white font-bold text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-40"
                         >
                           Shortlist
                         </button>
@@ -600,7 +637,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                         <button
                           onClick={() => triggerStatusUpdate(app, 'SELECTED')}
                           disabled={isSelected}
-                          className="px-4 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-black text-xs shadow-xs transition cursor-pointer disabled:opacity-40 flex items-center gap-1"
+                          className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 via-emerald-600 to-teal-700 hover:from-emerald-500 hover:to-teal-600 text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 cursor-pointer disabled:opacity-40 flex items-center gap-1"
                         >
                           <CheckCircle2 className="w-3.5 h-3.5" />
                           <span>Select Candidate</span>

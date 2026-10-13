@@ -82,30 +82,39 @@ export const UserManualBudgetPage: React.FC = () => {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-emerald-900 via-slate-900 to-amber-900 text-white p-8 sm:p-10 rounded-3xl shadow-xl border border-emerald-500/20 space-y-4">
-        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider">
-          <span>🇮🇳</span>
-          <span>Official Documentation & Project Roadmap</span>
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Documentation & Roadmap */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 sm:p-10 shadow-sm space-y-4">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+        <div className="relative z-10 space-y-3">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+            <span>🇮🇳</span>
+            <span>Aatmanirbhar Bharat • National User Manual & Affordable Budget</span>
+          </div>
+
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+            Government User Manual, System Requirements & Ultra-Affordable Budget
+          </h1>
+
+          <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed font-medium">
+            Comprehensive step-by-step user manuals for Candidates and Corporates, conversion architecture for mobile and web, and a highly affordable budget tailored to government resource constraints.
+          </p>
         </div>
-
-        <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight">
-          Government User Manual, System Requirements & Ultra-Affordable Budget
-        </h1>
-
-        <p className="text-slate-300 text-xs sm:text-sm max-w-3xl leading-relaxed">
-          Comprehensive step-by-step user manuals for Candidates and Corporates, conversion architecture for mobile and web, and a highly affordable budget tailored to government resource constraints.
-        </p>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Navigation Tabs with Aatmanirbhar Bharat Tricolor Highlights & Button Animations */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
           onClick={() => setActiveTab('manual')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'manual'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] text-slate-950 font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800'
           }`}
         >
           <BookOpen className="w-4 h-4" />
@@ -114,10 +123,10 @@ export const UserManualBudgetPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('requirements')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'requirements'
-              ? 'bg-indigo-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-[#081845] text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800'
           }`}
         >
           <Layers className="w-4 h-4" />
@@ -126,10 +135,10 @@ export const UserManualBudgetPage: React.FC = () => {
 
         <button
           onClick={() => setActiveTab('budget')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'budget'
-              ? 'bg-amber-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800'
           }`}
         >
           <DollarSign className="w-4 h-4" />
@@ -140,35 +149,35 @@ export const UserManualBudgetPage: React.FC = () => {
       {/* TAB 1: USER MANUAL */}
       {activeTab === 'manual' && (
         <div className="space-y-6">
-          {/* Sub-role selector */}
-          <div className="flex items-center gap-2">
+          {/* Sub-role selector with tactile animations */}
+          <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs font-bold text-slate-500 mr-2">Select User Role:</span>
             <button
               onClick={() => setUserRoleGuide('student')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
                 userRoleGuide === 'student'
-                  ? 'bg-amber-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-slate-950 font-black shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               🎓 Candidate Manual
             </button>
             <button
               onClick={() => setUserRoleGuide('company')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
                 userRoleGuide === 'company'
-                  ? 'bg-emerald-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               🏢 Corporate / Employer Manual
             </button>
             <button
               onClick={() => setUserRoleGuide('admin')}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
                 userRoleGuide === 'admin'
-                  ? 'bg-indigo-600 text-white'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                  ? 'bg-[#081845] text-white font-black shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700'
               }`}
             >
               🏛️ Ministry Admin Manual

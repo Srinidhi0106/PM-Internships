@@ -173,6 +173,9 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
       {/* Government Aatmanirbhar Bharat Header Banner */}
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-amber-600 via-slate-900 to-emerald-800 text-white p-8 sm:p-10 shadow-xl border border-amber-500/20">
         <div className="absolute top-0 right-0 p-8 opacity-10 pointer-events-none">
@@ -222,14 +225,14 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
         </div>
       </div>
 
-      {/* Tabs Navigation */}
+      {/* Tabs Navigation with Aatmanirbhar Bharat Styling */}
       <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 dark:border-slate-800 pb-2">
         <button
           onClick={() => setActiveTab('raise')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'raise'
-              ? 'bg-amber-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] text-slate-950 font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-orange-50 dark:hover:bg-slate-800'
           }`}
         >
           <HelpCircle className="w-4 h-4" />
@@ -238,10 +241,10 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
 
         <button
           onClick={() => setActiveTab('track')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'track'
-              ? 'bg-indigo-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-[#081845] text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800'
           }`}
         >
           <Search className="w-4 h-4" />
@@ -250,10 +253,10 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
 
         <button
           onClick={() => setActiveTab('directory')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'directory'
-              ? 'bg-emerald-600 text-white shadow-md'
-              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+              ? 'bg-gradient-to-r from-emerald-600 to-teal-700 text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800'
           }`}
         >
           <Building2 className="w-4 h-4" />
@@ -262,9 +265,9 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
 
         <button
           onClick={() => setActiveTab('faq')}
-          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition cursor-pointer ${
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 cursor-pointer ${
             activeTab === 'faq'
-              ? 'bg-slate-800 text-white shadow-md'
+              ? 'bg-gradient-to-r from-orange-500/20 to-emerald-500/20 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 font-black shadow-xs'
               : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
@@ -452,9 +455,9 @@ export const SupportGrievancePage: React.FC<SupportGrievancePageProps> = ({ user
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-amber-600 hover:bg-amber-700 text-white font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                  className="w-full py-3.5 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <Send className="w-4 h-4" />
+                  <Send className="w-4 h-4 text-slate-950" />
                   <span>Submit Official Grievance to Ministry</span>
                 </button>
               </form>

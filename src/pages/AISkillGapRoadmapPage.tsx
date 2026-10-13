@@ -380,41 +380,47 @@ export const AISkillGapRoadmapPage: React.FC<AISkillGapRoadmapPageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-amber-600 via-indigo-700 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 -mt-10 -mr-10 w-64 h-64 bg-amber-500/20 rounded-full blur-3xl pointer-events-none" />
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Skill Gap & Career Roadmap */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="space-y-3 max-w-2xl">
-            <div className="inline-flex items-center gap-2 bg-amber-500/20 text-amber-300 border border-amber-400/30 px-3 py-1 rounded-full text-xs font-black tracking-wide uppercase">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-spin" />
-              <span>AI Skill Intelligence Engine</span>
+            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+              <Sparkles className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+              <span>🇮🇳 Aatmanirbhar Bharat • AI Skill Intelligence Engine</span>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-white">
               AI Skill Gap Analysis & 8-Week Career Roadmap
             </h1>
-            <p className="text-slate-200 text-xs sm:text-sm leading-relaxed">
+            <p className="text-slate-600 dark:text-slate-300 text-xs sm:text-sm leading-relaxed font-medium">
               Identify exact missing technical and soft skills required by India's Top 500 PM Internship Scheme corporate partners. Follow a personalized, step-by-step project roadmap to maximize your selection chances.
             </p>
           </div>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+          <div className="relative z-10 flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
             {result && (
               <button
                 onClick={downloadPDFRoadmap}
-                className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-extrabold text-xs rounded-xl border border-white/20 shadow-xs transition flex items-center justify-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-extrabold text-xs rounded-xl border border-slate-700 shadow-xs transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
-                <Download className="w-4 h-4 text-amber-300" />
+                <Download className="w-4 h-4 text-orange-400" />
                 <span>Download PDF Roadmap</span>
               </button>
             )}
             {onNavigateToInternships && (
               <button
                 onClick={onNavigateToInternships}
-                className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black text-xs rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                className="px-4 py-2.5 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-md transition-all duration-150 active:scale-95 flex items-center justify-center gap-2 cursor-pointer"
               >
                 <span>Browse Matching Roles</span>
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-4 h-4 text-slate-950" />
               </button>
             )}
           </div>

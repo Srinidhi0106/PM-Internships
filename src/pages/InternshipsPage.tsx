@@ -186,17 +186,26 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 shadow-xl relative overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Verified Opportunities Hub */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 sm:p-10 shadow-sm">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full text-xs font-semibold">
-            <Sparkles className="w-3.5 h-3.5" />
-            <span>PM INTERNSHIP SCHEME PORTAL</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+            <Sparkles className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+            <span>🇮🇳 Aatmanirbhar Bharat • PM Internship Scheme National Hub</span>
           </div>
-          <h1 className="text-3xl font-black">Explore 1,850+ Verified PM Internships</h1>
-          <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
-            Browse active internships across top 500 Indian companies. Filter by domain, company name dropdown, location, stipend, and mode. Every posting is audited with an AI Trust Score.
+          <h1 className="text-2xl sm:text-4xl font-black tracking-tight leading-tight text-slate-900 dark:text-white">
+            Explore 1,850+ Verified PM Internships
+          </h1>
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed font-medium">
+            Browse active internships across top 500 Indian companies. Filter by domain, company name dropdown, location, stipend, and mode. Every posting is audited with an AI Trust Score and mandatory in-portal DBT stipend guarantee.
           </p>
         </div>
       </div>
@@ -212,7 +221,7 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by role, skill (Python, React), company or city..."
-              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-10 pr-10 py-2.5 text-xs text-slate-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-orange-500 font-medium"
             />
             {searchTerm && (
               <button
@@ -226,9 +235,9 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
 
           <button
             onClick={openVoiceSearch}
-            className="px-4 py-2.5 bg-indigo-50 dark:bg-indigo-950 text-indigo-600 dark:text-indigo-400 border border-indigo-200 dark:border-indigo-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-indigo-100 transition"
+            className="px-4 py-2.5 bg-gradient-to-r from-orange-50 to-amber-50 dark:from-slate-800 dark:to-slate-800 text-orange-800 dark:text-orange-300 border border-orange-300 dark:border-orange-800 text-xs font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-orange-100 transition-all duration-150 active:scale-95 cursor-pointer shadow-2xs"
           >
-            <Sparkles className="w-4 h-4 text-indigo-500 animate-pulse" />
+            <Sparkles className="w-4 h-4 text-orange-500 animate-pulse" />
             <span>{t('voiceSearchBtn', 'Voice Search')}</span>
           </button>
         </div>
@@ -435,11 +444,11 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
                   </div>
                 </div>
 
-                {/* Bottom Action Row */}
+                {/* Bottom Action Row with Aatmanirbhar Bharat styling */}
                 <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between gap-2">
                   <button
                     onClick={() => setSelectedInternship(item)}
-                    className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-indigo-600 transition"
+                    className="text-xs font-bold text-slate-700 dark:text-slate-300 hover:text-orange-600 dark:hover:text-orange-400 transition-all duration-150 cursor-pointer"
                   >
                     {t('viewDetails', 'View Details')}
                   </button>
@@ -447,10 +456,10 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
                   <button
                     onClick={() => handleOpenApplyModal(item)}
                     disabled={isApplied}
-                    className={`px-4 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1 shadow-xs ${
+                    className={`px-4 py-2 rounded-xl text-xs font-black transition-all duration-150 flex items-center gap-1 shadow-xs cursor-pointer active:scale-95 ${
                       isApplied
-                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 cursor-default'
-                        : 'bg-amber-500 hover:bg-amber-600 text-slate-950 cursor-pointer'
+                        ? 'bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-400 border border-emerald-300 dark:border-emerald-800 cursor-default'
+                        : 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 shadow-sm hover:shadow-md'
                     }`}
                   >
                     {isApplied ? (
@@ -637,13 +646,13 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
                   <button
                     type="button"
                     onClick={() => setApplyModalInternship(null)}
-                    className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
+                    className="px-4 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-bold text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer transition-all duration-150 active:scale-95"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition"
+                    className="px-6 py-2.5 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black text-xs rounded-xl shadow-md cursor-pointer transition-all duration-150 active:scale-95"
                   >
                     Confirm & Submit Application
                   </button>
@@ -723,11 +732,11 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
               )}
             </div>
 
-            {/* Action buttons */}
+            {/* Action buttons with Aatmanirbhar Bharat styling */}
             <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
               <button
                 onClick={() => setSelectedInternship(null)}
-                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold cursor-pointer"
+                className="px-5 py-2.5 rounded-xl border border-slate-300 dark:border-slate-700 text-xs font-semibold cursor-pointer transition-all duration-150 active:scale-95"
               >
                 Close
               </button>
@@ -739,7 +748,7 @@ export const InternshipsPage: React.FC<InternshipsPageProps> = ({
                   handleOpenApplyModal(current);
                 }}
                 disabled={appliedIds.includes(selectedInternship.id)}
-                className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 disabled:bg-slate-300 text-slate-950 font-bold text-xs shadow-md cursor-pointer"
+                className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 disabled:bg-slate-300 text-slate-950 font-black text-xs shadow-md cursor-pointer transition-all duration-150 active:scale-95"
               >
                 {appliedIds.includes(selectedInternship.id) ? 'Already Applied' : 'Apply Now (Select Company Unit)'}
               </button>

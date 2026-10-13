@@ -23,15 +23,18 @@ export const AboutContactPages: React.FC = () => {
   };
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8">
-      {/* Sub Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-8 text-xs font-bold">
+    <div className="max-w-5xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Sub Tabs with tactile animations */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-3 text-xs font-bold pb-1">
         <button
           onClick={() => setActiveSubTab('about')}
-          className={`pb-3 transition border-b-2 ${
+          className={`px-4 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer ${
             activeSubTab === 'about'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] text-slate-950 font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           About PM Internship Scheme
@@ -39,10 +42,10 @@ export const AboutContactPages: React.FC = () => {
 
         <button
           onClick={() => setActiveSubTab('contact')}
-          className={`pb-3 transition border-b-2 ${
+          className={`px-4 py-2.5 rounded-xl transition-all duration-150 active:scale-95 cursor-pointer ${
             activeSubTab === 'contact'
-              ? 'border-amber-500 text-amber-600 dark:text-amber-400'
-              : 'border-transparent text-slate-500 hover:text-slate-800'
+              ? 'bg-[#081845] text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           Helpdesk & Contact Ministry
@@ -51,15 +54,23 @@ export const AboutContactPages: React.FC = () => {
 
       {activeSubTab === 'about' ? (
         <div className="space-y-8">
-          {/* Header */}
-          <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-8 shadow-xl space-y-3">
-            <span className="text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 px-3 py-1 rounded-full uppercase">
-              Government of India Initiative
-            </span>
-            <h1 className="text-3xl font-black">PM Internship Scheme by MCA</h1>
-            <p className="text-xs sm:text-sm text-slate-300 max-w-2xl">
-              Aiming to provide 1 crore internship opportunities in top 500 companies over 5 years, empowering youth with real-world exposure and financial stability.
-            </p>
+          {/* Header Banner - Aatmanirbhar Bharat Overview */}
+          <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-8 shadow-sm space-y-3">
+            {/* Subtle decorative tricolor backdrop glow */}
+            <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
+            <div className="relative z-10 space-y-3">
+              <span className="text-[10px] font-black bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 px-3 py-1 rounded-full uppercase tracking-wider">
+                🇮🇳 Government of India Initiative • Aatmanirbhar Bharat
+              </span>
+              <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
+                PM Internship Scheme by Ministry of Corporate Affairs
+              </h1>
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 max-w-2xl font-medium leading-relaxed">
+                Aiming to provide 1 crore internship opportunities in top 500 companies over 5 years, empowering youth with real-world exposure and financial stability.
+              </p>
+            </div>
           </div>
 
           {/* Key Pillars */}
@@ -166,7 +177,7 @@ export const AboutContactPages: React.FC = () => {
 
                 <button
                   type="submit"
-                  className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold rounded-xl shadow-md transition"
+                  className="w-full py-3 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 font-black rounded-xl shadow-md transition-all duration-150 active:scale-95 cursor-pointer"
                 >
                   Submit Official Support Ticket
                 </button>

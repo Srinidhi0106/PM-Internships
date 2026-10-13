@@ -578,13 +578,20 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8">
-      {/* Header Banner */}
-      <div className="bg-white dark:bg-slate-900 text-slate-900 dark:text-white border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xs relative overflow-hidden">
+    <div className="max-w-7xl mx-auto px-4 py-8 space-y-8 animate-in fade-in">
+      {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+      <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+      {/* Header Banner - Aatmanirbhar Bharat Recruiter Messaging & Reviews */}
+      <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+        {/* Subtle decorative tricolor backdrop glow */}
+        <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+        <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
         <div className="relative z-10 space-y-3">
-          <div className="inline-flex items-center gap-1.5 bg-purple-50 dark:bg-purple-950/60 text-purple-800 dark:text-purple-300 border border-purple-200 dark:border-purple-800 px-3 py-1 rounded-full text-xs font-bold">
-            <MessageSquare className="w-3.5 h-3.5 fill-purple-400" />
-            <span>ENTERPRISE RECRUITER CHAT & VERIFIED EMPLOYER REVIEWS</span>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+            <MessageSquare className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+            <span>🇮🇳 Aatmanirbhar Bharat • Recruiter Chat & Verified Employer Reviews</span>
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
             Messaging & Employer Reviews Portal
@@ -595,14 +602,14 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
         </div>
       </div>
 
-      {/* Main Navigation Tabs */}
-      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-8 text-xs font-bold">
+      {/* Main Navigation Tabs with Aatmanirbhar Bharat styling & tactile button animations */}
+      <div className="flex border-b border-slate-200 dark:border-slate-800 space-x-3 text-xs font-bold pb-1">
         <button
           onClick={() => setActiveTab('messages')}
-          className={`pb-3 transition border-b-2 flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer ${
             activeTab === 'messages'
-              ? 'border-purple-600 text-purple-600 dark:text-purple-400 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+              ? 'bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] text-slate-950 font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <MessageSquare className="w-4 h-4" />
@@ -611,10 +618,10 @@ export const MessagingReviewsPage: React.FC<MessagingReviewsPageProps> = ({ user
 
         <button
           onClick={() => setActiveTab('reviews')}
-          className={`pb-3 transition border-b-2 flex items-center gap-2 cursor-pointer ${
+          className={`px-4 py-2.5 rounded-xl transition-all duration-150 active:scale-95 flex items-center gap-2 cursor-pointer ${
             activeTab === 'reviews'
-              ? 'border-purple-600 text-purple-600 dark:text-purple-400 font-extrabold'
-              : 'border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200'
+              ? 'bg-[#081845] text-white font-black shadow-xs'
+              : 'text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
           }`}
         >
           <Star className="w-4 h-4 fill-amber-400 text-amber-500" />

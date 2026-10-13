@@ -869,38 +869,45 @@ ${resumeSourceMode === 'builder' ? `${builderDegree} - ${builderCollege} (CGPA: 
       )}
 
       {/* Main Container */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6">
-        {/* Top Header Banner */}
-        <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border border-indigo-900/50 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6 space-y-6 animate-in fade-in">
+        {/* Top Aatmanirbhar Bharat National Tricolor Accent Ribbon */}
+        <div className="h-1.5 w-full rounded-full bg-gradient-to-r from-[#FF9933] via-white to-[#138808] shadow-xs" />
+
+        {/* Top Header Banner - Aatmanirbhar Bharat AI Resume Tailor */}
+        <div className="relative overflow-hidden bg-gradient-to-r from-orange-50/90 via-white to-emerald-50/90 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-900 text-slate-900 dark:text-white border-2 border-orange-200/90 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-sm">
+          {/* Subtle decorative tricolor backdrop glow */}
+          <div className="absolute -top-12 -left-12 w-48 h-48 bg-orange-400/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute -bottom-12 -right-12 w-48 h-48 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
+
           <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div className="space-y-2 max-w-3xl">
-              <div className="inline-flex items-center gap-2 bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>AI Resume Tailor & ATS Match Engine (Jobsuit AI)</span>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-gradient-to-r from-orange-500/15 via-white dark:via-slate-800 to-emerald-500/15 text-orange-950 dark:text-orange-200 border border-orange-300 dark:border-orange-800 text-xs font-black uppercase tracking-wider">
+                <Sparkles className="w-3.5 h-3.5 text-orange-600 dark:text-orange-400" />
+                <span>🇮🇳 Aatmanirbhar Bharat • AI ATS Match & Resume Tailor</span>
               </div>
-              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight">
-                Tailor Your Resume to Any Job in Seconds
+              <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black tracking-tight text-slate-900 dark:text-white">
+                Tailor Your Resume to Any PM Scheme Role in Seconds
               </h1>
-              <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
-                Upload your resume document (<strong className="text-amber-300">.PDF, .DOCX, .DOC, .TXT</strong>), build one with our interactive AI Creator, or select a PM Scheme job description to inject target keywords and boost your candidate ranking.
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed font-medium">
+                Upload your resume document (<strong className="text-orange-700 dark:text-orange-300 font-bold">.PDF, .DOCX, .DOC, .TXT</strong>), build one with our interactive AI Creator, or select a PM Scheme job description to inject target keywords and boost your candidate ranking.
               </p>
             </div>
 
-            {/* Action Buttons */}
-            <div className="flex flex-wrap items-center gap-3">
+            {/* Action Buttons with Aatmanirbhar Bharat styling & tactile animations */}
+            <div className="relative z-10 flex flex-wrap items-center gap-3">
               <button
                 onClick={() => setActiveStep(activeStep === 'job-input' ? 'tailor-studio' : 'job-input')}
-                className="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition border border-white/20 cursor-pointer"
+                className="inline-flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all duration-150 active:scale-95 border border-slate-700 cursor-pointer shadow-xs"
               >
-                <Sliders className="w-4 h-4 text-amber-400" />
+                <Sliders className="w-4 h-4 text-orange-400" />
                 <span>{activeStep === 'job-input' ? 'View Tailor Studio' : 'Edit Resume Source & Job'}</span>
               </button>
               {onNavigateToParser && (
                 <button
                   onClick={onNavigateToParser}
-                  className="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2.5 rounded-xl text-xs font-bold transition shadow-lg cursor-pointer"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-[#FF9933] via-orange-500 to-[#E65100] hover:from-orange-400 hover:to-orange-500 text-slate-950 px-4 py-2.5 rounded-xl text-xs font-black transition-all duration-150 active:scale-95 shadow-md cursor-pointer"
                 >
-                  <FileText className="w-4 h-4" />
+                  <FileText className="w-4 h-4 text-slate-950" />
                   <span>Resume Audit & Score</span>
                 </button>
               )}
