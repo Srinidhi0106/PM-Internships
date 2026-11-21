@@ -20,7 +20,8 @@ import {
   Layers,
   Landmark,
   CreditCard,
-  ShieldCheck
+  ShieldCheck,
+  Receipt
 } from 'lucide-react';
 import { User, Application, Internship, AppliedInterview } from '../types';
 import { GamificationLevelUp } from '../components/GamificationLevelUp';
@@ -32,6 +33,7 @@ import { INITIAL_APPLIED_INTERVIEWS } from '../data/initialData';
 import { useLanguage } from '../context/LanguageContext';
 import { OtpVerificationModal } from '../components/OtpVerificationModal';
 import { otpService } from '../services/otpService';
+import { TransactionHistory } from '../components/TransactionHistory';
 
 interface StudentDashboardProps {
   user: User;
@@ -39,6 +41,7 @@ interface StudentDashboardProps {
   internships: Internship[];
   onUpdateUser: (updated: Partial<User>) => void;
   onNavigate?: (tab: string) => void;
+  initialTab?: 'applications' | 'interviews' | 'progress' | 'levelup' | 'certificate' | 'dbt-banking' | 'transactions' | 'profile';
 }
 
 export const StudentDashboard: React.FC<StudentDashboardProps> = ({
@@ -46,10 +49,11 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
   applications,
   internships,
   onUpdateUser,
-  onNavigate
+  onNavigate,
+  initialTab
 }) => {
   const { t } = useLanguage();
-  const [activeTab, setActiveTab] = useState<'applications' | 'interviews' | 'progress' | 'levelup' | 'certificate' | 'dbt-banking' | 'profile'>('applications');
+  const [activeTab, setActiveTab] = useState<'applications' | 'interviews' | 'progress' | 'levelup' | 'certificate' | 'dbt-banking' | 'transactions' | 'profile'>(initialTab || 'applications');
   const [editingName, setEditingName] = useState(user.name || '');
   const [editingCollege, setEditingCollege] = useState(user.college || 'IIT Delhi');
   const [editingBranch, setEditingBranch] = useState(user.branch || 'Computer Science Engineering');
@@ -301,6 +305,21 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
         </button>
 
         <button
+          onClick={() => setActiveTab('transactions')}
+          className={`pb-3 px-3 transition border-b-2 flex items-center gap-1.5 shrink-0 cursor-pointer ${
+            activeTab === 'transactions'
+              ? 'border-purple-600 text-purple-700 dark:text-purple-400 bg-purple-50/80 dark:bg-purple-950/40 rounded-t-xl font-black'
+              : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-purple-600 dark:hover:text-purple-300'
+          }`}
+        >
+          <Receipt className="w-3.5 h-3.5 text-purple-600" />
+          <span>Transaction History</span>
+          <span className="text-[9px] bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200 px-1.5 py-0.2 rounded-full font-black">
+            Paid
+          </span>
+        </button>
+
+        <button
           onClick={() => setActiveTab('profile')}
           className={`pb-3 px-3 transition border-b-2 shrink-0 cursor-pointer ${
             activeTab === 'profile'
@@ -337,6 +356,36 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
       {/* TAB CONTENT: APPLICATIONS */}
       {activeTab === 'applications' && (
         <div className="space-y-4">
+          {/* Quick Paid Internship Stipend Banner */}
+          <div className="p-4 bg-gradient-to-r from-purple-50 via-indigo-50 to-emerald-50 dark:from-purple-950/40 dark:via-slate-900 dark:to-emerald-950/40 border border-purple-200 dark:border-purple-800 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-purple-600 text-white flex items-center justify-center font-black shadow-xs shrink-0">
+                <Receipt className="w-5 h-5" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-black text-purple-900 dark:text-purple-200">
+                    Paid Internship Stipend Disbursals
+                  </span>
+                  <span className="text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.2 rounded-full">
+                    3 Months Credited
+                  </span>
+                </div>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  Latest: <strong>₹15,000</strong> credited via PhonePe UPI (UTR: P1422609071249105)
+                </p>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setActiveTab('transactions')}
+              className="px-3.5 py-1.5 bg-[#5f259f] hover:bg-[#501c87] text-white text-xs font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer shrink-0 self-start sm:self-center"
+            >
+              <span>View Full Transaction History</span>
+              <ChevronRight className="w-3.5 h-3.5" />
+            </button>
+          </div>
           {myApplications.length === 0 ? (
             <div className="p-12 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-3">
               <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
@@ -635,7 +684,7 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
           </div>
 
           {/* Bank Account & PFMS Verification Status Card */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
               <div className="flex items-center justify-between">
                 <span className="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Aadhaar NPCI Link</span>
@@ -675,6 +724,26 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </div>
               <p className="text-[11px] text-slate-500 font-mono">
                 Stipend Share: ₹4,500 GOI + ₹500 CSR
+              </p>
+            </div>
+
+            <div className="bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950/40 dark:to-slate-900 p-5 rounded-2xl border border-purple-200 dark:border-purple-800 shadow-sm space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-[10px] font-black uppercase text-purple-700 dark:text-purple-300 tracking-wider">PhonePe UPI Rail</span>
+                <span className="text-[10px] font-black text-purple-700 bg-purple-100 dark:bg-purple-900 px-2 py-0.5 rounded-full flex items-center gap-1">
+                  ⚡ Linked
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-5 h-5 rounded-full bg-[#5f259f] text-white flex items-center justify-center font-black text-[10px] shrink-0">
+                  पे
+                </div>
+                <span className="font-black text-slate-900 dark:text-white text-sm truncate font-mono">
+                  {user.email ? user.email.split('@')[0] : 'candidate'}@ybl
+                </span>
+              </div>
+              <p className="text-[11px] text-purple-700 dark:text-purple-300 font-medium">
+                Instant UPI Direct Credit
               </p>
             </div>
           </div>
@@ -769,7 +838,23 @@ export const StudentDashboard: React.FC<StudentDashboardProps> = ({
               </table>
             </div>
           </div>
+
+          {/* Dedicated Transaction History Component Integration */}
+          <div className="pt-2">
+            <TransactionHistory
+              user={user}
+              onNavigateToInternships={() => onNavigate && onNavigate('internships')}
+            />
+          </div>
         </div>
+      )}
+
+      {/* TAB CONTENT: STANDALONE TRANSACTION HISTORY VIEW */}
+      {activeTab === 'transactions' && (
+        <TransactionHistory
+          user={user}
+          onNavigateToInternships={() => onNavigate && onNavigate('internships')}
+        />
       )}
 
       {/* TAB CONTENT: EDIT PROFILE */}

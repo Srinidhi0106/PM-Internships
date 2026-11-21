@@ -34,7 +34,9 @@ import {
   Scale,
   BookOpen,
   Landmark,
-  BarChart2
+  BarChart2,
+  Smartphone,
+  Mail
 } from 'lucide-react';
 import { LanguageCode, getTranslation } from '../translations';
 import { useLanguage } from '../context/LanguageContext';
@@ -652,6 +654,28 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 >
                   <CheckCircle2 className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                   <span>Contest Deliverables & SRS</span>
+                </button>
+
+                {/* PhonePe UPI Paid Internships Shortcut */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('phonepe-pay')}
+                  className="px-3 py-1.5 bg-purple-50 dark:bg-purple-950/60 hover:bg-purple-100 border border-purple-300 dark:border-purple-800 text-[#5f259f] dark:text-purple-300 font-black text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Disburse Paid Internship Stipends via PhonePe UPI Gateway"
+                >
+                  <Smartphone className="w-3.5 h-3.5 text-[#5f259f] dark:text-purple-400" />
+                  <span>PhonePe UPI Pay</span>
+                </button>
+
+                {/* Mail ID OTP Workbench Shortcut */}
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('mail-otp')}
+                  className="px-3 py-1.5 bg-amber-50 dark:bg-amber-950/60 hover:bg-amber-100 border border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 font-black text-xs rounded-lg transition flex items-center gap-1.5 cursor-pointer shadow-2xs"
+                  title="Real-Time Mail ID OTP Verification Engine for Google AI Studio"
+                >
+                  <Mail className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                  <span>Mail OTP Guide</span>
                 </button>
               </div>
             </div>
@@ -1401,6 +1425,68 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             </div>
             <div className="text-xs font-bold text-indigo-950 dark:text-indigo-400 group-hover:text-orange-600 transition flex items-center gap-1.5 w-fit pt-1">
               <span>Open Manual & Budget</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 18: PhonePe UPI Money Transactions (Paid Internships) */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('phonepe-pay')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('phonepe-pay'); }}
+            className="bg-white dark:bg-slate-900 border-2 border-purple-300 dark:border-purple-800 hover:border-[#5f259f] rounded-3xl p-5 shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-gradient-to-r from-[#5f259f] to-[#7c3aed] flex items-center justify-between px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform font-black">
+                <div className="flex items-center gap-2">
+                  <Smartphone className="w-5 h-5 text-purple-200" />
+                  <span className="text-xs font-black tracking-wider">PhonePe Business</span>
+                </div>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">UPI 2.0</span>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-[#5f259f] transition-colors">
+                  PhonePe UPI Stipend Transactions
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Real-time corporate stipend disbursal (₹5,000 - ₹25,000) with dynamic BharatQR codes, VPA routing, MPIN keypad, Web Audio chime, and instant MCA tax receipts.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-[#5f259f] dark:text-purple-400 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>Launch PhonePe Gateway</span>
+              <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          {/* NEW Card 19: Real-Time Mail ID OTP Verification Engine (Google AI Studio) */}
+          <div
+            role="button"
+            tabIndex={0}
+            onClick={() => setActiveTab('mail-otp')}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setActiveTab('mail-otp'); }}
+            className="bg-white dark:bg-slate-900 border-2 border-amber-300 dark:border-amber-800 hover:border-amber-500 rounded-3xl p-5 shadow-xs hover:shadow-xl transition-all duration-200 flex flex-col justify-between space-y-4 cursor-pointer group"
+          >
+            <div className="space-y-4">
+              <div className="w-full h-11 rounded-2xl bg-gradient-to-r from-orange-600 via-amber-600 to-emerald-600 flex items-center justify-between px-3.5 text-white shadow-xs group-hover:scale-[1.02] transition-transform font-black">
+                <div className="flex items-center gap-2">
+                  <Mail className="w-5 h-5 text-amber-200" />
+                  <span className="text-xs font-black tracking-wider">AI Studio Integration</span>
+                </div>
+                <span className="text-[10px] bg-white/20 px-2 py-0.5 rounded-full font-bold">HMAC-SHA256</span>
+              </div>
+              <div className="space-y-1">
+                <h3 className="font-extrabold text-slate-900 dark:text-white text-base group-hover:text-amber-600 transition-colors">
+                  Mail ID OTP Setup & Live Tester
+                </h3>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium leading-relaxed">
+                  Complete blueprint on how to add real email OTPs in Google AI Studio: Gmail 16-character App Passwords, secure Express backend, auto-advancing 6-digit React UI & live playground.
+                </p>
+              </div>
+            </div>
+            <div className="text-xs font-bold text-amber-700 dark:text-amber-400 transition flex items-center gap-1.5 w-fit pt-1">
+              <span>Open Mail OTP Guide & Tester</span>
               <ArrowRight className="w-3.5 h-3.5 group-hover:translate-x-1 transition-transform" />
             </div>
           </div>

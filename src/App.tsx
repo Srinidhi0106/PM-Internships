@@ -11,6 +11,8 @@ import { NotificationSystemModal } from './components/NotificationSystemModal';
 import { CreativeIntroExperience } from './components/CreativeIntroExperience';
 import { ContestDeliverablesModal } from './components/ContestDeliverablesModal';
 import { AppDownloadQRModal } from './components/AppDownloadQRModal';
+import { PhonePePaymentModal } from './components/PhonePePaymentModal';
+import { EmailOtpWorkbenchModal } from './components/EmailOtpWorkbenchModal';
 
 import { LandingPage } from './pages/LandingPage';
 import { InternshipsPage } from './pages/InternshipsPage';
@@ -32,6 +34,7 @@ import { AuthPage } from './pages/AuthPage';
 import { SupportGrievancePage } from './pages/SupportGrievancePage';
 import { GovTechBenchmarkPage } from './pages/GovTechBenchmarkPage';
 import { UserManualBudgetPage } from './pages/UserManualBudgetPage';
+import { DownloadAppPage } from './pages/DownloadAppPage';
 
 import { User, Internship, Application, UserRole } from './types';
 import { INITIAL_INTERNSHIPS, INITIAL_APPLICATIONS } from './data/initialData';
@@ -42,7 +45,8 @@ import {
   saveInternshipToFirestore,
   saveApplicationToFirestore,
   updateApplicationStatusInFirestore,
-  saveUserToFirestore
+  saveUserToFirestore,
+  logoutFirebase
 } from './firebase';
 
 const GUEST_USER: User = {
@@ -61,9 +65,27 @@ const GUEST_USER: User = {
 
 export default function App() {
   const { language, setLanguage } = useLanguage();
-  const [currentPage, setCurrentPage] = useState<string>('landing');
+  const [currentPage, setCurrentPage] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = (params.get('page') || '').toLowerCase().trim();
+      if (pageParam === 'download-app' || pageParam === 'mobile-app') {
+        return 'download-app';
+      }
+    }
+    return 'landing';
+  });
   // Automatic curtain unveil experience before home page opens
-  const [showIntro, setShowIntro] = useState<boolean>(true);
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const pageParam = (params.get('page') || '').toLowerCase().trim();
+      if (pageParam === 'download-app' || pageParam === 'mobile-app') {
+        return false;
+      }
+    }
+    return true;
+  });
 
   const handleIntroComplete = () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
@@ -71,7 +93,7 @@ export default function App() {
         window.speechSynthesis.cancel();
       } catch {}
     }
-    setCurrentPage('landing');
+    setCurrentPage((prev) => (prev === 'download-app' ? 'download-app' : 'landing'));
     setShowIntro(false);
   };
 
@@ -86,13 +108,27 @@ export default function App() {
   const [notificationModalOpen, setNotificationModalOpen] = useState<boolean>(false);
   const [contestModalOpen, setContestModalOpen] = useState<boolean>(false);
   const [appDownloadModalOpen, setAppDownloadModalOpen] = useState<boolean>(false);
+  const [phonePeModalOpen, setPhonePeModalOpen] = useState<boolean>(false);
+  const [emailOtpModalOpen, setEmailOtpModalOpen] = useState<boolean>(false);
+  const [pendingAuthRole, setPendingAuthRole] = useState<'STUDENT' | 'COMPANY' | 'ADMIN'>('STUDENT');
+  const [authSecurityMessage, setAuthSecurityMessage] = useState<string>('');
+  const [authSessionToken, setAuthSessionToken] = useState<string | null>(() => {
+    try {
+      return sessionStorage.getItem('pm_scheme_session_token');
+    } catch {
+      return null;
+    }
+  });
 
   // Default initial candidate state (Guest / Logged out)
   const [user, setUser] = useState<User>(() => {
     const saved = localStorage.getItem('pm_scheme_user');
     if (saved) {
       try {
-        return JSON.parse(saved);
+        const parsed = JSON.parse(saved);
+        if (parsed && parsed.id && parsed.id !== 'guest' && parsed.email) {
+          return parsed;
+        }
       } catch (e) {
         // ignore
       }
@@ -102,7 +138,7 @@ export default function App() {
 
   const [internships, setInternships] = useState<Internship[]>(INITIAL_INTERNSHIPS);
   const [applications, setApplications] = useState<Application[]>(INITIAL_APPLICATIONS);
-  const [appliedIds, setAppliedIds] = useState<string[]>(['int-1']);
+  const [appliedIds, setAppliedIds] = useState<string[]>([]);
 
   useEffect(() => {
     // Fetch initial internships from Express server with graceful fallback
@@ -248,44 +284,103 @@ export default function App() {
     });
   };
 
-  const handleRoleSwitch = (newRole: UserRole) => {
-    const roleUpper = newRole.toUpperCase() as 'STUDENT' | 'COMPANY' | 'ADMIN';
-    let newUser: User;
-    if (roleUpper === 'COMPANY') {
-      newUser = {
-        id: 'c1',
-        name: 'Priya Mehta',
-        email: 'priya@tata.com',
-        role: 'COMPANY',
-        companyName: 'Tata Consultancy Services'
-      };
-    } else if (roleUpper === 'ADMIN') {
-      newUser = {
-        id: 'a1',
-        name: 'Officer A. K. Verma',
-        email: 'akverma@mca.gov.in',
-        role: 'ADMIN'
-      };
-    } else {
-      newUser = {
-        id: 's1',
-        name: 'Candidate Applicant',
-        email: 'applicant@mca.gov.in',
-        role: 'STUDENT',
-        college: 'Degree University / Institute',
-        branch: 'Computer Science & Engineering',
-        cgpa: 8.5,
-        skills: [],
-        githubUrl: '',
-        linkedinUrl: '',
-        xp: 1450,
-        level: 'Intermediate Practitioner',
-        streakDays: 7
-      };
+  const clearAllIdentityCaches = () => {
+    try {
+      const keysToRemove: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (
+          key &&
+          (key === 'pm_scheme_user' ||
+            key.startsWith('pm_scheme_') ||
+            key.startsWith('auth_') ||
+            key.startsWith('token') ||
+            key.startsWith('firebase:authUser'))
+        ) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach((k) => localStorage.removeItem(k));
+    } catch {
+      // ignore storage errors
     }
-    localStorage.setItem('pm_scheme_user', JSON.stringify(newUser));
-    setUser(newUser);
-    setCurrentPage('home');
+
+    try {
+      sessionStorage.clear();
+    } catch {
+      // ignore storage errors
+    }
+
+    try {
+      if (typeof document !== 'undefined' && document.cookie) {
+        document.cookie.split(';').forEach((cookieStr) => {
+          const cookieName = cookieStr.split('=')[0]?.trim();
+          if (cookieName) {
+            document.cookie = `${cookieName}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+          }
+        });
+      }
+    } catch {
+      // ignore cookie errors
+    }
+
+    logoutFirebase().catch(() => {});
+  };
+
+  const handleRoleSwitch = (newRole: UserRole) => {
+    const roleUpper = (newRole || 'student').toUpperCase() as 'STUDENT' | 'COMPANY' | 'ADMIN';
+    const activeToken = authSessionToken;
+
+    clearAllIdentityCaches();
+
+    fetch('/api/auth/switch-role', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+      },
+      body: JSON.stringify({ role: roleUpper })
+    }).catch(() => {});
+
+    setUser(GUEST_USER);
+    setAppliedIds([]);
+    setAuthSessionToken(null);
+    setPendingAuthRole(roleUpper);
+    setAuthSecurityMessage(
+      `Previous session terminated for strict identity isolation. Authenticate as ${roleUpper} using Mail ID passcode verification.`
+    );
+    setCurrentPage('auth-login');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleAuthSuccess = (loggedInUser: User, token?: string) => {
+    const normalizedRole = ((loggedInUser.role || 'STUDENT') + '').toUpperCase() as 'STUDENT' | 'COMPANY' | 'ADMIN';
+    const sanitizedUser: User = {
+      ...loggedInUser,
+      role: normalizedRole
+    };
+
+    try {
+      localStorage.setItem('pm_scheme_user', JSON.stringify(sanitizedUser));
+      if (token) {
+        sessionStorage.setItem('pm_scheme_session_token', token);
+      }
+    } catch {
+      // ignore storage errors
+    }
+
+    setUser(sanitizedUser);
+    setAuthSessionToken(token || null);
+    setAuthSecurityMessage('');
+    setPendingAuthRole(normalizedRole);
+
+    if (normalizedRole === 'COMPANY') {
+      handleNavigate('company-dashboard');
+    } else if (normalizedRole === 'ADMIN') {
+      handleNavigate('admin-dashboard');
+    } else {
+      handleNavigate('home');
+    }
   };
 
   const handleNavigate = (tab: string) => {
@@ -318,6 +413,14 @@ export default function App() {
     }
     if (['contest', 'contest-showcase', 'srs', 'deliverables', 'benchmark', 'demo-script', 'contest-docs'].includes(cleanTab)) {
       setContestModalOpen(true);
+      return;
+    }
+    if (['phonepe', 'phonepe-pay', 'upi', 'upi-pay', 'stipend-disburse', 'payment-gateway', 'pay-stipend'].includes(cleanTab)) {
+      setPhonePeModalOpen(true);
+      return;
+    }
+    if (['mail-otp', 'otp-guide', 'email-otp', 'otp-setup', 'email-otp-workbench', 'otp-workbench'].includes(cleanTab)) {
+      setEmailOtpModalOpen(true);
       return;
     }
 
@@ -422,19 +525,22 @@ export default function App() {
       case 'company':
       case 'recruiter':
       case 'employer':
+        if (!user || user.id === 'guest' || (user.role || '').toString().toUpperCase() !== 'COMPANY') {
+          return (
+            <AuthPage
+              initialMode="LOGIN"
+              initialRole="COMPANY"
+              securityMessage={
+                authSecurityMessage ||
+                'Company Partner authentication via Mail ID passcode is required before accessing the Recruiter Dashboard.'
+              }
+              onLogin={handleAuthSuccess}
+            />
+          );
+        }
         return (
           <CompanyDashboard
-            user={
-              user.role === 'COMPANY'
-                ? user
-                : {
-                    id: 'c1',
-                    name: 'Priya Mehta',
-                    email: 'priya@tata.com',
-                    role: 'COMPANY',
-                    companyName: 'Tata Consultancy Services'
-                  }
-            }
+            user={user}
             internships={internships}
             applications={applications}
             onAddInternship={handleAddInternship}
@@ -444,18 +550,72 @@ export default function App() {
       case 'admin-dashboard':
       case 'admin':
       case 'ministry':
+        if (!user || user.id === 'guest' || (user.role || '').toString().toUpperCase() !== 'ADMIN') {
+          return (
+            <AuthPage
+              initialMode="LOGIN"
+              initialRole="ADMIN"
+              securityMessage={
+                authSecurityMessage ||
+                'Authorized Ministry Admin authentication via Mail ID passcode is required before accessing the Governance Desk.'
+              }
+              onLogin={handleAuthSuccess}
+            />
+          );
+        }
         return (
           <AdminDashboard
+            user={user}
             internships={internships}
             applications={applications}
             onUpdateApplicationStatus={handleUpdateApplicationStatus}
+          />
+        );
+      case 'transactions':
+      case 'transaction-history':
+      case 'payments':
+      case 'stipend-ledger':
+        if (!user || user.id === 'guest') {
+          return (
+            <AuthPage
+              initialMode="LOGIN"
+              initialRole="STUDENT"
+              securityMessage={
+                authSecurityMessage ||
+                'Sign in with your verified Mail ID passcode to view paid internship transactions and PDF receipts.'
+              }
+              onLogin={handleAuthSuccess}
+            />
+          );
+        }
+        return (
+          <StudentDashboard
+            user={user}
+            applications={applications}
+            internships={internships}
+            onUpdateUser={handleUpdateUser}
+            onNavigate={handleNavigate}
+            initialTab="transactions"
           />
         );
       case 'dashboard':
       case 'student-dashboard':
       case 'student':
       case 'profile':
-        if (user.role === 'COMPANY') {
+        if (!user || user.id === 'guest') {
+          return (
+            <AuthPage
+              initialMode="LOGIN"
+              initialRole={pendingAuthRole}
+              securityMessage={
+                authSecurityMessage ||
+                'Sign in with your verified Mail ID passcode to access your portal dashboard.'
+              }
+              onLogin={handleAuthSuccess}
+            />
+          );
+        }
+        if ((user.role || '').toString().toUpperCase() === 'COMPANY') {
           return (
             <CompanyDashboard
               user={user}
@@ -465,9 +625,10 @@ export default function App() {
               onUpdateApplicationStatus={handleUpdateApplicationStatus}
             />
           );
-        } else if (user.role === 'ADMIN') {
+        } else if ((user.role || '').toString().toUpperCase() === 'ADMIN') {
           return (
             <AdminDashboard
+              user={user}
               internships={internships}
               applications={applications}
               onUpdateApplicationStatus={handleUpdateApplicationStatus}
@@ -484,6 +645,11 @@ export default function App() {
             />
           );
         }
+      case 'download-app':
+      case 'mobile-app':
+      case 'app-download':
+      case 'android-app':
+        return <DownloadAppPage onNavigate={handleNavigate} />;
       case 'analytics':
       case 'stats':
       case 'metrics':
@@ -526,11 +692,9 @@ export default function App() {
         return (
           <AuthPage
             initialMode={currentPage === 'auth-register' || currentPage === 'register' || currentPage === 'signup' ? 'REGISTER' : 'LOGIN'}
-            onLogin={(loggedInUser) => {
-              localStorage.setItem('pm_scheme_user', JSON.stringify(loggedInUser));
-              setUser(loggedInUser);
-              handleNavigate('home');
-            }}
+            initialRole={currentPage === 'company-register' ? 'COMPANY' : pendingAuthRole}
+            securityMessage={authSecurityMessage}
+            onLogin={handleAuthSuccess}
           />
         );
       default:
@@ -550,8 +714,22 @@ export default function App() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('pm_scheme_user');
+    const activeToken = authSessionToken;
+    clearAllIdentityCaches();
+
+    fetch('/api/auth/logout', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        ...(activeToken ? { Authorization: `Bearer ${activeToken}` } : {})
+      }
+    }).catch(() => {});
+
     setUser(GUEST_USER);
+    setAppliedIds([]);
+    setAuthSessionToken(null);
+    setPendingAuthRole('STUDENT');
+    setAuthSecurityMessage('');
     handleNavigate('home');
   };
 
@@ -575,6 +753,8 @@ export default function App() {
         openVoiceSearch={() => setVoiceModalOpen(true)}
         openNotifications={() => setNotificationModalOpen(true)}
         openAppDownload={() => setAppDownloadModalOpen(true)}
+        openPhonePeModal={() => setPhonePeModalOpen(true)}
+        openEmailOtpGuide={() => setEmailOtpModalOpen(true)}
         onLogout={handleLogout}
       />
 
@@ -645,6 +825,39 @@ export default function App() {
       <AppDownloadQRModal
         isOpen={appDownloadModalOpen}
         onClose={() => setAppDownloadModalOpen(false)}
+      />
+
+      {/* PhonePe UPI Paid Internship Money Transaction Modal */}
+      <PhonePePaymentModal
+        isOpen={phonePeModalOpen}
+        onClose={() => setPhonePeModalOpen(false)}
+        candidateName={user?.name || 'Verified Candidate'}
+        candidateCollege={user?.college || 'PM Internship Partner Institute'}
+        candidateRole="Full-Stack AI Engineering Intern"
+        candidateAccount="State Bank of India •••• 4921"
+        candidateUpiId={user?.email ? `${user.email.split('@')[0]}@ybl` : 'candidate@ybl'}
+        defaultAmount={15000}
+        onPaymentSuccess={(tx) => {
+          fetch('/api/payments/phonepe-verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              orderId: tx.orderId,
+              candidateName: tx.candidateName,
+              candidateAccount: 'State Bank of India •••• 4921',
+              amount: tx.amount,
+              paymentRail: 'PhonePe UPI',
+              notes: `Portal Disbursal via PhonePe UPI (UTR: ${tx.utrNumber})`
+            })
+          }).catch(console.error);
+        }}
+      />
+
+      {/* Google AI Studio Mail ID OTP Integration Workbench & Live Tester */}
+      <EmailOtpWorkbenchModal
+        isOpen={emailOtpModalOpen}
+        onClose={() => setEmailOtpModalOpen(false)}
+        initialEmail={user?.email || 'candidate.pmscheme@gmail.com'}
       />
 
       {/* Global Footer */}

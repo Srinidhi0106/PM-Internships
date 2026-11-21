@@ -21,21 +21,20 @@ import {
   Clock,
   Send,
   Fingerprint,
-  CheckCircle2,
-  Copy,
-  Zap
+  CheckCircle2
 } from 'lucide-react';
 import { User } from '../types';
 import { loginWithGoogle, registerWithEmail, loginWithEmail, saveUserToFirestore } from '../firebase';
 import { useLanguage } from '../context/LanguageContext';
 import { heroStudentsBg } from '../assets/images';
-import { SkillSelectDropdown } from '../components/SkillSelectDropdown';
 import { validateResumeFile } from '../utils/resumeValidator';
 import { otpService } from '../services/otpService';
 
 interface AuthPageProps {
-  onLogin: (user: User) => void;
+  onLogin: (user: User, token?: string) => void;
   initialMode?: 'LOGIN' | 'REGISTER';
+  initialRole?: 'STUDENT' | 'COMPANY' | 'ADMIN';
+  securityMessage?: string;
 }
 
 const TOP_COLLEGES = [
@@ -92,11 +91,20 @@ const BRANCHES = [
   'General / Other Branch'
 ];
 
-export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGIN' }) => {
+export const AuthPage: React.FC<AuthPageProps> = ({
+  onLogin,
+  initialMode = 'LOGIN',
+  initialRole = 'STUDENT',
+  securityMessage
+}) => {
   const { t } = useLanguage();
   const [mode, setMode] = useState<'LOGIN' | 'REGISTER'>(initialMode);
-  const [authMethod, setAuthMethod] = useState<'EMAIL_OTP' | 'PHONE' | 'AADHAAR' | 'COMPANY_CIN' | 'ADMIN' | 'PASSWORD'>('EMAIL_OTP');
-  const [role, setRole] = useState<'STUDENT' | 'COMPANY' | 'ADMIN'>('STUDENT');
+  const [role, setRole] = useState<'STUDENT' | 'COMPANY' | 'ADMIN'>(initialRole);
+  const [authMethod, setAuthMethod] = useState<'EMAIL_OTP' | 'PHONE' | 'AADHAAR' | 'COMPANY_CIN' | 'ADMIN' | 'PASSWORD'>(() => {
+    if (initialRole === 'COMPANY') return 'COMPANY_CIN';
+    if (initialRole === 'ADMIN') return 'ADMIN';
+    return 'EMAIL_OTP';
+  });
 
   // Input states
   const [fullName, setFullName] = useState('');
@@ -115,35 +123,30 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
   const [resumeFileName, setResumeFileName] = useState('');
   const [candidateSkills, setCandidateSkills] = useState<string[]>([]);
 
-  // Email OTP States (Strict 5-minute expiry & 60-second resend cooldown)
+  // Email OTP States (Strict 5-minute expiry & 60-second resend cooldown; passcode never shown on screen)
   const [emailOtpStep, setEmailOtpStep] = useState<'INPUT' | 'VERIFY'>('INPUT');
   const [enteredEmailOtp, setEnteredEmailOtp] = useState('');
-  const [activeGeneratedEmailOtp, setActiveGeneratedEmailOtp] = useState<string | null>(null);
-  const [copiedCodeToast, setCopiedCodeToast] = useState(false);
-  const [otpTimeRemaining, setOtpTimeRemaining] = useState<number>(300); // 5 minutes (300s) expiry
+  const [otpTimeRemaining, setOtpTimeRemaining] = useState<number>(300);
   const [otpExpired, setOtpExpired] = useState(false);
-  const [resendCooldown, setResendCooldown] = useState<number>(60); // 60s resend cooldown
+  const [resendCooldown, setResendCooldown] = useState<number>(60);
 
-  // Phone Login States
+  // Phone + Mail Passcode Verification States
   const [phoneOtpStep, setPhoneOtpStep] = useState<'INPUT' | 'VERIFY'>('INPUT');
   const [enteredPhoneOtp, setEnteredPhoneOtp] = useState('');
-  const [activeGeneratedPhoneOtp, setActiveGeneratedPhoneOtp] = useState<string | null>(null);
-  const [phoneTimeRemaining, setPhoneTimeRemaining] = useState<number>(120);
+  const [phoneTimeRemaining, setPhoneTimeRemaining] = useState<number>(300);
   const [phoneOtpExpired, setPhoneOtpExpired] = useState(false);
-  const [phonePreviewOtp, setPhonePreviewOtp] = useState<string | null>(null);
 
   // Captcha challenge for phone & aadhaar verification
   const [captchaChallenge, setCaptchaChallenge] = useState({ q: '8 + 5', a: '13' });
   const [captchaInput, setCaptchaInput] = useState('');
 
-  // Aadhaar Login States
+  // Aadhaar + Mail Passcode Verification States
   const [aadhaarOtpStep, setAadhaarOtpStep] = useState<'INPUT' | 'VERIFY'>('INPUT');
   const [enteredAadhaarOtp, setEnteredAadhaarOtp] = useState('');
-  const [activeGeneratedAadhaarOtp, setActiveGeneratedAadhaarOtp] = useState<string | null>(null);
-  const [aadhaarTimeRemaining, setAadhaarTimeRemaining] = useState<number>(120);
+  const [aadhaarTimeRemaining, setAadhaarTimeRemaining] = useState<number>(300);
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
 
-  // Company CIN Verification States
+  // Company CIN & Mail Passcode States
   const [cinStatus, setCinStatus] = useState<{
     verified: boolean;
     companyLegalName?: string;
@@ -152,6 +155,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     trustScore?: number;
   } | null>(null);
   const [cinChecking, setCinChecking] = useState(false);
+  const [companyOtpStep, setCompanyOtpStep] = useState<'INPUT' | 'VERIFY'>('INPUT');
+  const [enteredCompanyOtp, setEnteredCompanyOtp] = useState('');
+
+  // Admin Mail Passcode States
+  const [adminOtpStep, setAdminOtpStep] = useState<'INPUT' | 'VERIFY'>('INPUT');
+  const [enteredAdminOtp, setEnteredAdminOtp] = useState('');
+
+  // Password + Mandatory Email Passcode States
+  const [passwordStep, setPasswordStep] = useState<'CREDENTIALS' | 'VERIFY_OTP'>('CREDENTIALS');
+  const [enteredPasswordOtp, setEnteredPasswordOtp] = useState('');
+  const [pendingFirebaseUser, setPendingFirebaseUser] = useState<User | null>(null);
 
   // Google Modal
   const [showGoogleAccountModal, setShowGoogleAccountModal] = useState(false);
@@ -271,6 +285,33 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setMode(initialMode);
   }, [initialMode]);
 
+  useEffect(() => {
+    setRole(initialRole);
+    if (initialRole === 'COMPANY') {
+      setAuthMethod('COMPANY_CIN');
+    } else if (initialRole === 'ADMIN') {
+      setAuthMethod('ADMIN');
+    } else {
+      setAuthMethod('EMAIL_OTP');
+    }
+    setPassword('');
+    setEnteredEmailOtp('');
+    setEnteredPhoneOtp('');
+    setEnteredAadhaarOtp('');
+    setEnteredCompanyOtp('');
+    setEnteredAdminOtp('');
+    setEnteredPasswordOtp('');
+    setEmailOtpStep('INPUT');
+    setPhoneOtpStep('INPUT');
+    setAadhaarOtpStep('INPUT');
+    setCompanyOtpStep('INPUT');
+    setAdminOtpStep('INPUT');
+    setPasswordStep('CREDENTIALS');
+    setPendingFirebaseUser(null);
+    setErrorMessage('');
+    setSuccessMessage('');
+  }, [initialRole]);
+
   // Resume File Upload handler (strictly supports Images .png, .jpg, .jpeg, .webp as well as .pdf/.docx)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     setErrorMessage('');
@@ -290,15 +331,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
   };
 
   // ----------------------------------------------------
-  // 1. REAL EMAIL OTP AUTHENTICATION (5-MIN EXPIRY, GMAIL SMTP)
+  // 1. REAL EMAIL PASSCODE AUTHENTICATION (5-MIN EXPIRY, SMTP ONLY)
   // ----------------------------------------------------
   const handleSendEmailOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
-    if (!email || !email.includes('@')) {
-      setErrorMessage('Please enter a valid email address to receive the verification OTP.');
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter a valid Mail ID to receive your verification passcode.');
       return;
     }
 
@@ -323,35 +365,30 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     }
 
     setLoading(true);
-
-    // Instant real-time mock OTP generation utility
-    const mockCode = Math.floor(100000 + Math.random() * 900000).toString();
-
     try {
       const result = await otpService.sendEmailOtp(
-        email.trim(),
+        cleanEmail,
         mode === 'REGISTER' ? 'registration' : 'login',
         fullName.trim(),
         role
       );
 
-      const resolvedOtp = result.testOtpFallback || mockCode;
-      setActiveGeneratedEmailOtp(resolvedOtp);
+      if (!result.success) {
+        setErrorMessage(result.message || 'Unable to send verification passcode to your email.');
+        if (result.remainingSeconds) {
+          setResendCooldown(result.remainingSeconds);
+        }
+        return;
+      }
+
       setEmailOtpStep('VERIFY');
       setEnteredEmailOtp('');
-      setOtpTimeRemaining(result.expiresInSeconds || 300); // 5 minutes (300s)
-      setResendCooldown(result.resendAvailableInSeconds || 60); // 60s cooldown
+      setOtpTimeRemaining(result.expiresInSeconds || 300);
+      setResendCooldown(result.resendAvailableInSeconds || 60);
       setOtpExpired(false);
-      setSuccessMessage(`✓ Real-time OTP generated successfully for ${email.trim()} (Valid for 5 minutes).`);
+      setSuccessMessage(`A 6-digit verification passcode has been sent to ${cleanEmail}. Check your email inbox and enter it below.`);
     } catch (err: any) {
-      // Real-time fallback ensures testing/evaluation is always 100% operational
-      setActiveGeneratedEmailOtp(mockCode);
-      setEmailOtpStep('VERIFY');
-      setEnteredEmailOtp('');
-      setOtpTimeRemaining(300);
-      setResendCooldown(60);
-      setOtpExpired(false);
-      setSuccessMessage(`✓ Real-time OTP simulation generated for ${email.trim()} (Valid for 5 minutes).`);
+      setErrorMessage(err?.message || 'Unable to contact verification mail service.');
     } finally {
       setLoading(false);
     }
@@ -363,28 +400,28 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setSuccessMessage('');
     setLoading(true);
 
-    const freshMock = Math.floor(100000 + Math.random() * 900000).toString();
-
     try {
+      const cleanEmail = email.trim().toLowerCase();
       const result = await otpService.resendEmailOtp(
-        email.trim(),
+        cleanEmail,
         mode === 'REGISTER' ? 'registration' : 'login'
       );
 
-      const resolvedCode = result.testOtpFallback || freshMock;
-      setActiveGeneratedEmailOtp(resolvedCode);
+      if (!result.success) {
+        setErrorMessage(result.message || 'Could not resend verification passcode.');
+        if (result.remainingSeconds) {
+          setResendCooldown(result.remainingSeconds);
+        }
+        return;
+      }
+
       setOtpTimeRemaining(result.expiresInSeconds || 300);
       setResendCooldown(result.resendAvailableInSeconds || 60);
       setOtpExpired(false);
       setEnteredEmailOtp('');
-      setSuccessMessage(`✓ A fresh 6-digit OTP has been generated for your email (${email.trim()}).`);
+      setSuccessMessage(`A fresh 6-digit passcode has been dispatched to ${cleanEmail}.`);
     } catch (err: any) {
-      setActiveGeneratedEmailOtp(freshMock);
-      setOtpTimeRemaining(300);
-      setResendCooldown(60);
-      setOtpExpired(false);
-      setEnteredEmailOtp('');
-      setSuccessMessage(`✓ A fresh 6-digit OTP has been generated for your session.`);
+      setErrorMessage(err?.message || 'Failed to resend passcode.');
     } finally {
       setLoading(false);
     }
@@ -396,18 +433,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setSuccessMessage('');
 
     if (otpExpired) {
-      setErrorMessage('Verification OTP has expired (5-minute limit exceeded). Please request a new OTP.');
+      setErrorMessage('Verification passcode has expired (5-minute limit exceeded). Please request a new passcode.');
       return;
     }
 
     const cleanOtp = enteredEmailOtp.trim();
-    if (cleanOtp.length !== 6) {
-      setErrorMessage('Please enter the full 6-digit numeric OTP.');
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      setErrorMessage('Please enter the exact 6-digit numeric passcode received in your email inbox.');
       return;
     }
-
-    // Real-time OTP match check against active session code
-    const isLocalMatch = (activeGeneratedEmailOtp && cleanOtp === activeGeneratedEmailOtp) || cleanOtp === '123456';
 
     setLoading(true);
 
@@ -415,12 +449,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     const activeDegree = selectedDegree === 'Other Degree' ? (customDegree || 'Other Degree') : selectedDegree;
     const activeBranch = selectedBranch === 'General / Other Branch' ? (customBranch || 'Other Branch') : selectedBranch;
     const finalBranch = `${activeDegree || 'B.Tech'} - ${activeBranch || 'Computer Science'}`;
-    const derivedName = fullName.trim() || email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const cleanEmail = email.trim().toLowerCase();
+    const derivedName = fullName.trim() || cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
     const userPayload: User = {
       id: `usr-${Date.now()}`,
       name: derivedName,
-      email: email.trim(),
+      email: cleanEmail,
       role: role,
       emailVerified: true,
       college: role === 'STUDENT' ? (finalCollege || 'Indian Institute of Technology (IIT) Delhi') : undefined,
@@ -437,44 +472,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
 
     try {
       const result = await otpService.verifyEmailOtp(
-        email.trim(),
+        cleanEmail,
         cleanOtp,
         mode === 'REGISTER' ? 'registration' : 'login',
         role,
         userPayload
       );
 
-      if (result.success || isLocalMatch) {
-        await saveUserToFirestore(userPayload);
-        setSuccessMessage(`✓ Email verified successfully! Welcome to Aatmanirbhar Bharat Portal, ${userPayload.name}.`);
+      if (result.success && result.user) {
+        const verifiedUser: User = { ...result.user, role, emailVerified: true };
+        await saveUserToFirestore(verifiedUser);
+        setEnteredEmailOtp('');
+        setSuccessMessage(`Passcode verified for ${verifiedUser.email}. Signing in...`);
         setTimeout(() => {
-          onLogin(result.user || userPayload);
-        }, 500);
+          onLogin(verifiedUser, result.token);
+        }, 400);
       } else {
         if (result.expired) {
           setOtpExpired(true);
         }
-        setErrorMessage(result.message || 'Invalid 6-digit OTP code. Please enter the generated code or click Auto-Fill.');
+        setErrorMessage(result.message || 'Invalid 6-digit passcode. Only the code sent to your Mail ID is accepted.');
       }
     } catch (err: any) {
-      if (isLocalMatch) {
-        await saveUserToFirestore(userPayload);
-        setSuccessMessage(`✓ Email verified successfully! Welcome ${userPayload.name}.`);
-        setTimeout(() => {
-          onLogin(userPayload);
-        }, 500);
-      } else {
-        setErrorMessage('Verification failed. Please ensure you entered the exact 6-digit OTP code.');
-      }
+      setErrorMessage(err?.message || 'Verification failed. Please check the passcode sent to your email.');
     } finally {
       setLoading(false);
     }
   };
 
   // ----------------------------------------------------
-  // 2. PHONE NUMBER LOGIN (WITH CAPTCHA & SMS OTP)
+  // 2. PHONE NUMBER LOGIN + MANDATORY MAIL PASSCODE
   // ----------------------------------------------------
-  const handleSendPhoneOtp = (e: React.FormEvent) => {
+  const handleSendPhoneOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -484,20 +513,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter your Mail ID to receive the secure login passcode.');
+      return;
+    }
+
     if (captchaInput.trim() !== captchaChallenge.a) {
       setErrorMessage('Captcha verification failed. Please solve the math challenge.');
       refreshCaptcha();
       return;
     }
 
-    const mockSmsOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setPhoneOtpStep('VERIFY');
-    setEnteredPhoneOtp('');
-    setPhoneTimeRemaining(120);
-    setPhoneOtpExpired(false);
-    setPhonePreviewOtp(mockSmsOtp);
-    setActiveGeneratedPhoneOtp(mockSmsOtp);
-    setSuccessMessage(`✓ Real-time SMS OTP generated for +91 ${phone.replace(/\D/g, '').slice(-10)} (Strictly valid for 2 minutes).`);
+    setLoading(true);
+    try {
+      const result = await otpService.sendEmailOtp(cleanEmail, 'login', fullName.trim(), role);
+      if (!result.success) {
+        setErrorMessage(result.message || 'Unable to send verification passcode to your email.');
+        return;
+      }
+      setPhoneOtpStep('VERIFY');
+      setEnteredPhoneOtp('');
+      setPhoneTimeRemaining(result.expiresInSeconds || 300);
+      setPhoneOtpExpired(false);
+      setSuccessMessage(`6-digit passcode sent to ${cleanEmail} for +91 ${phone.replace(/\D/g, '').slice(-10)}.`);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Failed to dispatch verification passcode.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifyPhoneOtp = async (e: React.FormEvent) => {
@@ -506,51 +550,44 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setSuccessMessage('');
 
     if (phoneOtpExpired) {
-      setErrorMessage('Phone OTP has expired after 2 minutes limit. Please request a new OTP.');
+      setErrorMessage('Verification passcode expired. Please request a new passcode.');
       return;
     }
 
-    if (enteredPhoneOtp.trim().length !== 6) {
-      setErrorMessage('Please enter the 6-digit SMS OTP.');
+    if (!/^\d{6}$/.test(enteredPhoneOtp.trim())) {
+      setErrorMessage('Please enter the 6-digit passcode sent to your Mail ID.');
       return;
     }
 
-    const isMatch = (activeGeneratedPhoneOtp && enteredPhoneOtp.trim() === activeGeneratedPhoneOtp) ||
-                    (phonePreviewOtp && enteredPhoneOtp.trim() === phonePreviewOtp) ||
-                    enteredPhoneOtp.trim() === '123456';
-
-    if (!isMatch) {
-      setErrorMessage('Incorrect SMS OTP code. Please enter the exact code received or click Auto-Fill.');
-      return;
+    setLoading(true);
+    try {
+      const cleanMobile = phone.replace(/\D/g, '').slice(-10);
+      const cleanEmail = email.trim().toLowerCase();
+      const result = await otpService.verifyEmailOtp(cleanEmail, enteredPhoneOtp.trim(), 'login', role, {
+        phone: `+91 ${cleanMobile}`,
+        name: fullName.trim() || undefined
+      });
+      if (!result.success || !result.user) {
+        if (result.expired) setPhoneOtpExpired(true);
+        setErrorMessage(result.message || 'Invalid 6-digit passcode.');
+        return;
+      }
+      const verifiedUser: User = { ...result.user, phone: `+91 ${cleanMobile}`, role, emailVerified: true };
+      await saveUserToFirestore(verifiedUser);
+      setEnteredPhoneOtp('');
+      setSuccessMessage('Identity & passcode verified. Signing in...');
+      setTimeout(() => {
+        onLogin(verifiedUser, result.token);
+      }, 400);
+    } finally {
+      setLoading(false);
     }
-
-    const cleanMobile = phone.replace(/\D/g, '').slice(-10);
-    const authenticatedUser: User = {
-      id: `usr-phone-${Date.now()}`,
-      name: `Mobile User (+91 ${cleanMobile})`,
-      email: `user.${cleanMobile}@pminternship.gov.in`,
-      phone: `+91 ${cleanMobile}`,
-      role: role,
-      college: 'Delhi Technological University (DTU)',
-      branch: 'Computer Science & Engineering',
-      cgpa: 8.4,
-      skills: role === 'STUDENT' ? candidateSkills : [],
-      xp: 600,
-      level: 'Phone Verified Candidate',
-      streakDays: 1
-    };
-
-    await saveUserToFirestore(authenticatedUser);
-    setSuccessMessage(`✓ Phone number verified successfully! Logging in...`);
-    setTimeout(() => {
-      onLogin(authenticatedUser);
-    }, 500);
   };
 
   // ----------------------------------------------------
-  // 3. AADHAAR CARD AUTHENTICATION
+  // 3. AADHAAR CARD AUTHENTICATION + MANDATORY MAIL PASSCODE
   // ----------------------------------------------------
-  const handleSendAadhaarOtp = (e: React.FormEvent) => {
+  const handleSendAadhaarOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
@@ -561,19 +598,35 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
       return;
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter your verified Mail ID to receive the e-KYC passcode.');
+      return;
+    }
+
     if (captchaInput.trim() !== captchaChallenge.a) {
       setErrorMessage('Captcha verification failed. Please solve the challenge.');
       refreshCaptcha();
       return;
     }
 
-    const mockAadhaarOtp = Math.floor(100000 + Math.random() * 900000).toString();
-    setAadhaarOtpStep('VERIFY');
-    setEnteredAadhaarOtp('');
-    setAadhaarTimeRemaining(120);
-    setAadhaarOtpExpired(false);
-    setActiveGeneratedAadhaarOtp(mockAadhaarOtp);
-    setSuccessMessage(`✓ UIDAI e-KYC OTP generated for Aadhaar XXXX-XXXX-${cleanAadhaar.slice(-4)} (2-min limit).`);
+    setLoading(true);
+    try {
+      const result = await otpService.sendEmailOtp(cleanEmail, 'login', fullName.trim(), 'STUDENT');
+      if (!result.success) {
+        setErrorMessage(result.message || 'Unable to send e-KYC passcode to your email.');
+        return;
+      }
+      setAadhaarOtpStep('VERIFY');
+      setEnteredAadhaarOtp('');
+      setAadhaarTimeRemaining(result.expiresInSeconds || 300);
+      setAadhaarOtpExpired(false);
+      setSuccessMessage(`UIDAI-linked 6-digit passcode sent to ${cleanEmail} for Aadhaar XXXX-XXXX-${cleanAadhaar.slice(-4)}.`);
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Failed to dispatch verification passcode.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleVerifyAadhaarOtp = async (e: React.FormEvent) => {
@@ -582,48 +635,47 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setSuccessMessage('');
 
     if (aadhaarOtpExpired) {
-      setErrorMessage('Aadhaar e-KYC OTP expired (2 minutes limit). Please resend.');
+      setErrorMessage('Passcode expired. Please request a new passcode.');
       return;
     }
 
-    if (enteredAadhaarOtp.trim().length !== 6) {
-      setErrorMessage('Please enter the 6-digit Aadhaar OTP.');
+    if (!/^\d{6}$/.test(enteredAadhaarOtp.trim())) {
+      setErrorMessage('Please enter the 6-digit passcode received in your Mail ID.');
       return;
     }
 
-    const isMatch = (activeGeneratedAadhaarOtp && enteredAadhaarOtp.trim() === activeGeneratedAadhaarOtp) ||
-                    enteredAadhaarOtp.trim() === '123456';
-
-    if (!isMatch) {
-      setErrorMessage('Incorrect Aadhaar e-KYC OTP. Please enter the generated code or click Auto-Fill.');
-      return;
+    setLoading(true);
+    try {
+      const cleanAadhaar = aadhaar.replace(/\D/g, '');
+      const cleanEmail = email.trim().toLowerCase();
+      const result = await otpService.verifyEmailOtp(cleanEmail, enteredAadhaarOtp.trim(), 'login', 'STUDENT', {
+        aadhaar: `XXXX-XXXX-${cleanAadhaar.slice(-4)}`,
+        name: fullName.trim() || undefined
+      });
+      if (!result.success || !result.user) {
+        if (result.expired) setAadhaarOtpExpired(true);
+        setErrorMessage(result.message || 'Invalid 6-digit passcode.');
+        return;
+      }
+      const verifiedUser: User = {
+        ...result.user,
+        aadhaar: `XXXX-XXXX-${cleanAadhaar.slice(-4)}`,
+        role: 'STUDENT',
+        emailVerified: true
+      };
+      await saveUserToFirestore(verifiedUser);
+      setEnteredAadhaarOtp('');
+      setSuccessMessage('Aadhaar & Mail passcode verified. Signing in...');
+      setTimeout(() => {
+        onLogin(verifiedUser, result.token);
+      }, 400);
+    } finally {
+      setLoading(false);
     }
-
-    const cleanAadhaar = aadhaar.replace(/\D/g, '');
-    const authenticatedUser: User = {
-      id: `usr-aadhaar-${Date.now()}`,
-      name: fullName.trim() || 'Aadhaar Verified Candidate',
-      email: email.trim() || `aadhaar.${cleanAadhaar.slice(-4)}@pminternship.gov.in`,
-      aadhaar: `XXXX-XXXX-${cleanAadhaar.slice(-4)}`,
-      role: 'STUDENT',
-      college: 'Indian Institute of Technology (IIT) Delhi',
-      branch: 'B.Tech - Artificial Intelligence',
-      cgpa: 9.1,
-      skills: candidateSkills.length > 0 ? candidateSkills : [],
-      xp: 1500,
-      level: 'UIDAI e-KYC Verified',
-      streakDays: 2
-    };
-
-    await saveUserToFirestore(authenticatedUser);
-    setSuccessMessage(`✓ Aadhaar e-KYC Verified Successfully via UIDAI! Logging in...`);
-    setTimeout(() => {
-      onLogin(authenticatedUser);
-    }, 500);
   };
 
   // ----------------------------------------------------
-  // 4. COMPANY / RECRUITER LOGIN WITH CIN SECURITY CHECK
+  // 4. COMPANY / RECRUITER LOGIN WITH CIN CHECK & MANDATORY EMAIL PASSCODE
   // ----------------------------------------------------
   const handleVerifyCinSecurityCheck = () => {
     setCinChecking(true);
@@ -641,71 +693,164 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
       setCinChecking(false);
       setCinStatus({
         verified: true,
-        companyLegalName: companyName.trim() || 'Tata Consultancy Services Ltd',
-        rocStatus: 'ACTIVE / COMPLIANT (ROC Mumbai)',
+        companyLegalName: companyName.trim() || 'Verified Corporate Entity',
+        rocStatus: 'ACTIVE / COMPLIANT (ROC Verified)',
         escrowLinked: true,
         trustScore: 99
       });
-      setSuccessMessage(`✓ MCA Security Check Passed: CIN ${cleanCin} verified with active ROC filing and DBT Escrow linkage!`);
-    }, 800);
+      setSuccessMessage(`MCA Security Check Passed: CIN ${cleanCin} verified.`);
+    }, 600);
   };
 
-  const handleCompanyLogin = async (e: React.FormEvent) => {
+  const handleSendCompanyPasscode = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
 
     if (!cinStatus || !cinStatus.verified) {
-      setErrorMessage('Please run the MCA Security Check on your CIN number before signing in.');
+      setErrorMessage('Please run the MCA Security Check on your CIN number first.');
       return;
     }
 
-    const corporateUser: User = {
-      id: `usr-comp-${Date.now()}`,
-      name: fullName.trim() || 'Corporate Recruiter',
-      email: email.trim() || 'recruiter@tcs.com',
-      role: 'COMPANY',
-      companyName: companyName.trim() || 'Tata Consultancy Services',
-      verified: true,
-      xp: 3000,
-      level: 'Verified Corporate Partner'
-    };
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter a valid corporate email address.');
+      return;
+    }
 
-    await saveUserToFirestore(corporateUser);
-    setSuccessMessage(`✓ Logged in as ${corporateUser.name} (${corporateUser.companyName})!`);
-    setTimeout(() => {
-      onLogin(corporateUser);
-    }, 500);
+    setLoading(true);
+    try {
+      const result = await otpService.sendEmailOtp(cleanEmail, 'login', fullName.trim(), 'COMPANY');
+      if (!result.success) {
+        setErrorMessage(result.message || 'Unable to dispatch verification passcode to corporate email.');
+        return;
+      }
+      setCompanyOtpStep('VERIFY');
+      setEnteredCompanyOtp('');
+      setSuccessMessage(`6-digit passcode sent to ${cleanEmail}. Enter it below to access the Company Portal.`);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // ----------------------------------------------------
-  // 5. GOVT OFFICER / ADMIN LOGIN
-  // ----------------------------------------------------
-  const handleAdminLogin = async (e: React.FormEvent) => {
+  const handleVerifyCompanyPasscode = async (e: React.FormEvent) => {
     e.preventDefault();
-    const adminUser: User = {
-      id: 'admin-mca-nodal-01',
-      name: fullName.trim() || 'Dr. Rajesh Verma (MCA Nodal Officer)',
-      email: email.trim() || 'admin.nodal@mca.gov.in',
-      role: 'ADMIN',
-      level: 'Govt National Administrator',
-      xp: 10000
-    };
+    setErrorMessage('');
+    setSuccessMessage('');
 
-    await saveUserToFirestore(adminUser);
-    setSuccessMessage(`✓ Logged in as Ministry of Corporate Affairs National Officer!`);
-    setTimeout(() => {
-      onLogin(adminUser);
-    }, 400);
+    if (!/^\d{6}$/.test(enteredCompanyOtp.trim())) {
+      setErrorMessage('Please enter the 6-digit passcode sent to your corporate email.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const result = await otpService.verifyEmailOtp(cleanEmail, enteredCompanyOtp.trim(), 'login', 'COMPANY', {
+        name: fullName.trim(),
+        companyName: companyName.trim()
+      });
+      if (!result.success || !result.user) {
+        setErrorMessage(result.message || 'Invalid corporate verification passcode.');
+        return;
+      }
+      const corporateUser: User = {
+        ...result.user,
+        role: 'COMPANY',
+        companyName: companyName.trim() || result.user.companyName,
+        verified: true,
+        emailVerified: true
+      };
+      await saveUserToFirestore(corporateUser);
+      setEnteredCompanyOtp('');
+      setSuccessMessage(`Verified as ${corporateUser.name} (${corporateUser.companyName}). Signing in...`);
+      setTimeout(() => {
+        onLogin(corporateUser, result.token);
+      }, 400);
+    } finally {
+      setLoading(false);
+    }
   };
 
   // ----------------------------------------------------
-  // 6. STANDARD PASSWORD AUTH SUBMIT
+  // 5. GOVT OFFICER / ADMIN LOGIN WITH MANDATORY EMAIL PASSCODE
+  // ----------------------------------------------------
+  const handleSendAdminPasscode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter a valid official Govt / NIC email address.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const result = await otpService.sendEmailOtp(cleanEmail, 'login', fullName.trim(), 'ADMIN');
+      if (!result.success) {
+        setErrorMessage(result.message || 'Unable to send Admin verification passcode.');
+        return;
+      }
+      setAdminOtpStep('VERIFY');
+      setEnteredAdminOtp('');
+      setSuccessMessage(`6-digit Ministry passcode sent to ${cleanEmail}. Check your inbox to complete sign-in.`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyAdminPasscode = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    if (!/^\d{6}$/.test(enteredAdminOtp.trim())) {
+      setErrorMessage('Please enter the 6-digit passcode received in your official email.');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const cleanEmail = email.trim().toLowerCase();
+      const result = await otpService.verifyEmailOtp(cleanEmail, enteredAdminOtp.trim(), 'login', 'ADMIN', {
+        name: fullName.trim()
+      });
+      if (!result.success || !result.user) {
+        setErrorMessage(result.message || 'Invalid Ministry passcode.');
+        return;
+      }
+      const adminUser: User = {
+        ...result.user,
+        role: 'ADMIN',
+        emailVerified: true,
+        level: 'Govt National Administrator'
+      };
+      await saveUserToFirestore(adminUser);
+      setEnteredAdminOtp('');
+      setSuccessMessage(`Ministry identity verified for ${adminUser.name}. Opening Admin Desk...`);
+      setTimeout(() => {
+        onLogin(adminUser, result.token);
+      }, 400);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ----------------------------------------------------
+  // 6. SECURE HASHED PASSWORD AUTH + MANDATORY EMAIL OTP STEP
   // ----------------------------------------------------
   const handlePasswordAuthSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
     setSuccessMessage('');
+
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter a valid Mail ID.');
+      return;
+    }
 
     if (mode === 'REGISTER' && !isPasswordValid) {
       setErrorMessage('Password does not meet all security conditions.');
@@ -715,58 +860,174 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
     setLoading(true);
 
     try {
-      let loggedUser: User;
       if (mode === 'REGISTER') {
-        const cleanName = fullName.trim() || email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-        loggedUser = await registerWithEmail(email, password, cleanName, role, {
-          college: role === 'STUDENT' ? (selectedCollege || 'IIT Delhi') : undefined,
-          branch: role === 'STUDENT' ? (selectedBranch || 'Computer Science') : undefined,
-          companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
-          phone: phone || undefined,
-          aadhaar: aadhaar || undefined,
-          skills: role === 'STUDENT' ? candidateSkills : []
-        });
-        setSuccessMessage('Account registered successfully and saved to Firebase Firestore!');
+        // Step 1 of registration: dispatch mandatory email OTP before hashing & creating account
+        const otpRes = await otpService.sendEmailOtp(cleanEmail, 'password-register', fullName.trim(), role);
+        if (!otpRes.success) {
+          setErrorMessage(otpRes.message || 'Unable to send verification passcode to your email.');
+          return;
+        }
+        setPasswordStep('VERIFY_OTP');
+        setEnteredPasswordOtp('');
+        setSuccessMessage(`Verification passcode sent to ${cleanEmail}. Enter the 6-digit code from your inbox to complete registration.`);
       } else {
-        loggedUser = await loginWithEmail(email, password);
-        setSuccessMessage(`Logged in successfully as ${loggedUser.name}!`);
+        // Step 1 of login: verify credentials strictly against Firebase Auth or server scrypt hash (no fallback bypasses)
+        let verifiedFirebaseUser: User | null = null;
+        try {
+          verifiedFirebaseUser = await loginWithEmail(cleanEmail, password);
+          const fbRole = (verifiedFirebaseUser.role || 'STUDENT').toString().toUpperCase();
+          if (fbRole !== role) {
+            setErrorMessage(`Role mismatch: this account is registered under ${fbRole}. Please switch roles to continue.`);
+            return;
+          }
+          setPendingFirebaseUser(verifiedFirebaseUser);
+        } catch (fbErr: any) {
+          // Verify via backend scrypt password store (server responds 403 requiresOtp:true ONLY if scrypt hash matches)
+          const checkRes = await fetch('/api/auth/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: cleanEmail, password, role })
+          });
+          const checkData = await checkRes.json();
+          if (!checkData.requiresOtp && !checkRes.ok) {
+            setErrorMessage(checkData.message || fbErr?.message || 'Invalid email or password.');
+            return;
+          }
+        }
+
+        // Credentials verified -> now dispatch mandatory email passcode to prove inbox ownership
+        const otpRes = await otpService.sendEmailOtp(cleanEmail, 'password-login', fullName.trim(), role);
+        if (!otpRes.success) {
+          setErrorMessage(otpRes.message || 'Unable to send mandatory verification passcode to your email.');
+          return;
+        }
+        setPasswordStep('VERIFY_OTP');
+        setEnteredPasswordOtp('');
+        setSuccessMessage(`Credentials verified. Enter the 6-digit passcode sent to ${cleanEmail} to finish signing in.`);
       }
-
-      await saveUserToFirestore(loggedUser);
-      setTimeout(() => {
-        onLogin(loggedUser);
-      }, 500);
     } catch (err: any) {
-      console.error('Password auth error:', err);
-      const derivedName = mode === 'REGISTER' && fullName.trim()
-        ? fullName.trim()
-        : email ? email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : 'Candidate';
-
-      const fallbackUser: User = {
-        id: (mode === 'REGISTER' ? 'reg-' : 'usr-') + Date.now(),
-        name: derivedName,
-        email: email || 'candidate@pminternship.gov.in',
-        role: role,
-        college: role === 'STUDENT' ? (selectedCollege || 'IIT Delhi') : undefined,
-        branch: role === 'STUDENT' ? (selectedBranch || 'Computer Science') : undefined,
-        companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
-        cgpa: 8.5,
-        skills: role === 'STUDENT' ? candidateSkills : [],
-        xp: mode === 'REGISTER' ? 500 : 1000,
-        level: mode === 'REGISTER' ? 'Registered Member' : 'Verified Candidate',
-        streakDays: 1
-      };
-      saveUserToFirestore(fallbackUser);
-      setSuccessMessage(`Authenticated successfully as ${fallbackUser.name}! Profile synced.`);
-      setTimeout(() => {
-        onLogin(fallbackUser);
-      }, 600);
+      setErrorMessage(err?.message || 'Authentication failed. Please check your credentials.');
     } finally {
       setLoading(false);
     }
   };
 
-  // Google Login Handlers
+  const handleCompletePasswordOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+    setSuccessMessage('');
+
+    const cleanOtp = enteredPasswordOtp.trim();
+    if (!/^\d{6}$/.test(cleanOtp)) {
+      setErrorMessage('Please enter the 6-digit passcode sent to your email.');
+      return;
+    }
+
+    const cleanEmail = email.trim().toLowerCase();
+    const purpose = mode === 'REGISTER' ? 'password-register' : 'password-login';
+    setLoading(true);
+
+    try {
+      const verifyRes = await otpService.verifyEmailOtp(cleanEmail, cleanOtp, purpose, role);
+      if (!verifyRes.success || !verifyRes.otpVerificationToken) {
+        setErrorMessage(verifyRes.message || 'Invalid 6-digit passcode.');
+        return;
+      }
+
+      if (mode === 'REGISTER') {
+        const cleanName = fullName.trim() || cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+        const regRes = await fetch('/api/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            password,
+            fullName: cleanName,
+            role,
+            college: role === 'STUDENT' ? (selectedCollege || 'IIT Delhi') : undefined,
+            branch: role === 'STUDENT' ? (selectedBranch || 'Computer Science') : undefined,
+            companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
+            phone: phone || undefined,
+            aadhaar: aadhaar || undefined,
+            skills: role === 'STUDENT' ? candidateSkills : [],
+            otpVerificationToken: verifyRes.otpVerificationToken
+          })
+        });
+        const regData = await regRes.json();
+        if (!regRes.ok || !regData.success) {
+          setErrorMessage(regData.message || 'Registration failed.');
+          return;
+        }
+
+        // Also register in Firebase Auth without blocking server scrypt record if already exists
+        let finalUser: User = regData.user;
+        try {
+          const fbUser = await registerWithEmail(cleanEmail, password, cleanName, role, {
+            college: role === 'STUDENT' ? (selectedCollege || 'IIT Delhi') : undefined,
+            branch: role === 'STUDENT' ? (selectedBranch || 'Computer Science') : undefined,
+            companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
+            skills: role === 'STUDENT' ? candidateSkills : [],
+            emailVerified: true
+          });
+          finalUser = { ...fbUser, role, emailVerified: true };
+        } catch {
+          // Server scrypt registration succeeded
+        }
+
+        await saveUserToFirestore(finalUser);
+        setPassword('');
+        setEnteredPasswordOtp('');
+        setSuccessMessage(`Account registered and passcode verified for ${finalUser.email}.`);
+        setTimeout(() => {
+          onLogin(finalUser, regData.token);
+        }, 400);
+      } else {
+        if (pendingFirebaseUser) {
+          const finalUser: User = { ...pendingFirebaseUser, role, emailVerified: true };
+          await saveUserToFirestore(finalUser);
+          setPassword('');
+          setEnteredPasswordOtp('');
+          setPendingFirebaseUser(null);
+          setSuccessMessage(`Passcode & password verified for ${finalUser.email}.`);
+          setTimeout(() => {
+            onLogin(finalUser, verifyRes.otpVerificationToken);
+          }, 400);
+          return;
+        }
+
+        const loginRes = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email: cleanEmail,
+            password,
+            role,
+            otpVerificationToken: verifyRes.otpVerificationToken
+          })
+        });
+        const loginData = await loginRes.json();
+        if (!loginRes.ok || !loginData.success || !loginData.user) {
+          setErrorMessage(loginData.message || 'Sign-in verification failed.');
+          return;
+        }
+
+        const finalUser: User = { ...loginData.user, role, emailVerified: true };
+        await saveUserToFirestore(finalUser);
+        setPassword('');
+        setEnteredPasswordOtp('');
+        setSuccessMessage(`Passcode verified for ${finalUser.email}. Logging in...`);
+        setTimeout(() => {
+          onLogin(finalUser, loginData.token);
+        }, 400);
+      }
+    } catch (err: any) {
+      setErrorMessage(err?.message || 'Unable to complete verification.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Google Login Handlers (Real Firebase OAuth Popup; fallback routes strictly to Mail ID Passcode Verification)
   const handleGoogleLogin = async () => {
     setErrorMessage('');
     setSuccessMessage('');
@@ -777,13 +1038,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
         name: fullName.trim() || undefined,
         email: email.trim() || undefined
       });
-      setSuccessMessage(`Google Account (${googleUser.email}) connected successfully!`);
-      await saveUserToFirestore(googleUser);
+      const verifiedUser: User = { ...googleUser, role, emailVerified: true };
+      setSuccessMessage(`Google Account (${verifiedUser.email}) authenticated successfully!`);
+      await saveUserToFirestore(verifiedUser);
       setTimeout(() => {
-        onLogin(googleUser);
-      }, 500);
+        onLogin(verifiedUser);
+      }, 400);
     } catch (err: any) {
-      console.warn('Google Auth popup closed, showing account picker:', err);
+      console.warn('Google Auth popup unavailable, offering Mail ID Passcode check:', err);
       setCustomGoogleEmail(email.trim() || '');
       setShowGoogleAccountModal(true);
     } finally {
@@ -792,33 +1054,36 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
   };
 
   const confirmGoogleAccountRegistration = async (targetEmail: string) => {
-    setGoogleAuthLoading(true);
+    const cleanEmail = (targetEmail || '').trim().toLowerCase();
     setShowGoogleAccountModal(false);
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      setErrorMessage('Please enter a valid Gmail or Google Mail ID.');
+      return;
+    }
 
-    const derivedName = fullName.trim() || targetEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-
-    const registeredGoogleUser: User = {
-      id: 'google-uid-' + Date.now(),
-      name: derivedName,
-      email: targetEmail || 'candidate@gmail.com',
-      role: role,
-      phone: phone.trim() || undefined,
-      aadhaar: aadhaar.trim() || undefined,
-      college: role === 'STUDENT' ? (selectedCollege || 'IIT Delhi') : undefined,
-      branch: role === 'STUDENT' ? (selectedBranch || 'Computer Science') : undefined,
-      companyName: role === 'COMPANY' ? (companyName || 'Corporate Partner') : undefined,
-      cgpa: 8.5,
-      skills: role === 'STUDENT' ? (candidateSkills.length > 0 ? candidateSkills : []) : [],
-      xp: 1200,
-      level: 'Google Verified Member',
-      streakDays: 1
-    };
-
-    await saveUserToFirestore(registeredGoogleUser);
-    setSuccessMessage(`Logged in with Google Account (${registeredGoogleUser.email})!`);
-    setTimeout(() => {
-      onLogin(registeredGoogleUser);
-    }, 500);
+    setEmail(cleanEmail);
+    setAuthMethod('EMAIL_OTP');
+    setGoogleAuthLoading(true);
+    try {
+      const result = await otpService.sendEmailOtp(
+        cleanEmail,
+        mode === 'REGISTER' ? 'registration' : 'login',
+        fullName.trim(),
+        role
+      );
+      if (!result.success) {
+        setErrorMessage(result.message || 'Popup was blocked. Please verify using your Mail ID passcode.');
+        return;
+      }
+      setEmailOtpStep('VERIFY');
+      setEnteredEmailOtp('');
+      setOtpTimeRemaining(result.expiresInSeconds || 300);
+      setResendCooldown(result.resendAvailableInSeconds || 60);
+      setOtpExpired(false);
+      setSuccessMessage(`Google popup was blocked; 6-digit verification passcode sent to ${cleanEmail}. Check your inbox.`);
+    } finally {
+      setGoogleAuthLoading(false);
+    }
   };
 
   return (
@@ -1021,6 +1286,14 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Sign Up / Register</span>
               </button>
+            </div>
+          )}
+
+          {/* Security & Identity Isolation Advisory Alert */}
+          {securityMessage && (
+            <div className="p-3.5 bg-amber-50 dark:bg-amber-950/60 border border-amber-300 dark:border-amber-700 rounded-xl text-xs text-amber-900 dark:text-amber-200 flex items-start gap-2.5 font-bold animate-in fade-in">
+              <ShieldCheck className="w-4 h-4 shrink-0 text-amber-600 mt-0.5" />
+              <span>{securityMessage}</span>
             </div>
           )}
 
@@ -1256,70 +1529,17 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                   </button>
                 </form>
               ) : (
-                /* Step 2: VERIFY OTP with Real-Time Generation & Instant Visual Feedback */
+                /* Step 2: VERIFY PASSCODE SENT EXCLUSIVELY TO USER'S MAIL ID */
                 <form onSubmit={handleVerifyEmailOtp} className="space-y-4">
-                  {/* Real-Time Generated OTP Simulation & Auto-Fill Card */}
-                  {activeGeneratedEmailOtp && (
-                    <div className="p-4 bg-gradient-to-r from-amber-500/10 via-slate-50 dark:via-slate-800/80 to-emerald-500/10 border-2 border-amber-400 dark:border-amber-600 rounded-2xl shadow-sm space-y-2.5 text-left animate-in fade-in">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 text-xs font-black text-amber-800 dark:text-amber-300">
-                          <Sparkles className="w-4 h-4 text-amber-500 animate-pulse" />
-                          <span>🇮🇳 Real-Time Government OTP Generator</span>
-                        </div>
-                        <span className="text-[10px] font-extrabold bg-amber-500 text-slate-950 px-2 py-0.5 rounded-full uppercase">
-                          Active Dispatch
-                        </span>
-                      </div>
-
-                      <div className="flex items-center justify-between gap-2 bg-white dark:bg-slate-900 p-3 rounded-xl border border-slate-200 dark:border-slate-700">
-                        <div className="space-y-0.5">
-                          <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-                            Generated 6-Digit Code
-                          </span>
-                          <span className="font-mono text-2xl font-black text-slate-900 dark:text-white tracking-widest">
-                            {activeGeneratedEmailOtp}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-1.5">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard.writeText(activeGeneratedEmailOtp);
-                              setCopiedCodeToast(true);
-                              setTimeout(() => setCopiedCodeToast(false), 2000);
-                            }}
-                            className="px-2.5 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold rounded-lg transition flex items-center gap-1 cursor-pointer border border-slate-300 dark:border-slate-700"
-                            title="Copy code to clipboard"
-                          >
-                            {copiedCodeToast ? <Check className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
-                            <span>{copiedCodeToast ? 'Copied' : 'Copy'}</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            onClick={() => setEnteredEmailOtp(activeGeneratedEmailOtp)}
-                            className="px-3 py-1.5 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-black rounded-lg transition flex items-center gap-1 cursor-pointer shadow-xs"
-                            title="Instantly paste the generated OTP into the boxes"
-                          >
-                            <Zap className="w-3.5 h-3.5 text-slate-950" />
-                            <span>Auto-Fill Code</span>
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
                   <div className="bg-amber-50 dark:bg-amber-950/40 p-3.5 rounded-2xl border border-amber-300 dark:border-amber-700 text-center space-y-1.5">
                     <div className="flex items-center justify-center gap-2 text-amber-700 dark:text-amber-300 font-black text-sm">
                       <Clock className="w-4 h-4 animate-pulse text-amber-600" />
-                      <span>Security Expiry: 5 Minutes</span>
+                      <span>Inbox Verification • Security Expiry: 5 Minutes</span>
                     </div>
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                      Code dispatched to <strong className="text-slate-900 dark:text-white font-bold">{email}</strong>
+                      6-digit passcode sent exclusively to <strong className="text-slate-900 dark:text-white font-bold">{email}</strong>. Never shared or shown on screen.
                     </p>
 
-                    {/* 5-Minute Timer Display */}
                     <div className="flex items-center justify-center gap-2 pt-1">
                       <span className={`text-lg font-mono font-black px-3 py-0.5 rounded-lg border ${
                         otpExpired
@@ -1334,34 +1554,23 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
 
                     {otpExpired && (
                       <p className="text-xs font-bold text-rose-600 dark:text-rose-400">
-                        ⚠️ OTP has expired (5-minute limit exceeded). Please click Resend OTP below.
+                        Passcode has expired (5-minute limit exceeded). Please request a new passcode below.
                       </p>
                     )}
                   </div>
 
-                  {/* 6-Digit Numeric OTP Entry with Visual Feedback */}
+                  {/* 6-Digit Numeric Passcode Entry */}
                   <div className="space-y-2">
-                    <div className="flex items-center justify-between">
-                      <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block text-[11px]">
-                        Enter 6-Digit OTP Code <span className="text-amber-500">*</span>
-                      </label>
-                      {activeGeneratedEmailOtp && enteredEmailOtp !== activeGeneratedEmailOtp && (
-                        <button
-                          type="button"
-                          onClick={() => setEnteredEmailOtp(activeGeneratedEmailOtp)}
-                          className="text-[11px] font-bold text-amber-600 hover:text-amber-700 cursor-pointer flex items-center gap-1"
-                        >
-                          <Zap className="w-3 h-3" /> Quick Fill
-                        </button>
-                      )}
-                    </div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block text-[11px]">
+                      Enter 6-Digit Passcode from Email <span className="text-amber-500">*</span>
+                    </label>
 
                     <input
                       type="text"
                       inputMode="numeric"
                       pattern="[0-9]*"
                       maxLength={6}
-                      autoComplete="off"
+                      autoComplete="one-time-code"
                       autoFocus
                       required
                       value={enteredEmailOtp}
@@ -1370,35 +1579,15 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                         setEnteredEmailOtp(val);
                       }}
                       placeholder="• • • • • •"
-                      className={`w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none transition ${
-                        enteredEmailOtp.length === 6 &&
-                        (enteredEmailOtp === activeGeneratedEmailOtp || enteredEmailOtp === '123456')
-                          ? 'border-emerald-500 bg-emerald-50/20 text-emerald-700 dark:text-emerald-300'
-                          : enteredEmailOtp.length === 6
-                          ? 'border-rose-400 bg-rose-50/20'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-amber-500'
-                      }`}
+                      className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none transition"
                     />
 
-                    {/* Live Visual Status Feedback Badge */}
                     <div className="text-center pt-0.5">
-                      {enteredEmailOtp.length === 6 ? (
-                        enteredEmailOtp === activeGeneratedEmailOtp || enteredEmailOtp === '123456' ? (
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 text-xs font-bold border border-emerald-300 dark:border-emerald-800">
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-                            <span>✓ Code Verified! Ready to Sign In.</span>
-                          </div>
-                        ) : (
-                          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-100 dark:bg-rose-950/80 text-rose-800 dark:text-rose-300 text-xs font-bold border border-rose-300 dark:border-rose-800">
-                            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0" />
-                            <span>Code mismatch. Please check code or click Auto-Fill.</span>
-                          </div>
-                        )
-                      ) : (
-                        <span className="text-[11px] text-slate-400 font-semibold">
-                          Waiting for 6 numeric digits... ({enteredEmailOtp.length}/6)
-                        </span>
-                      )}
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-semibold">
+                        {enteredEmailOtp.length === 6
+                          ? '6 digits entered — click Verify Passcode & Sign In to authenticate'
+                          : `Waiting for 6 numeric digits from your inbox (${enteredEmailOtp.length}/6)`}
+                      </span>
                     </div>
                   </div>
 
@@ -1421,7 +1610,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                       ) : (
                         <>
                           <CheckCircle2 className="w-4 h-4" />
-                          <span>Verify OTP & Sign In</span>
+                          <span>Verify Passcode & Sign In</span>
                         </>
                       )}
                     </button>
@@ -1440,7 +1629,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                       }`}
                     >
                       <RotateCw className="w-3.5 h-3.5" />
-                      <span>{resendCooldown === 0 ? 'Resend 6-Digit OTP to Mail' : `Resend available in ${resendCooldown}s`}</span>
+                      <span>{resendCooldown === 0 ? 'Resend 6-Digit Passcode to Mail' : `Resend available in ${resendCooldown}s`}</span>
                     </button>
                   </div>
                 </form>
@@ -1449,7 +1638,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 2: PHONE NUMBER LOGIN (+91, CAPTCHA, 2-MIN SMS OTP) */}
+          {/* TAB 2: PHONE NUMBER + MANDATORY EMAIL PASSCODE                            */}
           {/* ========================================================================= */}
           {authMethod === 'PHONE' && (
             <div className="space-y-4 text-xs">
@@ -1475,7 +1664,20 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                     </div>
                   </div>
 
-                  {/* Interactive Captcha Challenge */}
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                      Registered Mail ID (For Passcode Delivery) <span className="text-amber-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@gmail.com"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
                   <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">
@@ -1507,59 +1709,39 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
 
                   <button
                     type="submit"
-                    disabled={!phone || phone.length !== 10}
+                    disabled={loading || !phone || phone.length !== 10 || !email}
                     className="w-full py-3.5 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
                     <Smartphone className="w-4 h-4" />
-                    <span>Send SMS Verification OTP</span>
+                    <span>Send Verification Passcode to Mail ID</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </form>
               ) : (
                 <form onSubmit={handleVerifyPhoneOtp} className="space-y-4">
-                  {phonePreviewOtp && (
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-indigo-500/10 via-white dark:via-slate-800 to-indigo-500/10 border-2 border-indigo-400 dark:border-indigo-600 rounded-2xl shadow-xs text-xs">
-                      <div className="space-y-0.5">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">SMS OTP Generated</span>
-                        <span className="font-mono font-black text-indigo-700 dark:text-indigo-300 text-lg tracking-widest">{phonePreviewOtp}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEnteredPhoneOtp(phonePreviewOtp)}
-                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs cursor-pointer flex items-center gap-1 shadow-2xs transition"
-                      >
-                        <Zap className="w-3.5 h-3.5" /> Auto-Fill Code
-                      </button>
-                    </div>
-                  )}
-
                   <div className="bg-amber-50 dark:bg-amber-950/40 p-4 rounded-2xl border border-amber-300 dark:border-amber-700 text-center space-y-2">
                     <p className="text-xs text-slate-600 dark:text-slate-300">
-                      SMS OTP dispatched to <strong className="font-bold text-slate-900 dark:text-white">+91 {phone}</strong>
+                      6-digit passcode dispatched to <strong className="font-bold text-slate-900 dark:text-white">{email}</strong> for +91 {phone}
                     </p>
                     <div className="text-xl font-mono font-black text-amber-600">
-                      ⏱️ {formatTimer(phoneTimeRemaining)}
+                      {formatTimer(phoneTimeRemaining)}
                     </div>
                   </div>
 
                   <div>
                     <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                      Enter 6-Digit SMS OTP <span className="text-amber-500">*</span>
+                      Enter 6-Digit Verification Passcode <span className="text-amber-500">*</span>
                     </label>
                     <input
                       type="text"
+                      inputMode="numeric"
                       maxLength={6}
-                      autoComplete="off"
+                      autoComplete="one-time-code"
                       required
                       value={enteredPhoneOtp}
                       onChange={(e) => setEnteredPhoneOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="• • • • • •"
-                      className={`w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 rounded-xl py-3 font-semibold text-slate-900 dark:text-white focus:outline-none transition ${
-                        enteredPhoneOtp.length === 6 &&
-                        (enteredPhoneOtp === phonePreviewOtp || enteredPhoneOtp === '123456')
-                          ? 'border-emerald-500 bg-emerald-50/20 text-emerald-700 dark:text-emerald-300'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-amber-500'
-                      }`}
+                      className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none transition"
                     />
                   </div>
 
@@ -1567,16 +1749,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                     <button
                       type="button"
                       onClick={() => setPhoneOtpStep('INPUT')}
-                      className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 font-bold"
+                      className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold cursor-pointer"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      disabled={enteredPhoneOtp.length !== 6 || phoneOtpExpired}
+                      disabled={loading || enteredPhoneOtp.length !== 6 || phoneOtpExpired}
                       className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
                     >
-                      Verify SMS OTP & Login
+                      Verify Passcode & Login
                     </button>
                   </div>
                 </form>
@@ -1585,7 +1767,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 3: AADHAAR CARD AUTHENTICATION (UIDAI E-KYC) */}
+          {/* TAB 3: AADHAAR E-KYC + MANDATORY EMAIL PASSCODE                          */}
           {/* ========================================================================= */}
           {authMethod === 'AADHAAR' && (
             <div className="space-y-4 text-xs">
@@ -1607,13 +1789,26 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                           setAadhaar(formatted);
                         }}
                         placeholder="1234 5678 9012"
-                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 pl-10 pr-4 py-2.5 font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm tracking-widest"
+                        className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl pl-10 pr-4 py-2.5 font-mono font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500 text-sm tracking-widest"
                       />
                       <Fingerprint className="w-5 h-5 text-amber-500 absolute left-3 top-3" />
                     </div>
                   </div>
 
-                  {/* Security Captcha */}
+                  <div>
+                    <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                      Verified Mail ID (For e-KYC Passcode) <span className="text-amber-500">*</span>
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="name@gmail.com"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                    />
+                  </div>
+
                   <div className="bg-slate-50 dark:bg-slate-800/60 p-3.5 rounded-2xl border border-slate-200 dark:border-slate-700 space-y-2">
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-600 dark:text-slate-400 uppercase text-[10px]">
@@ -1644,59 +1839,38 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
 
                   <button
                     type="submit"
-                    disabled={aadhaar.replace(/\D/g, '').length !== 12}
+                    disabled={loading || aadhaar.replace(/\D/g, '').length !== 12 || !email}
                     className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50 flex items-center justify-center gap-2"
                   >
                     <Fingerprint className="w-4 h-4" />
-                    <span>Request Aadhaar UIDAI e-KYC OTP</span>
+                    <span>Send e-KYC Passcode to Mail ID</span>
                   </button>
                 </form>
               ) : (
                 <form onSubmit={handleVerifyAadhaarOtp} className="space-y-4">
-                  {/* Real-Time Generated UIDAI OTP Card */}
-                  {activeGeneratedAadhaarOtp && (
-                    <div className="flex items-center justify-between p-3 bg-gradient-to-r from-emerald-500/10 via-white dark:via-slate-800 to-emerald-500/10 border-2 border-emerald-400 dark:border-emerald-600 rounded-2xl shadow-xs text-xs">
-                      <div className="space-y-0.5">
-                        <span className="text-[10px] text-slate-400 font-bold uppercase block tracking-wider">UIDAI e-KYC Code</span>
-                        <span className="font-mono font-black text-emerald-700 dark:text-emerald-300 text-lg tracking-widest">{activeGeneratedAadhaarOtp}</span>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => setEnteredAadhaarOtp(activeGeneratedAadhaarOtp)}
-                        className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs cursor-pointer flex items-center gap-1 shadow-2xs transition"
-                      >
-                        <Zap className="w-3.5 h-3.5" /> Auto-Fill Code
-                      </button>
-                    </div>
-                  )}
-
                   <div className="bg-emerald-50 dark:bg-emerald-950/40 p-4 rounded-2xl border border-emerald-300 dark:border-emerald-700 text-center space-y-2">
                     <p className="text-xs text-slate-700 dark:text-slate-300">
-                      UIDAI e-KYC OTP dispatched to phone ending in **{aadhaar.replace(/\D/g, '').slice(-4)}
+                      UIDAI e-KYC 6-digit passcode dispatched to <strong className="font-bold text-slate-900 dark:text-white">{email}</strong>
                     </p>
                     <div className="text-xl font-mono font-black text-emerald-600">
-                      ⏱️ {formatTimer(aadhaarTimeRemaining)}
+                      {formatTimer(aadhaarTimeRemaining)}
                     </div>
                   </div>
 
                   <div>
                     <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                      Enter 6-Digit Aadhaar OTP <span className="text-amber-500">*</span>
+                      Enter 6-Digit Verification Passcode <span className="text-amber-500">*</span>
                     </label>
                     <input
                       type="text"
+                      inputMode="numeric"
                       maxLength={6}
-                      autoComplete="off"
+                      autoComplete="one-time-code"
                       required
                       value={enteredAadhaarOtp}
                       onChange={(e) => setEnteredAadhaarOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
                       placeholder="• • • • • •"
-                      className={`w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 rounded-xl py-3 font-semibold text-slate-900 dark:text-white focus:outline-none transition ${
-                        enteredAadhaarOtp.length === 6 &&
-                        (enteredAadhaarOtp === activeGeneratedAadhaarOtp || enteredAadhaarOtp === '123456')
-                          ? 'border-emerald-500 bg-emerald-50/20 text-emerald-700 dark:text-emerald-300'
-                          : 'border-slate-300 dark:border-slate-700 focus:border-amber-500'
-                      }`}
+                      className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none transition"
                     />
                   </div>
 
@@ -1704,16 +1878,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                     <button
                       type="button"
                       onClick={() => setAadhaarOtpStep('INPUT')}
-                      className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 font-bold"
+                      className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold cursor-pointer"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
-                      disabled={enteredAadhaarOtp.length !== 6 || aadhaarOtpExpired}
+                      disabled={loading || enteredAadhaarOtp.length !== 6 || aadhaarOtpExpired}
                       className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
                     >
-                      Verify Aadhaar & Login
+                      Verify Passcode & Login
                     </button>
                   </div>
                 </form>
@@ -1722,254 +1896,380 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
           )}
 
           {/* ========================================================================= */}
-          {/* TAB 4: COMPANY / RECRUITER LOGIN WITH CIN SECURITY CHECK */}
+          {/* TAB 4: COMPANY / RECRUITER LOGIN WITH CIN CHECK & MAIL PASSCODE           */}
           {/* ========================================================================= */}
           {authMethod === 'COMPANY_CIN' && (
-            <form onSubmit={handleCompanyLogin} className="space-y-4 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                  Corporate Email ID <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. recruiter@tcs.com or careers@infosys.com"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                  Company / Organization Name <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={companyName}
-                  onChange={(e) => setCompanyName(e.target.value)}
-                  placeholder="e.g. Tata Consultancy Services"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-
-              {/* 21-Digit Corporate Identification Number (CIN) */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block">
-                    21-Digit MCA CIN Number <span className="text-amber-500">*</span>
-                  </label>
-                  <span className="text-[10px] text-slate-400 font-mono">e.g. L72200MH1995PLC095924</span>
-                </div>
-                <div className="flex gap-2">
-                  <input
-                    type="text"
-                    maxLength={21}
-                    required
-                    value={cinNumber}
-                    onChange={(e) => {
-                      setCinNumber(e.target.value.toUpperCase());
-                      setCinStatus(null);
-                    }}
-                    placeholder="L72200MH1995PLC095924"
-                    className="flex-1 font-mono uppercase bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-bold text-slate-900 dark:text-white tracking-wider"
-                  />
-                  <button
-                    type="button"
-                    onClick={handleVerifyCinSecurityCheck}
-                    disabled={cinChecking || cinNumber.trim().length !== 21}
-                    className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
-                  >
-                    {cinChecking ? (
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                    ) : (
-                      <>
-                        <ShieldCheck className="w-4 h-4" />
-                        <span>MCA Security Check</span>
-                      </>
-                    )}
-                  </button>
-                </div>
-              </div>
-
-              {/* CIN Verification Status Card */}
-              {cinStatus && cinStatus.verified && (
-                <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 rounded-2xl space-y-1.5 animate-in fade-in">
-                  <div className="flex items-center justify-between">
-                    <span className="font-black text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
-                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                      MCA Registry Security Check Passed
-                    </span>
-                    <span className="text-[10px] bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 font-black px-2 py-0.5 rounded-full">
-                      Trust Score {cinStatus.trustScore}%
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-2 gap-2 text-[10.5px] text-slate-600 dark:text-slate-300 pt-1">
-                    <div>ROC Status: <strong className="text-emerald-700 dark:text-emerald-400">{cinStatus.rocStatus}</strong></div>
-                    <div>DBT Escrow: <strong className="text-emerald-700 dark:text-emerald-400">Linked & Active</strong></div>
-                  </div>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={!cinStatus?.verified}
-                className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                <Building2 className="w-4 h-4" />
-                <span>Enter Company Recruiter Portal</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 5: GOVT OFFICER / ADMIN MINISTRY LOGIN */}
-          {/* ========================================================================= */}
-          {authMethod === 'ADMIN' && (
-            <form onSubmit={handleAdminLogin} className="space-y-4 text-xs">
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-2xl border border-amber-300 dark:border-amber-800 space-y-2">
-                <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-black text-sm">
-                  <ShieldCheck className="w-5 h-5 text-amber-600" />
-                  <span>Ministry of Corporate Affairs Official Portal</span>
-                </div>
-                <p className="text-xs text-slate-600 dark:text-slate-300">
-                  Restricted to authorized Ministry Nodal Officers, State Coordinators, and PM Scheme Audit Auditors.
-                </p>
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                  Official Govt / NIC Email ID <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email || 'admin.nodal@mca.gov.in'}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="e.g. officer.nodal@mca.gov.in"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <div>
-                <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
-                  Official Designation / Officer Name
-                </label>
-                <input
-                  type="text"
-                  value={fullName || 'Dr. Rajesh Verma (MCA Nodal Officer)'}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Dr. Rajesh Verma (MCA Nodal Officer)"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white"
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <ShieldCheck className="w-4 h-4" />
-                <span>Enter National Admin & Ministry Module</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </form>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 6: PASSWORD AUTHENTICATION */}
-          {/* ========================================================================= */}
-          {authMethod === 'PASSWORD' && (
-            <form onSubmit={handlePasswordAuthSubmit} className="space-y-4 text-xs">
-              {mode === 'REGISTER' && (
+            companyOtpStep === 'INPUT' ? (
+              <form onSubmit={handleSendCompanyPasscode} className="space-y-4 text-xs">
                 <div>
-                  <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
-                    Full Name <span className="text-amber-500">*</span>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                    Corporate Email ID <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. yourname@company.com"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                    Recruiter / Talent Partner Full Name <span className="text-amber-500">*</span>
                   </label>
                   <input
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    placeholder="e.g. Rahul Sharma"
-                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    placeholder="e.g. Your Full Name"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
                   />
                 </div>
-              )}
 
-              <div>
-                <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
-                  Mail ID <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter Mail ID"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
-              </div>
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                    Company / Organization Name <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={companyName}
+                    onChange={(e) => setCompanyName(e.target.value)}
+                    placeholder="e.g. Organization Name"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  />
+                </div>
 
-              <div>
-                <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
-                  Password <span className="text-amber-500">*</span>
-                </label>
-                <input
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••••••"
-                  className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                />
+                {/* 21-Digit Corporate Identification Number (CIN) */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block">
+                      21-Digit MCA CIN Number <span className="text-amber-500">*</span>
+                    </label>
+                    <span className="text-[10px] text-slate-400 font-mono">e.g. L72200MH1995PLC095924</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={21}
+                      required
+                      value={cinNumber}
+                      onChange={(e) => {
+                        setCinNumber(e.target.value.toUpperCase());
+                        setCinStatus(null);
+                      }}
+                      placeholder="L72200MH1995PLC095924"
+                      className="flex-1 font-mono uppercase bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-bold text-slate-900 dark:text-white tracking-wider"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleVerifyCinSecurityCheck}
+                      disabled={cinChecking || cinNumber.trim().length !== 21}
+                      className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-xl shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50 shrink-0"
+                    >
+                      {cinChecking ? (
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <>
+                          <ShieldCheck className="w-4 h-4" />
+                          <span>MCA Security Check</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
 
-                {mode === 'REGISTER' && (
-                  <div className="mt-2.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1.5 text-[11px]">
-                    <div className="font-bold text-slate-600 dark:text-slate-400 mb-1 flex items-center justify-between">
-                      <span>In-built Security Conditions:</span>
-                      <span className={isPasswordValid ? 'text-emerald-600 font-extrabold' : 'text-amber-600'}>
-                        {isPasswordValid ? '✓ Valid Password' : 'Requirements Pending'}
+                {cinStatus && cinStatus.verified && (
+                  <div className="p-3.5 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-300 dark:border-emerald-800 rounded-2xl space-y-1.5 animate-in fade-in">
+                    <div className="flex items-center justify-between">
+                      <span className="font-black text-emerald-800 dark:text-emerald-300 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                        MCA Registry Security Check Passed
                       </span>
-                    </div>
-                    <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-medium">
-                      <div className={`flex items-center gap-1 ${passwordChecks.length ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
-                        {passwordChecks.length ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
-                        <span>At least 8 characters</span>
-                      </div>
-                      <div className={`flex items-center gap-1 ${passwordChecks.upper ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
-                        {passwordChecks.upper ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
-                        <span>Uppercase letter (A-Z)</span>
-                      </div>
-                      <div className={`flex items-center gap-1 ${passwordChecks.lower ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
-                        {passwordChecks.lower ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
-                        <span>Lowercase letter (a-z)</span>
-                      </div>
-                      <div className={`flex items-center gap-1 ${passwordChecks.number ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
-                        {passwordChecks.number ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
-                        <span>At least 1 number (0-9)</span>
-                      </div>
+                      <span className="text-[10px] bg-emerald-200 dark:bg-emerald-900 text-emerald-900 dark:text-emerald-200 font-black px-2 py-0.5 rounded-full">
+                        Trust Score {cinStatus.trustScore}%
+                      </span>
                     </div>
                   </div>
                 )}
-              </div>
 
-              <button
-                type="submit"
-                disabled={loading || (mode === 'REGISTER' && !isPasswordValid)}
-                className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
-              >
-                {loading ? (
-                  <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                ) : (
-                  <>
-                    <span>{mode === 'LOGIN' ? 'Sign In' : 'Register Account'}</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </>
+                <button
+                  type="submit"
+                  disabled={loading || !cinStatus?.verified}
+                  className="w-full py-3.5 bg-gradient-to-r from-amber-500 to-amber-600 text-slate-950 font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Send Corporate Passcode to Mail ID</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyCompanyPasscode} className="space-y-4 text-xs">
+                <div className="bg-amber-50 dark:bg-amber-950/40 p-4 rounded-2xl border border-amber-300 dark:border-amber-700 text-center space-y-1">
+                  <p className="font-black text-amber-800 dark:text-amber-200">Corporate Inbox Verification</p>
+                  <p className="text-slate-600 dark:text-slate-300">Enter the 6-digit passcode sent directly to <strong>{email}</strong></p>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  required
+                  value={enteredCompanyOtp}
+                  onChange={(e) => setEnteredCompanyOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="• • • • • •"
+                  className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-amber-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setCompanyOtpStep('INPUT')}
+                    className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || enteredCompanyOtp.length !== 6}
+                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
+                  >
+                    Verify & Enter Company Portal
+                  </button>
+                </div>
+              </form>
+            )
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 5: GOVT OFFICER / ADMIN MINISTRY LOGIN WITH MANDATORY PASSCODE        */}
+          {/* ========================================================================= */}
+          {authMethod === 'ADMIN' && (
+            adminOtpStep === 'INPUT' ? (
+              <form onSubmit={handleSendAdminPasscode} className="space-y-4 text-xs">
+                <div className="p-4 bg-amber-50 dark:bg-amber-950/50 rounded-2xl border border-amber-300 dark:border-amber-800 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-black text-sm">
+                    <ShieldCheck className="w-5 h-5 text-amber-600" />
+                    <span>Ministry of Corporate Affairs Official Portal</span>
+                  </div>
+                  <p className="text-xs text-slate-600 dark:text-slate-300">
+                    Restricted to authorized Ministry Nodal Officers and Auditors. Requires inbox passcode verification.
+                  </p>
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                    Official Govt / NIC Email ID <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="e.g. your.name@mca.gov.in"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-700 dark:text-slate-300 uppercase block mb-1">
+                    Official Designation / Officer Name <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Your Name (Ministry Nodal Officer)"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white"
+                  />
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="w-full py-3.5 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  <Send className="w-4 h-4" />
+                  <span>Send Admin Passcode to Official Mail</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleVerifyAdminPasscode} className="space-y-4 text-xs">
+                <div className="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-2xl border border-indigo-300 dark:border-indigo-700 text-center space-y-1">
+                  <p className="font-black text-indigo-800 dark:text-indigo-200">Ministry Officer Passcode Check</p>
+                  <p className="text-slate-600 dark:text-slate-300">Enter the 6-digit passcode dispatched to <strong>{email}</strong></p>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  required
+                  value={enteredAdminOtp}
+                  onChange={(e) => setEnteredAdminOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="• • • • • •"
+                  className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setAdminOtpStep('INPUT')}
+                    className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || enteredAdminOtp.length !== 6}
+                    className="flex-1 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
+                  >
+                    Verify & Enter Admin Desk
+                  </button>
+                </div>
+              </form>
+            )
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 6: SECURE HASHED PASSWORD AUTHENTICATION + MANDATORY EMAIL OTP STEP   */}
+          {/* ========================================================================= */}
+          {authMethod === 'PASSWORD' && (
+            passwordStep === 'CREDENTIALS' ? (
+              <form onSubmit={handlePasswordAuthSubmit} className="space-y-4 text-xs">
+                {mode === 'REGISTER' && (
+                  <div>
+                    <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
+                      Full Name <span className="text-amber-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={fullName}
+                      onChange={(e) => setFullName(e.target.value)}
+                      placeholder="e.g. Rahul Sharma"
+                      className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
                 )}
-              </button>
-            </form>
+
+                <div>
+                  <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
+                    Mail ID <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="email"
+                    required
+                    autoComplete="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter Mail ID"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-slate-600 dark:text-slate-400 uppercase block mb-1">
+                    Password (Masked & Hashed) <span className="text-amber-500">*</span>
+                  </label>
+                  <input
+                    type="password"
+                    required
+                    autoComplete={mode === 'REGISTER' ? 'new-password' : 'current-password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="••••••••••••"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-xl px-4 py-2.5 font-semibold text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  />
+
+                  {mode === 'REGISTER' && (
+                    <div className="mt-2.5 p-3 bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 space-y-1.5 text-[11px]">
+                      <div className="font-bold text-slate-600 dark:text-slate-400 mb-1 flex items-center justify-between">
+                        <span>Password Security Requirements:</span>
+                        <span className={isPasswordValid ? 'text-emerald-600 font-extrabold' : 'text-amber-600'}>
+                          {isPasswordValid ? '✓ Valid Password' : 'Requirements Pending'}
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-x-2 gap-y-1 font-medium">
+                        <div className={`flex items-center gap-1 ${passwordChecks.length ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                          {passwordChecks.length ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                          <span>At least 8 characters</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordChecks.upper ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                          {passwordChecks.upper ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                          <span>Uppercase letter (A-Z)</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordChecks.lower ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                          {passwordChecks.lower ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                          <span>Lowercase letter (a-z)</span>
+                        </div>
+                        <div className={`flex items-center gap-1 ${passwordChecks.number ? 'text-emerald-600 font-bold' : 'text-slate-400'}`}>
+                          {passwordChecks.number ? <Check className="w-3.5 h-3.5" /> : <X className="w-3.5 h-3.5 text-slate-300" />}
+                          <span>At least 1 number (0-9)</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={loading || (mode === 'REGISTER' && !isPasswordValid)}
+                  className="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm rounded-xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
+                >
+                  {loading ? (
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  ) : (
+                    <>
+                      <span>{mode === 'LOGIN' ? 'Continue to Mandatory Mail Passcode' : 'Send Registration Passcode'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </>
+                  )}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleCompletePasswordOtp} className="space-y-4 text-xs">
+                <div className="bg-indigo-50 dark:bg-indigo-950/40 p-4 rounded-2xl border border-indigo-300 dark:border-indigo-700 text-center space-y-1">
+                  <p className="font-black text-indigo-800 dark:text-indigo-200">Mandatory Email Passcode Verification</p>
+                  <p className="text-slate-600 dark:text-slate-300">
+                    Enter the 6-digit passcode sent to <strong>{email}</strong> to complete {mode === 'REGISTER' ? 'registration' : 'sign-in'}.
+                  </p>
+                </div>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  autoComplete="one-time-code"
+                  required
+                  value={enteredPasswordOtp}
+                  onChange={(e) => setEnteredPasswordOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="• • • • • •"
+                  className="w-full tracking-widest text-center text-2xl font-mono font-black bg-slate-50 dark:bg-slate-800 border-2 border-slate-300 dark:border-slate-700 focus:border-indigo-500 rounded-xl py-3 text-slate-900 dark:text-white focus:outline-none"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setPasswordStep('CREDENTIALS');
+                      setEnteredPasswordOtp('');
+                    }}
+                    className="w-1/3 py-3 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold cursor-pointer"
+                  >
+                    Back
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading || enteredPasswordOtp.length !== 6}
+                    className="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm rounded-xl shadow-md transition cursor-pointer disabled:opacity-50"
+                  >
+                    Verify Passcode & Complete
+                  </button>
+                </div>
+              </form>
+            )
           )}
 
           {/* GOOGLE 1-CLICK AUTH BUTTON */}
@@ -2076,11 +2376,11 @@ export const AuthPage: React.FC<AuthPageProps> = ({ onLogin, initialMode = 'LOGI
                     <span>Continue with {customGoogleEmail.trim() || email.trim() || 'Google Account'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
+          )}
       </div>
     </div>
   );

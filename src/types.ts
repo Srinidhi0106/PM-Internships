@@ -296,3 +296,24 @@ export interface NotificationItem {
   read: boolean;
   type: 'info' | 'success' | 'warning' | 'application';
 }
+
+export interface InternshipPaymentTransaction {
+  id: string;
+  orderId: string;
+  internshipRole: string;
+  companyName: string;
+  companyLogo?: string;
+  amount: number;
+  govtShare?: number;
+  companyShare?: number;
+  status: 'SUCCESS' | 'PENDING' | 'FAILED';
+  date: string;
+  paymentRail: 'PhonePe UPI' | 'Govt DBT (APBS)' | 'Corporate Escrow' | 'PFMS Direct Credit';
+  utrNumber: string;
+  accountMasked: string;
+  monthPeriod: string;
+  attendanceVerified?: boolean;
+  dbtReference?: string;
+  receiptUrl?: string;
+  notes?: string;
+}

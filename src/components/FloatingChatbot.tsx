@@ -1,14 +1,24 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Send, X, Mic, Volume2, Sparkles, RefreshCw, MessageSquare, Globe } from 'lucide-react';
-import { pmSchemeLogo, pmModiHeadshot, indianFlagBadge } from '../assets/images';
+import { Send, X, Mic, Volume2, Sparkles, RefreshCw, Globe, AlertCircle } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
-import { SUPPORTED_LANGUAGES, getSpeechLocaleByCode, LanguageCode } from '../translations';
+import { SUPPORTED_LANGUAGES, getSpeechLocaleByCode } from '../translations';
+import { User } from '../types';
+
+interface FloatingChatbotProps {
+  user?: User;
+}
 
 interface Message {
+  id: string;
   sender: 'user' | 'bot';
   text: string;
   time: string;
+  isError?: boolean;
+  errorCode?: string;
+  failedQuery?: string;
 }
+
+const REQUEST_TIMEOUT_MS = 35000;
 
 // Small Robot Icon Component
 const SmallRobotIcon: React.FC<{ size?: number; className?: string }> = ({ size = 26, className = "" }) => (
@@ -42,74 +52,64 @@ const SmallRobotIcon: React.FC<{ size?: number; className?: string }> = ({ size 
   </svg>
 );
 
-// Smart query-intent answer engine to guarantee accurate answers for specific queries
-const getSmartFallbackAnswer = (query: string, lang: string): string => {
-  const q = query.toLowerCase().trim();
+const createMessageId = () => `msg-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  // 1. Offer Letter
-  if (q.includes('offer') || q.includes('letter') || q.includes('appointment')) {
-    return `Official PM Scheme Offer Letter:\n• Issued automatically by host enterprises once a candidate's status is changed to "SELECTED".\n• Contains official Government of India MCA emblem, corporate seal, CIN number, stipend terms (₹5,000/mo), and a digitally verifiable QR code.\n• Candidates can view, print, or download their Offer Letter directly on the portal.`;
-  }
+const formatTime = () =>
+  new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
-  // 2. Application Status (Applied, Shortlisted, Selected with Timestamps)
-  if (q.includes('status') || q.includes('shortlist') || q.includes('applied') || q.includes('selected') || q.includes('time') || q.includes('stamp')) {
-    return `Candidate Application Lifecycle & Timestamps:\n• APPLIED: Candidate has submitted the profile & resume.\n• SHORTLISTED: Recruiter reviewed and shortlisted the profile for interview. Automatic email notification dispatched with exact timestamp.\n• SELECTED: Candidate is selected for hiring. Automatic email alert dispatched with timestamp, triggering immediate Offer Letter generation.\n• Every transition records an unalterable timestamp (e.g. 2026-09-04 17:45:00 IST) viewable by both Student and Ministry.`;
-  }
+const renderFormattedText = (text: string): React.ReactNode => {
+  const tokenRegex = /(\[[^\]]+\]\(https:\/\/[^\s)]+\)|https:\/\/[^\s<>()\]]+|\*\*[^*]+\*\*)/g;
+  const parts = text.split(tokenRegex);
 
-  // 3. Stipend & Allowances
-  if (q.includes('stipend') || q.includes('salary') || q.includes('pay') || q.includes('money') || q.includes('amount') || q.includes('grant') || q.includes('allowance') || q.includes('₹')) {
-    return `PM Internship Scheme Stipend & Financial Package:\n• Monthly Stipend: ₹5,000 per month (₹4,500 direct from Govt of India via DBT + ₹500 from Host Company CSR)\n• One-Time Incidental Grant: ₹6,000 credited upon joining to assist with initial relocation/materials\n• Insurance: ₹1,00,000 complimentary government insurance cover under PMJJBY/PMSBY\n• Portal Escrow: All payments processed strictly via InternIQ portal escrow.`;
-  }
+  return parts.map((part, index) => {
+    const mdLinkMatch = part.match(/^\[([^\]]+)\]\((https:\/\/[^\s)]+)\)$/);
+    if (mdLinkMatch) {
+      const label = mdLinkMatch[1];
+      const cleanUrl = mdLinkMatch[2].replace(/[.,;:!?]+$/, '');
+      return (
+        <a
+          key={index}
+          href={cleanUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="underline font-semibold text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 break-all"
+        >
+          {label}
+        </a>
+      );
+    }
 
-  // 4. Eligibility & Age Criteria
-  if (q.includes('eligib') || q.includes('age') || q.includes('criteri') || q.includes('who can') || q.includes('qualif') || q.includes('income')) {
-    return `Official Eligibility Criteria:\n• Age: 21 to 24 years at the time of application\n• Qualification: 10th, 12th, ITI, Polytechnic Diploma, BA, B.Sc, B.Com, BCA, B.Tech, B.E., MCA, MBA\n• Family Income: Annual family income under ₹8 Lakhs (non-taxpayer category)\n• Citizenship: Indian citizen with valid Aadhaar card, not employed in a permanent full-time job.`;
-  }
+    if (part.startsWith('https://')) {
+      const cleanUrl = part.replace(/[.,;:!?]+$/, '');
+      const trailing = part.slice(cleanUrl.length);
+      return (
+        <React.Fragment key={index}>
+          <a
+            href={cleanUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="underline font-semibold text-indigo-600 dark:text-indigo-300 hover:text-indigo-800 dark:hover:text-indigo-200 break-all"
+          >
+            {cleanUrl}
+          </a>
+          {trailing}
+        </React.Fragment>
+      );
+    }
 
-  // 5. App Download using QR Code
-  if (q.includes('app') || q.includes('download') || q.includes('qr') || q.includes('mobile') || q.includes('apk') || q.includes('phone app')) {
-    return `Mobile App Download via QR Code:\n• Interactive QR Code is available in the top navbar and home page.\n• Scan the QR code with any smartphone camera or Google Lens.\n• Available for Android (.APK package, 18.4 MB) and iOS (Safari PWA Add-to-Home-Screen).\n• Features: Offline resume preparation, real-time push notifications, and instant stipend ledger.`;
-  }
+    if (part.startsWith('**') && part.endsWith('**') && part.length > 4) {
+      return (
+        <strong key={index} className="font-bold">
+          {part.slice(2, -2)}
+        </strong>
+      );
+    }
 
-  // 6. Resume Upload Image Formats
-  if (q.includes('resume image') || q.includes('image format') || q.includes('jpg') || q.includes('png') || q.includes('photo resume') || q.includes('jpeg') || q.includes('picture')) {
-    return `Strict Resume Upload Image Formats Support:\n• In addition to PDF, DOCX, and TXT, our portal strictly supports Image formats: .PNG, .JPG, .JPEG, and .WEBP!\n• You can upload image scans or photo captures of your resume in the Resume Parser, AI Resume Tailor, or Resume Builder with instant optical parsing.`;
-  }
-
-  // 7. Resume Builder Module
-  if (q.includes('resume builder') || q.includes('builder') || q.includes('font') || q.includes('size') || q.includes('color') || q.includes('length')) {
-    return `Interactive Resume Builder Module:\n• Fonts: Inter (Clean Sans), Merriweather (Distinguished Serif), JetBrains Mono (Tech), Outfit (Executive).\n• Font Sizes: Compact (dense), Standard (balanced), Large (spacious).\n• Lengths: 1-Page tight, Standard balanced, 2-Page comprehensive.\n• Color Themes: National Saffron, Official Navy, Imperial Emerald, Slate, and Ruby.\n• Export: Print directly to clean A4 or download text/PDF, plus upload existing resume images!`;
-  }
-
-  // 8. Company Verification & CIN Security Check
-  if (q.includes('cin') || q.includes('company verification') || q.includes('security check') || q.includes('mca') || q.includes('recruiter')) {
-    return `Company Security Check & CIN Verification:\n• Participating companies must submit their 21-digit Corporate Identification Number (CIN) (e.g. L72200MH1995PLC095924).\n• Our portal performs automated MCA security checks validating ROC filing active status, direct benefit transfer (DBT) escrow linkage, and anti-fraud trust scores.`;
-  }
-
-  // 9. OTP Verification & Phone Login
-  if (q.includes('otp') || q.includes('phone login') || q.includes('time limit') || q.includes('timer') || q.includes('autofill') || q.includes('aadhaar')) {
-    return `Multi-Factor Authentication System:\n• Email OTP: 6-digit numeric OTP sent directly to your email with strictly NO autofill and a strict 2-minute countdown timer.\n• Phone Number Login: 10-digit Indian mobile (+91) login with interactive Captcha and SMS OTP.\n• Aadhaar Authentication: UIDAI e-KYC integration ensuring one-student-one-seat integrity.`;
-  }
-
-  // 10. Admin & Ministry Module
-  if (q.includes('admin') || q.includes('ministry') || q.includes('minister') || q.includes('nodal')) {
-    return `Admin & Ministry Management Module:\n• Central command dashboard for Ministry of Corporate Affairs (MCA) nodal officers.\n• Live tracking of all student application pipelines (Applied, Shortlisted, Selected with timestamps).\n• Company CIN approval desk, DBT financial budget allocation, and DigiLocker certificate authorization.`;
-  }
-
-  // 11. Aatmanirbhar Bharat & Portal Comparison
-  if (q.includes('aatmanirbhar') || q.includes('comparison') || q.includes('legacy') || q.includes('difference') || q.includes('govt portal')) {
-    return `Aatmanirbhar Bharat Theme & Portal Comparison:\n• Legacy Govt Portals: Suffer from deadline server crashes, opaque manual shortlisting, lack of AI guidance, and no mobile responsiveness.\n• InternIQ PM Scheme Portal: Ultra-responsive sub-second cloud architecture, AI ATS resume recommendation, timestamped transparent applicant tracking, automatic email alerts, MCA CIN verification, and interactive QR mobile download.`;
-  }
-
-  // 12. Support & Helpline
-  if (q.includes('helpline') || q.includes('support') || q.includes('contact') || q.includes('toll free') || q.includes('complaint') || q.includes('grievance')) {
-    return `Support & Grievance Redressal:\n• Toll-Free National Helpline: 1800-11-2026 (24x7 MCA PM Scheme desk)\n• Email: support@pminternship.mca.gov.in\n• Grievance Redressal Tab: Submit a query/complaint directly on the portal to receive a real-time tracking ID.`;
-  }
-
-  return `Namaste! I am your AI Assistant for the PM Internship Scheme. How can I help you today?\n\nYou can ask about:\n• Monthly Stipend (₹5,000/mo) & Joining Grant (₹6,000)\n• Eligibility criteria (Age 21-24, income < ₹8 LPA)\n• Application status (Applied, Shortlisted, Selected with timestamps)\n• Company CIN verification & Offer Letters\n• Resume Builder (fonts, sizes, colors) & Image upload\n• App download via QR code\n• OTP & Phone authentication.`;
+    return <React.Fragment key={index}>{part}</React.Fragment>;
+  });
 };
 
-export const FloatingChatbot: React.FC = () => {
+export const FloatingChatbot: React.FC<FloatingChatbotProps> = () => {
   const { t, language, setLanguage } = useLanguage();
   const [isOpen, setIsOpen] = useState(false);
   const [input, setInput] = useState('');
@@ -121,27 +121,30 @@ export const FloatingChatbot: React.FC = () => {
 
   const [messages, setMessages] = useState<Message[]>([
     {
+      id: 'initial-greeting',
       sender: 'bot',
       text: t('chatbotGreeting', 'Namaste! I am your AI Assistant. How can I Help you?'),
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      time: formatTime()
     }
   ]);
 
-  // Update bot greeting if language changes
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Update bot greeting if language changes before conversation starts
   useEffect(() => {
     setMessages(prev => {
-      if (prev.length === 1 && prev[0].sender === 'bot') {
+      if (prev.length === 1 && prev[0].sender === 'bot' && !prev[0].isError) {
         return [{
+          id: 'initial-greeting',
           sender: 'bot',
           text: t('chatbotGreeting', 'Namaste! I am your AI Assistant. How can I Help you?'),
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+          time: formatTime()
         }];
       }
       return prev;
     });
-  }, [language]);
-
-  const messagesEndRef = useRef<HTMLDivElement>(null);
+  }, [language, t]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -149,55 +152,152 @@ export const FloatingChatbot: React.FC = () => {
 
   useEffect(() => {
     if (isOpen) scrollToBottom();
-  }, [messages, isOpen]);
+  }, [messages, loading, isOpen]);
 
-  const handleSend = async (textToSend?: string) => {
-    const query = textToSend || input;
-    if (!query.trim() || loading) return;
-
-    const userMsg: Message = {
-      sender: 'user',
-      text: query,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  useEffect(() => {
+    return () => {
+      abortControllerRef.current?.abort();
     };
+  }, []);
 
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
-    setLoading(true);
+  const sendToGeminiBackend = async (query: string, historyForRequest: Message[]) => {
+    abortControllerRef.current?.abort();
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
+
+    let timedOut = false;
+    const timeoutId = window.setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, REQUEST_TIMEOUT_MS);
 
     try {
       const res = await fetch('/api/ai/chatbot', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message: query, language, history: messages })
+        signal: controller.signal,
+        body: JSON.stringify({
+          message: query,
+          language,
+          history: historyForRequest
+            .filter(m => !m.isError)
+            .map(m => ({ sender: m.sender, text: m.text }))
+        })
       });
-      let replyText = '';
-      if (res.ok) {
-        const textData = await res.text();
-        if (textData) {
-          const data = JSON.parse(textData);
-          replyText = data.reply;
+
+      const rawText = await res.text();
+      let data: any = null;
+      if (rawText) {
+        try {
+          data = JSON.parse(rawText);
+        } catch {
+          data = null;
         }
       }
-      const finalReply = replyText && replyText.trim() ? replyText : getSmartFallbackAnswer(query, language);
+
+      if (!res.ok) {
+        const serverCode = data?.code || `HTTP_${res.status}`;
+        let errorMessage = data?.error || `Request failed with status ${res.status}.`;
+
+        if (res.status === 503 || serverCode === 'MISSING_API_KEY') {
+          errorMessage =
+            data?.error ||
+            'Gemini AI key is not configured on the server. Please check GEMINI_API_KEY in Settings > Secrets.';
+        } else if (res.status === 401 || res.status === 403 || serverCode === 'INVALID_API_KEY') {
+          errorMessage =
+            data?.error ||
+            'Gemini API authentication failed. Please verify GEMINI_API_KEY in Settings > Secrets.';
+        } else if (res.status === 429 || serverCode === 'QUOTA_EXCEEDED') {
+          errorMessage =
+            data?.error ||
+            'Gemini AI quota or rate limit exceeded. Please wait a moment and tap Retry.';
+        } else if (res.status === 504 || serverCode === 'TIMEOUT') {
+          errorMessage =
+            data?.error ||
+            'Gemini AI timed out while generating a response. Please tap Retry.';
+        }
+
+        const err: any = new Error(errorMessage);
+        err.code = serverCode;
+        throw err;
+      }
+
+      const replyText = typeof data?.reply === 'string' ? data.reply.trim() : '';
+      if (!replyText) {
+        const emptyErr: any = new Error('Gemini returned an empty response. Please tap Retry.');
+        emptyErr.code = 'EMPTY_RESPONSE';
+        throw emptyErr;
+      }
+
       const botMsg: Message = {
+        id: createMessageId(),
         sender: 'bot',
-        text: finalReply,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+        text: replyText,
+        time: formatTime()
       };
       setMessages(prev => [...prev, botMsg]);
-    } catch (err) {
-      setMessages(prev => [
-        ...prev,
-        {
-          sender: 'bot',
-          text: getSmartFallbackAnswer(query, language),
-          time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-        }
-      ]);
+    } catch (err: any) {
+      let friendlyMessage = 'Unable to generate an AI response right now. Please tap Retry.';
+      let errorCode = err?.code || 'UNKNOWN_ERROR';
+
+      if (timedOut || err?.name === 'AbortError') {
+        errorCode = 'TIMEOUT';
+        friendlyMessage = 'Request timed out after 30 seconds while waiting for Gemini AI. Please check your connection and tap Retry.';
+      } else if (err instanceof TypeError || String(err?.message || '').toLowerCase().includes('failed to fetch')) {
+        errorCode = 'NETWORK_ERROR';
+        friendlyMessage = 'Network error reaching the InternIQ AI server. Please check your internet connection and tap Retry.';
+      } else if (err?.message) {
+        friendlyMessage = err.message;
+      }
+
+      const errorBotMsg: Message = {
+        id: createMessageId(),
+        sender: 'bot',
+        text: friendlyMessage,
+        time: formatTime(),
+        isError: true,
+        errorCode,
+        failedQuery: query
+      };
+      setMessages(prev => [...prev, errorBotMsg]);
     } finally {
+      window.clearTimeout(timeoutId);
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
       setLoading(false);
     }
+  };
+
+  const handleSend = async (textToSend?: string) => {
+    const query = (textToSend ?? input).trim();
+    if (!query || loading) return;
+
+    const userMsg: Message = {
+      id: createMessageId(),
+      sender: 'user',
+      text: query,
+      time: formatTime()
+    };
+
+    const historyBeforeSend = [...messages];
+    setMessages(prev => [...prev, userMsg]);
+    if (!textToSend) {
+      setInput('');
+    }
+    setLoading(true);
+
+    await sendToGeminiBackend(query, historyBeforeSend);
+  };
+
+  const handleRetry = async (failedQuery: string, errorMessageId: string) => {
+    if (loading || !failedQuery.trim()) return;
+
+    const cleanHistory = messages.filter(m => m.id !== errorMessageId && !m.isError);
+    setMessages(prev => prev.filter(m => m.id !== errorMessageId));
+    setLoading(true);
+
+    await sendToGeminiBackend(failedQuery, cleanHistory);
   };
 
   // Web Speech API Voice Recognition
@@ -346,20 +446,23 @@ export const FloatingChatbot: React.FC = () => {
           {/* Prompt Chips */}
           <div className="bg-white/80 dark:bg-slate-900 px-3 py-2 border-b border-slate-200 dark:border-slate-800 flex gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
             <button
+              disabled={loading}
               onClick={() => handleSend(t('stipendQueryPrompt', 'What is the PM Internship stipend?'))}
-              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 transition cursor-pointer font-semibold"
+              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer font-semibold"
             >
               💰 {t('stipendChip', 'Stipend Info')}
             </button>
             <button
+              disabled={loading}
               onClick={() => handleSend(t('aiRecQueryPrompt', 'How does top 20 AI recommendation work?'))}
-              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 transition cursor-pointer font-semibold"
+              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer font-semibold"
             >
               ✨ {t('aiMatchChip', 'AI Match')}
             </button>
             <button
+              disabled={loading}
               onClick={() => handleSend(t('eligibilityQueryPrompt', 'Who is eligible for PM Internship Scheme?'))}
-              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 transition cursor-pointer font-semibold"
+              className="shrink-0 bg-indigo-50 dark:bg-slate-800 border border-indigo-200 dark:border-slate-700 px-2.5 py-1 rounded-full text-indigo-700 dark:text-indigo-300 hover:bg-indigo-100 dark:hover:bg-slate-700 disabled:opacity-50 transition cursor-pointer font-semibold"
             >
               🎓 {t('eligibilityChip', 'Eligibility')}
             </button>
@@ -367,9 +470,9 @@ export const FloatingChatbot: React.FC = () => {
 
           {/* Messages Container */}
           <div className="flex-1 p-3.5 overflow-y-auto space-y-3 bg-slate-100/60 dark:bg-slate-950/70">
-            {messages.map((m, idx) => (
+            {messages.map((m) => (
               <div
-                key={idx}
+                key={m.id}
                 className={`flex gap-2 ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {/* Small Robot Icon next to Bot Message */}
@@ -384,21 +487,47 @@ export const FloatingChatbot: React.FC = () => {
                     className={`rounded-2xl px-3.5 py-2.5 text-xs shadow-xs relative leading-relaxed ${
                       m.sender === 'user'
                         ? 'bg-gradient-to-r from-indigo-600 to-indigo-700 text-white font-medium rounded-tr-none'
+                        : m.isError
+                        ? 'bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-100 rounded-tl-none border border-rose-300 dark:border-rose-700'
                         : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-none border border-slate-200/80 dark:border-slate-700/80'
                     }`}
                   >
-                    <p className="whitespace-pre-line leading-relaxed">{m.text}</p>
-                    
-                    {/* TTS button on bot message */}
-                    {m.sender === 'bot' && (
-                      <button
-                        onClick={() => speakText(m.text)}
-                        className="mt-1.5 flex items-center gap-1 text-[10.5px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold cursor-pointer"
-                        title="Read aloud in native language"
-                      >
-                        <Volume2 className="w-3.5 h-3.5" />
-                        <span>{t('listenAudio', 'Listen audio')}</span>
-                      </button>
+                    {m.isError ? (
+                      <div className="space-y-2">
+                        <div className="flex items-start gap-1.5 font-semibold text-rose-700 dark:text-rose-300">
+                          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                          <p className="whitespace-pre-line leading-relaxed">{m.text}</p>
+                        </div>
+                        {m.failedQuery && (
+                          <button
+                            type="button"
+                            disabled={loading}
+                            onClick={() => handleRetry(m.failedQuery!, m.id)}
+                            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 disabled:opacity-50 text-white font-bold text-[11px] transition cursor-pointer shadow-2xs"
+                          >
+                            <RefreshCw className="w-3 h-3" />
+                            <span>Retry</span>
+                          </button>
+                        )}
+                      </div>
+                    ) : (
+                      <>
+                        <p className="whitespace-pre-line leading-relaxed">
+                          {m.sender === 'bot' ? renderFormattedText(m.text) : m.text}
+                        </p>
+
+                        {/* TTS button on bot message */}
+                        {m.sender === 'bot' && (
+                          <button
+                            onClick={() => speakText(m.text)}
+                            className="mt-1.5 flex items-center gap-1 text-[10.5px] text-indigo-600 dark:text-indigo-400 hover:underline font-bold cursor-pointer"
+                            title="Read aloud in native language"
+                          >
+                            <Volume2 className="w-3.5 h-3.5" />
+                            <span>{t('listenAudio', 'Listen audio')}</span>
+                          </button>
+                        )}
+                      </>
                     )}
                   </div>
                   <span className={`text-[9.5px] text-slate-400 mt-1 px-1 ${m.sender === 'user' ? 'text-right' : 'text-left'}`}>
@@ -427,8 +556,9 @@ export const FloatingChatbot: React.FC = () => {
             >
               <button
                 type="button"
+                disabled={loading}
                 onClick={startVoiceInput}
-                className={`p-2.5 rounded-full text-white transition-all cursor-pointer shadow-xs ${
+                className={`p-2.5 rounded-full text-white transition-all cursor-pointer shadow-xs disabled:opacity-50 ${
                   isListening
                     ? 'bg-rose-600 animate-pulse ring-4 ring-rose-300'
                     : 'bg-indigo-50 dark:bg-slate-800 hover:bg-indigo-100 text-indigo-600 dark:text-indigo-300 border border-indigo-200 dark:border-slate-700'
@@ -442,8 +572,9 @@ export const FloatingChatbot: React.FC = () => {
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
+                disabled={loading}
                 placeholder={`Ask in ${currentLang.nativeName} / type query...`}
-                className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                className="flex-1 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2.5 text-xs text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 disabled:opacity-60"
               />
 
               <button

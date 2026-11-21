@@ -1,17 +1,12 @@
 /**
  * Centralized Real Email OTP Service
- * Communicates with backend endpoints:
+ * Communicates strictly with backend endpoints:
  * - POST /api/auth/send-email-otp
  * - POST /api/auth/verify-email-otp
  * - POST /api/auth/resend-email-otp
  *
- * Supports reusable flows:
- * - registration
- * - forgot-password
- * - sensitive-profile-change
- * - offer-acceptance
- * - bank-account-verification
- * - certificate-access
+ * Passcodes are generated server-side, stored as HMAC-SHA256 hashes,
+ * and dispatched exclusively to the user's verified email inbox.
  */
 
 export interface SendOtpResult {
@@ -23,8 +18,8 @@ export interface SendOtpResult {
   resendAvailableInSeconds?: number;
   remainingSeconds?: number;
   delivered?: boolean;
+  smtpUnconfigured?: boolean;
   warning?: string;
-  testOtpFallback?: string;
 }
 
 export interface VerifyOtpResult {
@@ -32,6 +27,7 @@ export interface VerifyOtpResult {
   message: string;
   user?: any;
   token?: string;
+  otpVerificationToken?: string;
   purpose?: string;
   expired?: boolean;
   maxAttemptsExceeded?: boolean;
@@ -40,7 +36,7 @@ export interface VerifyOtpResult {
 
 export const otpService = {
   /**
-   * Dispatches a real 6-digit verification code to the specified email address via Gmail SMTP
+   * Dispatches a 6-digit numeric passcode exclusively to the specified email address via SMTP.
    */
   async sendEmailOtp(
     email: string,
@@ -64,15 +60,15 @@ export const otpService = {
       const data = await res.json();
       return {
         success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'OTP sent successfully' : 'Failed to send OTP'),
+        message: data.message || (res.ok ? 'Passcode sent to your email address.' : 'Failed to send passcode.'),
         email: cleanEmail,
         purpose,
         expiresInSeconds: data.expiresInSeconds || 300,
         resendAvailableInSeconds: data.resendAvailableInSeconds || 60,
         remainingSeconds: data.remainingSeconds,
-        delivered: data.delivered,
-        warning: data.warning,
-        testOtpFallback: data.testOtpFallback
+        delivered: Boolean(data.delivered),
+        smtpUnconfigured: Boolean(data.smtpUnconfigured),
+        warning: data.warning
       };
     } catch (err: any) {
       console.error('[OTP Service] sendEmailOtp failed:', err);
@@ -84,7 +80,7 @@ export const otpService = {
   },
 
   /**
-   * Verifies the user-entered 6-digit numeric OTP against the backend stored HMAC-SHA256 hash
+   * Verifies the user-entered 6-digit numeric passcode against the backend stored HMAC-SHA256 hash.
    */
   async verifyEmailOtp(
     email: string,
@@ -112,9 +108,10 @@ export const otpService = {
       const data = await res.json();
       return {
         success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'Email verified successfully.' : 'Invalid OTP'),
+        message: data.message || (res.ok ? 'Email verified successfully.' : 'Invalid passcode'),
         user: data.user,
         token: data.token,
+        otpVerificationToken: data.otpVerificationToken,
         purpose: data.purpose || purpose,
         expired: data.expired,
         maxAttemptsExceeded: data.maxAttemptsExceeded,
@@ -130,7 +127,7 @@ export const otpService = {
   },
 
   /**
-   * Resends a fresh 6-digit OTP after the 60-second cooldown period
+   * Resends a fresh 6-digit passcode after the 60-second cooldown period.
    */
   async resendEmailOtp(email: string, purpose: string = 'registration'): Promise<SendOtpResult> {
     try {
@@ -147,22 +144,27 @@ export const otpService = {
       const data = await res.json();
       return {
         success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'OTP sent successfully' : 'Failed to resend OTP'),
+        message: data.message || (res.ok ? 'Passcode resent to your email address.' : 'Failed to resend passcode.'),
         email: cleanEmail,
         purpose,
         expiresInSeconds: data.expiresInSeconds || 300,
         resendAvailableInSeconds: data.resendAvailableInSeconds || 60,
         remainingSeconds: data.remainingSeconds,
-        delivered: data.delivered,
-        warning: data.warning,
-        testOtpFallback: data.testOtpFallback
+        delivered: Boolean(data.delivered),
+        smtpUnconfigured: Boolean(data.smtpUnconfigured),
+        warning: data.warning
       };
     } catch (err: any) {
       console.error('[OTP Service] resendEmailOtp failed:', err);
       return {
         success: false,
-        message: err.message || 'Network error: could not resend OTP.'
+        message: err.message || 'Network error: could not resend passcode.'
       };
     }
   }
 };
+
+export const sendEmailOtp = otpService.sendEmailOtp.bind(otpService);
+export const verifyEmailOtp = otpService.verifyEmailOtp.bind(otpService);
+export const resendEmailOtp = otpService.resendEmailOtp.bind(otpService);
+export default otpService;

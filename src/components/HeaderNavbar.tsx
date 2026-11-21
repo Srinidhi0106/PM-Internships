@@ -23,7 +23,9 @@ import {
   Clock,
   Film,
   Play,
-  QrCode
+  QrCode,
+  Smartphone,
+  Mail
 } from 'lucide-react';
 import { User, UserRole } from '../types';
 import { LanguageCode, SUPPORTED_LANGUAGES, getTranslation } from '../translations';
@@ -44,6 +46,8 @@ interface HeaderNavbarProps {
   openVoiceSearch: () => void;
   openNotifications?: () => void;
   openAppDownload?: () => void;
+  openPhonePeModal?: () => void;
+  openEmailOtpGuide?: () => void;
   onLogout?: () => void;
 }
 
@@ -59,6 +63,8 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
   openVoiceSearch,
   openNotifications,
   openAppDownload,
+  openPhonePeModal,
+  openEmailOtpGuide,
   onLogout
 }) => {
   const { timeFormat, setTimeFormat, timezone, setTimezone, selectedZone, currentTime } = useTimezone();
@@ -96,10 +102,12 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
     { id: 'govtech-benchmark', label: 'GovTech Benchmark' },
     { id: 'user-manual-budget', label: 'Manual & Budget' },
     { id: 'messages', label: getTranslation(language, 'messagesNav') || 'Messages & Reviews' },
+    { id: 'transactions', label: 'Payment Transactions' },
     { id: 'dashboard', label: getTranslation(language, 'studentPortal') },
     { id: 'company-dashboard', label: getTranslation(language, 'recruiterPortalNav') },
     { id: 'admin-dashboard', label: getTranslation(language, 'ministryDeskNav') },
     { id: 'analytics', label: getTranslation(language, 'analytics') },
+    { id: 'download-app', label: 'Download App' },
     { id: 'contact', label: getTranslation(language, 'contact') }
   ];
 
@@ -222,21 +230,21 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
                   {roleDropdownOpen && (
                     <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-xl border border-slate-200 dark:border-slate-700 py-1 z-50">
                       <button
-                        onClick={() => { onRoleSwitch('student'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        onClick={() => { onRoleSwitch('student'); setRoleDropdownOpen(false); }}
                         className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'student' ? 'font-bold text-indigo-600' : ''}`}
                       >
                         <span>{getTranslation(language, 'studentView')} (Default)</span>
                         {currentRole === 'student' && <CheckCircle2 className="w-3 h-3 text-indigo-600" />}
                       </button>
                       <button
-                        onClick={() => { onRoleSwitch('company'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        onClick={() => { onRoleSwitch('company'); setRoleDropdownOpen(false); }}
                         className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'company' ? 'font-bold text-emerald-600' : ''}`}
                       >
                         <span>{getTranslation(language, 'companyView')}</span>
                         {currentRole === 'company' && <CheckCircle2 className="w-3 h-3 text-emerald-600" />}
                       </button>
                       <button
-                        onClick={() => { onRoleSwitch('admin'); setActiveTab('home'); setRoleDropdownOpen(false); }}
+                        onClick={() => { onRoleSwitch('admin'); setRoleDropdownOpen(false); }}
                         className={`w-full text-left px-3 py-1.5 text-xs flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer ${currentRole === 'admin' ? 'font-bold text-amber-600' : ''}`}
                       >
                         <span>{getTranslation(language, 'adminView')}</span>
@@ -324,6 +332,30 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
 
           {/* Multi-Language Dropdown Switcher */}
           <LanguageDropdown variant="desktop" />
+
+          {/* PhonePe UPI Quick Trigger */}
+          {openPhonePeModal && (
+            <button
+              onClick={openPhonePeModal}
+              className="relative px-2.5 py-1.5 rounded-xl bg-purple-50 dark:bg-purple-950/60 text-[#5f259f] dark:text-purple-300 border border-purple-300 dark:border-purple-700 hover:bg-purple-100 dark:hover:bg-purple-900 transition active:scale-95 cursor-pointer flex items-center gap-1.5 text-xs font-black shadow-2xs"
+              title="Disburse Paid Internship Stipend via PhonePe UPI"
+            >
+              <Smartphone className="w-3.5 h-3.5 text-[#5f259f] dark:text-purple-400" />
+              <span className="hidden xl:inline">PhonePe Pay</span>
+            </button>
+          )}
+
+          {/* Mail ID OTP Workbench Trigger */}
+          {openEmailOtpGuide && (
+            <button
+              onClick={openEmailOtpGuide}
+              className="relative px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-700 hover:bg-amber-100 dark:hover:bg-amber-900 transition active:scale-95 cursor-pointer flex items-center gap-1.5 text-xs font-black shadow-2xs"
+              title="How to Add Mail ID OTPs in Google AI Studio - Setup & Live Tester"
+            >
+              <Mail className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+              <span className="hidden xl:inline">Mail OTP</span>
+            </button>
+          )}
 
           {/* App Download QR Modal Trigger */}
           {openAppDownload && (
@@ -503,7 +535,7 @@ export const HeaderNavbar: React.FC<HeaderNavbarProps> = ({
             <div>
               <p className="text-[10px] uppercase font-extrabold text-amber-600 dark:text-amber-400 tracking-wider mb-1 px-2">Core Navigation</p>
               <ul className="space-y-1">
-                {navLinks.filter(l => ['home', 'about', 'internships', 'messages', 'analytics', 'contact'].includes(l.id)).map((link) => (
+                {navLinks.filter(l => ['home', 'about', 'internships', 'messages', 'analytics', 'download-app', 'contact'].includes(l.id)).map((link) => (
                   <li key={link.id}>
                     <button
                       onClick={() => {

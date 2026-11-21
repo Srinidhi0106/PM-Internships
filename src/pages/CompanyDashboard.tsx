@@ -26,11 +26,13 @@ import {
   FileText,
   RefreshCw,
   Receipt,
-  Share2
+  Share2,
+  Smartphone
 } from 'lucide-react';
 import { User, Internship, Application } from '../types';
 import { SkillSelectDropdown } from '../components/SkillSelectDropdown';
 import { OfferLetterModal, OfferLetterData } from '../components/OfferLetterModal';
+import { PhonePePaymentModal } from '../components/PhonePePaymentModal';
 
 interface CompanyDashboardProps {
   user: User;
@@ -96,6 +98,20 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
   // Offer Letter Modal State
   const [selectedOfferLetter, setSelectedOfferLetter] = useState<OfferLetterData | null>(null);
   const [offerModalOpen, setOfferModalOpen] = useState(false);
+
+  // PhonePe UPI Payment Modal State
+  const [phonePeModalOpen, setPhonePeModalOpen] = useState<boolean>(false);
+  const [phonePePayTarget, setPhonePePayTarget] = useState<{
+    candidateName: string;
+    candidateCollege?: string;
+    candidateRole?: string;
+    candidateAccount?: string;
+    candidateUpiId?: string;
+    amount: number;
+    internshipId?: string;
+    isInternshipCompleted?: boolean;
+    attendancePercentage?: number;
+  } | null>(null);
 
   // Email Notification Dispatch Toast State
   const [notificationToast, setNotificationToast] = useState<{
@@ -284,7 +300,7 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
               </span>
             </div>
             <p className="text-xs text-slate-600 dark:text-slate-300 mt-1 font-medium">
-              Recruiter Officer: <strong className="text-slate-900 dark:text-white">{user.name || 'Priya Mehta'}</strong> • PM Internship Scheme National Partner Hub
+              Recruiter Officer: <strong className="text-slate-900 dark:text-white">{user.name || 'Corporate Recruiter'}</strong> • PM Internship Scheme National Partner Hub
             </p>
           </div>
         </div>
@@ -589,6 +605,26 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                           >
                             <Award className="w-3.5 h-3.5 text-slate-950" />
                             <span>Offer Letter</span>
+                          </button>
+
+                          <button
+                            onClick={() => {
+                              setPhonePePayTarget({
+                                candidateName: app.studentName,
+                                candidateCollege: app.college || 'Engineering Institute',
+                                candidateRole: app.internshipRole || 'Software Engineering Intern',
+                                candidateAccount: 'State Bank of India •••• 4921',
+                                candidateUpiId: `${app.studentName.toLowerCase().replace(/\s+/g, '')}@ybl`,
+                                amount: 15000,
+                                internshipId: app.internshipId
+                              });
+                              setPhonePeModalOpen(true);
+                            }}
+                            className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#5f259f] to-[#7c3aed] hover:from-[#501c87] hover:to-[#6d28d9] text-white font-black text-xs shadow-xs transition-all duration-150 active:scale-95 flex items-center gap-1.5 cursor-pointer"
+                            title="Disburse monthly stipend directly via PhonePe UPI Gateway"
+                          >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            <span>Pay Stipend (PhonePe UPI)</span>
                           </button>
 
                           <button
@@ -1160,39 +1196,62 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                         </div>
                       </td>
                       <td className="py-3.5 pr-3">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            if (escrowBalance < cand.stipend) {
-                              alert('Escrow balance insufficient. Please deposit funds.');
-                              return;
-                            }
-                            const newLog = {
-                              id: `tx-${Date.now()}`,
-                              candidateName: cand.name,
-                              accountMasked: cand.bank.split(' ')[0] + ' ' + cand.account,
-                              amount: cand.stipend,
-                              dbtReference: `MCA/DBT/2026/09/${Math.floor(1000 + Math.random() * 9000)}`,
-                              utrNumber: `P142260907${Math.floor(1000000 + Math.random() * 9000000)}`,
-                              timestamp: 'Just now',
-                              status: 'SUCCESS' as const
-                            };
-                            setEscrowBalance(prev => prev - cand.stipend);
-                            setDisbursedLogs([newLog, ...disbursedLogs]);
-                            setNotificationToast({
-                              show: true,
-                              candidateName: cand.name,
-                              email: 'candidate@pminternship.gov.in',
-                              status: 'STIPEND_DISBURSED_₹' + cand.stipend,
-                              timestamp: 'Just now'
-                            });
-                          }}
-                          className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold shadow-sm transition flex items-center gap-1.5 cursor-pointer"
-                          title="Disburse monthly stipend through RBI/PFMS directly to candidate account"
-                        >
-                          <Landmark className="w-3.5 h-3.5" />
-                          <span>Disburse ₹{cand.stipend.toLocaleString('en-IN')}</span>
-                        </button>
+                        <div className="flex flex-wrap items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setPhonePePayTarget({
+                                candidateName: cand.name,
+                                candidateCollege: cand.college,
+                                candidateRole: cand.role,
+                                candidateAccount: `${cand.bank} (${cand.account})`,
+                                candidateUpiId: `${cand.name.toLowerCase().replace(/\s+/g, '')}@ybl`,
+                                amount: cand.stipend,
+                                internshipId: cand.id
+                              });
+                              setPhonePeModalOpen(true);
+                            }}
+                            className="px-2.5 py-1.5 bg-gradient-to-r from-[#5f259f] to-[#7c3aed] hover:from-[#501c87] hover:to-[#6d28d9] text-white rounded-xl text-xs font-black shadow-xs transition flex items-center gap-1 cursor-pointer"
+                            title="Disburse monthly stipend via PhonePe UPI Gateway with instant receipt"
+                          >
+                            <Smartphone className="w-3.5 h-3.5" />
+                            <span>PhonePe UPI</span>
+                          </button>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (escrowBalance < cand.stipend) {
+                                alert('Escrow balance insufficient. Please deposit funds.');
+                                return;
+                              }
+                              const newLog = {
+                                id: `tx-${Date.now()}`,
+                                candidateName: cand.name,
+                                accountMasked: cand.bank.split(' ')[0] + ' ' + cand.account,
+                                amount: cand.stipend,
+                                dbtReference: `MCA/DBT/2026/09/${Math.floor(1000 + Math.random() * 9000)}`,
+                                utrNumber: `P142260907${Math.floor(1000000 + Math.random() * 9000000)}`,
+                                timestamp: 'Just now',
+                                status: 'SUCCESS' as const
+                              };
+                              setEscrowBalance(prev => prev - cand.stipend);
+                              setDisbursedLogs([newLog, ...disbursedLogs]);
+                              setNotificationToast({
+                                show: true,
+                                candidateName: cand.name,
+                                email: 'candidate@pminternship.gov.in',
+                                status: 'STIPEND_DISBURSED_₹' + cand.stipend,
+                                timestamp: 'Just now'
+                              });
+                            }}
+                            className="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-extrabold shadow-xs transition flex items-center gap-1 cursor-pointer"
+                            title="Disburse monthly stipend through RBI/PFMS directly to candidate account"
+                          >
+                            <Landmark className="w-3.5 h-3.5" />
+                            <span>Escrow DBT</span>
+                          </button>
+                        </div>
                       </td>
                       <td className="py-3.5 text-right">
                         {cand.certIssued ? (
@@ -1352,23 +1411,46 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
                     </div>
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setEscrowBalance(prev => prev + depositAmount);
-                      setShowDepositModal(false);
-                      setNotificationToast({
-                        show: true,
-                        candidateName: 'Corporate Escrow',
-                        email: 'accounts@company.com',
-                        status: `ESCROW_CREDITED_₹${depositAmount.toLocaleString('en-IN')}`,
-                        timestamp: 'Just now'
-                      });
-                    }}
-                    className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-extrabold text-xs shadow-md transition cursor-pointer"
-                  >
-                    Confirm & Transfer ₹{depositAmount.toLocaleString('en-IN')}
-                  </button>
+                  <div className="flex flex-col gap-2 pt-1">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowDepositModal(false);
+                        setPhonePePayTarget({
+                          candidateName: 'Corporate Escrow Trust (RBI / MCA)',
+                          candidateCollege: 'Ministry of Corporate Affairs',
+                          candidateRole: 'CSR Stipend Reserve Allocation',
+                          candidateAccount: 'RBI PFMS Escrow Pool •••• 9921',
+                          candidateUpiId: 'mca.pminternship@ybl',
+                          amount: depositAmount,
+                          internshipId: 'escrow-deposit'
+                        });
+                        setPhonePeModalOpen(true);
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-[#5f259f] to-[#7c3aed] hover:from-[#501c87] hover:to-[#6d28d9] text-white rounded-xl font-black text-xs shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <Smartphone className="w-4 h-4" />
+                      <span>Deposit via PhonePe UPI (Instant Settlement)</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEscrowBalance(prev => prev + depositAmount);
+                        setShowDepositModal(false);
+                        setNotificationToast({
+                          show: true,
+                          candidateName: 'Corporate Escrow',
+                          email: 'accounts@company.com',
+                          status: `ESCROW_CREDITED_₹${depositAmount.toLocaleString('en-IN')}`,
+                          timestamp: 'Just now'
+                        });
+                      }}
+                      className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-extrabold text-xs shadow-sm transition cursor-pointer"
+                    >
+                      Confirm via NetBanking ₹{depositAmount.toLocaleString('en-IN')}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -1382,6 +1464,83 @@ export const CompanyDashboard: React.FC<CompanyDashboardProps> = ({
           isOpen={offerModalOpen}
           onClose={() => setOfferModalOpen(false)}
           data={selectedOfferLetter}
+        />
+      )}
+
+      {/* PhonePe UPI Payment Modal */}
+      {phonePePayTarget && (
+        <PhonePePaymentModal
+          isOpen={phonePeModalOpen}
+          onClose={() => {
+            setPhonePeModalOpen(false);
+            setPhonePePayTarget(null);
+          }}
+          candidateName={phonePePayTarget.candidateName}
+          candidateCollege={phonePePayTarget.candidateCollege}
+          candidateRole={phonePePayTarget.candidateRole}
+          candidateAccount={phonePePayTarget.candidateAccount}
+          candidateUpiId={phonePePayTarget.candidateUpiId}
+          defaultAmount={phonePePayTarget.amount}
+          internshipId={phonePePayTarget.internshipId}
+          isInternshipCompleted={phonePePayTarget.isInternshipCompleted ?? (phonePePayTarget.internshipId === 'escrow-deposit')}
+          attendancePercentage={phonePePayTarget.attendancePercentage ?? 94.2}
+          onCompleteMilestone={() => {
+            setNotificationToast({
+              show: true,
+              candidateName: phonePePayTarget.candidateName,
+              email: 'mentor.eval@pminternship.gov.in',
+              status: 'MILESTONE_CERTIFIED_OK',
+              timestamp: 'Just now'
+            });
+          }}
+          onPaymentSuccess={(txDetails) => {
+            if (phonePePayTarget.internshipId === 'escrow-deposit') {
+              // Deposit into escrow
+              setEscrowBalance(prev => prev + txDetails.amount);
+              setNotificationToast({
+                show: true,
+                candidateName: 'Escrow Reserve',
+                email: 'accounts@company.com',
+                status: `PHONEPE_DEPOSIT_₹${txDetails.amount.toLocaleString('en-IN')}`,
+                timestamp: 'Just now'
+              });
+            } else {
+              // Disbursal to intern
+              setEscrowBalance(prev => Math.max(0, prev - txDetails.amount));
+              const newLog = {
+                id: `tx-${Date.now()}`,
+                candidateName: txDetails.candidateName,
+                accountMasked: phonePePayTarget.candidateAccount || 'State Bank of India •••• 4921',
+                amount: txDetails.amount,
+                dbtReference: `MCA/DBT/2026/09/${Math.floor(1000 + Math.random() * 9000)}`,
+                utrNumber: txDetails.utrNumber,
+                timestamp: 'Just now',
+                status: 'SUCCESS' as const
+              };
+              setDisbursedLogs(prev => [newLog, ...prev]);
+              setNotificationToast({
+                show: true,
+                candidateName: txDetails.candidateName,
+                email: 'candidate@pminternship.gov.in',
+                status: `PHONEPE_DISBURSED_₹${txDetails.amount}`,
+                timestamp: 'Just now'
+              });
+            }
+
+            // Also record in backend API
+            fetch('/api/payments/phonepe-verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                orderId: txDetails.orderId,
+                candidateName: txDetails.candidateName,
+                candidateAccount: phonePePayTarget.candidateAccount,
+                amount: txDetails.amount,
+                paymentRail: 'PhonePe UPI',
+                notes: `Stipend Disbursed via PhonePe UPI (UTR: ${txDetails.utrNumber})`
+              })
+            }).catch(console.error);
+          }}
         />
       )}
     </div>

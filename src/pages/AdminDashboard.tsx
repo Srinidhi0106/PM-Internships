@@ -43,12 +43,14 @@ import { OfferLetterModal, OfferLetterData } from '../components/OfferLetterModa
 import { useLanguage } from '../context/LanguageContext';
 
 interface AdminDashboardProps {
+  user?: User;
   internships: Internship[];
   applications?: Application[];
   onUpdateApplicationStatus?: (appId: string, status: 'APPLIED' | 'SHORTLISTED' | 'SELECTED' | 'REJECTED') => void;
 }
 
 export const AdminDashboard: React.FC<AdminDashboardProps> = ({
+  user,
   internships,
   applications = [],
   onUpdateApplicationStatus
@@ -206,6 +208,15 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
           <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 mt-1 max-w-2xl font-medium">
             Supervise corporate CIN compliance, oversee nationwide candidate pipelines (Applied, Shortlisted, Selected with timestamps), and dispatch automated government notifications under the PM Internship Scheme.
           </p>
+          <div className="flex flex-wrap items-center gap-2 mt-2.5 text-xs text-slate-600 dark:text-slate-300 font-semibold">
+            <span>Logged in Nodal Officer:</span>
+            <strong className="text-slate-900 dark:text-white font-black">{user?.name || 'Authorized Ministry Administrator'}</strong>
+            <span className="text-slate-400">•</span>
+            <span className="font-mono text-[11px] text-indigo-600 dark:text-indigo-400 font-bold">{user?.email || 'admin.portal@mca.gov.in'}</span>
+            <span className="text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-2 py-0.5 rounded-full font-bold ml-1">
+              Govt Credentials Verified
+            </span>
+          </div>
         </div>
 
         {/* Tricolor Summary Counters (Saffron - White/Navy - Green) */}
