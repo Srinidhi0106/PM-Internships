@@ -9,6 +9,8 @@
  * and dispatched exclusively to the user's verified email inbox.
  */
 
+import { buildApiUrl } from '../config/api';
+
 export interface SendOtpResult {
   success: boolean;
   message: string;
@@ -62,7 +64,7 @@ export const otpService = {
   ): Promise<SendOtpResult> {
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const res = await fetch('/api/auth/send-email-otp', {
+      const res = await fetch(buildApiUrl('/api/auth/send-email-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -118,7 +120,7 @@ export const otpService = {
       const cleanEmail = email.trim().toLowerCase();
       const cleanOtp = otp.trim();
 
-      const res = await fetch('/api/auth/verify-email-otp', {
+      const res = await fetch(buildApiUrl('/api/auth/verify-email-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
@@ -165,7 +167,7 @@ export const otpService = {
   async resendEmailOtp(email: string, purpose: string = 'registration'): Promise<SendOtpResult> {
     try {
       const cleanEmail = email.trim().toLowerCase();
-      const res = await fetch('/api/auth/resend-email-otp', {
+      const res = await fetch(buildApiUrl('/api/auth/resend-email-otp'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({

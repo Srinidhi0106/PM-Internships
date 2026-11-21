@@ -29,6 +29,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { heroStudentsBg } from '../assets/images';
 import { validateResumeFile } from '../utils/resumeValidator';
 import { otpService } from '../services/otpService';
+import { buildApiUrl } from '../config/api';
 
 interface AuthPageProps {
   onLogin: (user: User, token?: string) => void;
@@ -883,7 +884,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           setPendingFirebaseUser(verifiedFirebaseUser);
         } catch (fbErr: any) {
           // Verify via backend scrypt password store (server responds 403 requiresOtp:true ONLY if scrypt hash matches)
-          const checkRes = await fetch('/api/auth/login', {
+          const checkRes = await fetch(buildApiUrl('/api/auth/login'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ email: cleanEmail, password, role })
@@ -942,7 +943,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
 
       if (mode === 'REGISTER') {
         const cleanName = fullName.trim() || cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-        const regRes = await fetch('/api/auth/register', {
+        const regRes = await fetch(buildApiUrl('/api/auth/register'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -1007,7 +1008,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           return;
         }
 
-        const loginRes = await fetch('/api/auth/login', {
+        const loginRes = await fetch(buildApiUrl('/api/auth/login'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({

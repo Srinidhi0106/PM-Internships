@@ -39,6 +39,7 @@ import { DownloadAppPage } from './pages/DownloadAppPage';
 import { User, Internship, Application, UserRole } from './types';
 import { INITIAL_INTERNSHIPS, INITIAL_APPLICATIONS } from './data/initialData';
 import { useLanguage } from './context/LanguageContext';
+import { buildApiUrl } from './config/api';
 import {
   subscribeToFirestoreInternships,
   subscribeToFirestoreApplications,
@@ -144,7 +145,7 @@ export default function App() {
     // Fetch initial internships from Express server with graceful fallback
     const fetchInitialData = async () => {
       try {
-        const res = await fetch('/api/internships');
+        const res = await fetch(buildApiUrl('/api/internships'));
         if (res.ok) {
           const textData = await res.text();
           if (textData) {
@@ -157,7 +158,7 @@ export default function App() {
       }
 
       try {
-        const res = await fetch('/api/applications');
+        const res = await fetch(buildApiUrl('/api/applications'));
         if (res.ok) {
           const textData = await res.text();
           if (textData) {
@@ -202,7 +203,7 @@ export default function App() {
     if (appliedIds.includes(internshipId)) return;
 
     try {
-      const res = await fetch('/api/applications', {
+      const res = await fetch(buildApiUrl('/api/applications'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -333,7 +334,7 @@ export default function App() {
 
     clearAllIdentityCaches();
 
-    fetch('/api/auth/switch-role', {
+    fetch(buildApiUrl('/api/auth/switch-role'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -717,7 +718,7 @@ export default function App() {
     const activeToken = authSessionToken;
     clearAllIdentityCaches();
 
-    fetch('/api/auth/logout', {
+    fetch(buildApiUrl('/api/auth/logout'), {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -838,7 +839,7 @@ export default function App() {
         candidateUpiId={user?.email ? `${user.email.split('@')[0]}@ybl` : 'candidate@ybl'}
         defaultAmount={15000}
         onPaymentSuccess={(tx) => {
-          fetch('/api/payments/phonepe-verify', {
+          fetch(buildApiUrl('/api/payments/phonepe-verify'), {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
