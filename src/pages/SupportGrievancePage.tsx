@@ -78,7 +78,7 @@ const REGIONAL_NODAL_OFFICERS = [
 const FAQS = [
   {
     q: 'Whom should I contact if OTP is not received in my email?',
-    a: 'Ensure you check your Spam/Junk folder. If your email uses high spam filtering or Gmail SMTP returns credentials delay, our portal automatically provides an Emergency Evaluation OTP on screen so your registration is never blocked. You can also contact support at support.pminternship@mca.gov.in or call 1800-11-6090.'
+    a: 'Ensure you check your Spam or Promotions folder and verify that you entered the exact Mail ID. Verification passcodes are dispatched securely via Resend and remain valid for 5 minutes (with a 60-second resend cooldown). If delivery is still delayed, wait 60 seconds and click Resend OTP, or contact support at support.pminternship@mca.gov.in or 1800-11-6090.'
   },
   {
     q: 'How does the monthly ₹5,000 stipend get disbursed?',

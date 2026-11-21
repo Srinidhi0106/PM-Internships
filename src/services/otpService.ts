@@ -18,7 +18,7 @@ export interface SendOtpResult {
   resendAvailableInSeconds?: number;
   remainingSeconds?: number;
   delivered?: boolean;
-  smtpUnconfigured?: boolean;
+  emailUnconfigured?: boolean;
   warning?: string;
 }
 
@@ -34,9 +34,25 @@ export interface VerifyOtpResult {
   remainingAttempts?: number;
 }
 
+async function safeReadJsonResponse(res: Response): Promise<{ ok: boolean; data: any; nonJsonError?: string }> {
+  const rawText = await res.text();
+  if (!rawText) {
+    return { ok: res.ok, data: {} };
+  }
+  try {
+    return { ok: res.ok, data: JSON.parse(rawText) };
+  } catch {
+    return {
+      ok: false,
+      data: null,
+      nonJsonError: `Authentication service returned an unexpected response (HTTP ${res.status}). Ensure your server is running and Resend email configuration (RESEND_API_KEY & verified EMAIL_FROM) is valid.`
+    };
+  }
+}
+
 export const otpService = {
   /**
-   * Dispatches a 6-digit numeric passcode exclusively to the specified email address via SMTP.
+   * Dispatches a 6-digit numeric passcode exclusively to the specified email address via Resend.
    */
   async sendEmailOtp(
     email: string,
@@ -48,7 +64,7 @@ export const otpService = {
       const cleanEmail = email.trim().toLowerCase();
       const res = await fetch('/api/auth/send-email-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           email: cleanEmail,
           purpose,
@@ -57,24 +73,33 @@ export const otpService = {
         })
       });
 
-      const data = await res.json();
+      const parsed = await safeReadJsonResponse(res);
+      if (!parsed.data) {
+        return {
+          success: false,
+          delivered: false,
+          message: parsed.nonJsonError || 'Unable to parse verification server response.'
+        };
+      }
+
+      const data = parsed.data;
       return {
-        success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'Passcode sent to your email address.' : 'Failed to send passcode.'),
+        success: !!(parsed.ok && data.success),
+        message: data.message || (parsed.ok ? 'Passcode sent to your email address.' : 'Failed to send passcode.'),
         email: cleanEmail,
         purpose,
         expiresInSeconds: data.expiresInSeconds || 300,
         resendAvailableInSeconds: data.resendAvailableInSeconds || 60,
         remainingSeconds: data.remainingSeconds,
         delivered: Boolean(data.delivered),
-        smtpUnconfigured: Boolean(data.smtpUnconfigured),
+        emailUnconfigured: Boolean(data.emailUnconfigured),
         warning: data.warning
       };
     } catch (err: any) {
       console.error('[OTP Service] sendEmailOtp failed:', err);
       return {
         success: false,
-        message: err.message || 'Network error: could not contact authentication server.'
+        message: err?.message || 'Network error: could not contact authentication server.'
       };
     }
   },
@@ -95,7 +120,7 @@ export const otpService = {
 
       const res = await fetch('/api/auth/verify-email-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           email: cleanEmail,
           otp: cleanOtp,
@@ -105,10 +130,18 @@ export const otpService = {
         })
       });
 
-      const data = await res.json();
+      const parsed = await safeReadJsonResponse(res);
+      if (!parsed.data) {
+        return {
+          success: false,
+          message: parsed.nonJsonError || 'Unable to parse verification response.'
+        };
+      }
+
+      const data = parsed.data;
       return {
-        success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'Email verified successfully.' : 'Invalid passcode'),
+        success: !!(parsed.ok && data.success),
+        message: data.message || (parsed.ok ? 'Email verified successfully.' : 'Invalid passcode'),
         user: data.user,
         token: data.token,
         otpVerificationToken: data.otpVerificationToken,
@@ -121,7 +154,7 @@ export const otpService = {
       console.error('[OTP Service] verifyEmailOtp failed:', err);
       return {
         success: false,
-        message: err.message || 'Network error: could not contact verification server.'
+        message: err?.message || 'Network error: could not contact verification server.'
       };
     }
   },
@@ -134,31 +167,40 @@ export const otpService = {
       const cleanEmail = email.trim().toLowerCase();
       const res = await fetch('/api/auth/resend-email-otp', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
         body: JSON.stringify({
           email: cleanEmail,
           purpose
         })
       });
 
-      const data = await res.json();
+      const parsed = await safeReadJsonResponse(res);
+      if (!parsed.data) {
+        return {
+          success: false,
+          delivered: false,
+          message: parsed.nonJsonError || 'Unable to parse resend verification response.'
+        };
+      }
+
+      const data = parsed.data;
       return {
-        success: !!(res.ok && data.success),
-        message: data.message || (res.ok ? 'Passcode resent to your email address.' : 'Failed to resend passcode.'),
+        success: !!(parsed.ok && data.success),
+        message: data.message || (parsed.ok ? 'Passcode resent to your email address.' : 'Failed to resend passcode.'),
         email: cleanEmail,
         purpose,
         expiresInSeconds: data.expiresInSeconds || 300,
         resendAvailableInSeconds: data.resendAvailableInSeconds || 60,
         remainingSeconds: data.remainingSeconds,
         delivered: Boolean(data.delivered),
-        smtpUnconfigured: Boolean(data.smtpUnconfigured),
+        emailUnconfigured: Boolean(data.emailUnconfigured),
         warning: data.warning
       };
     } catch (err: any) {
       console.error('[OTP Service] resendEmailOtp failed:', err);
       return {
         success: false,
-        message: err.message || 'Network error: could not resend passcode.'
+        message: err?.message || 'Network error: could not resend passcode.'
       };
     }
   }

@@ -65,7 +65,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     status: 'DELIVERED',
     companyName: 'Tata Consultancy Services (TCS)',
     recipientEmail: 'candidate@gmail.com',
-    deliveryDetail: 'Dispatched via Gmail SMTP'
+    deliveryDetail: 'Dispatched via Resend'
   },
   {
     id: 'notif-2',
@@ -103,7 +103,7 @@ const INITIAL_NOTIFICATIONS: NotificationItem[] = [
     status: 'DELIVERED',
     companyName: 'PM Internship Scheme',
     recipientEmail: 'candidate@gmail.com',
-    deliveryDetail: 'Dispatched via Gmail SMTP'
+    deliveryDetail: 'Dispatched via Resend'
   }
 ];
 
@@ -244,9 +244,9 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
       
       let detail = 'Delivered via Gateway';
       if (result.emailDelivered) {
-        detail = `Sent to ${result.emailTarget || payload.recipientEmail} via Gmail SMTP`;
+        detail = `Sent to ${result.emailTarget || payload.recipientEmail} via Resend`;
       } else if (payload.channel === 'Email' || payload.channel === 'ALL') {
-        detail = `Dispatched to ${result.emailTarget || payload.recipientEmail} (Gmail SMTP)`;
+        detail = `Dispatched to ${result.emailTarget || payload.recipientEmail} (Resend)`;
       } else if (payload.channel === 'SMS') {
         detail = `SMS Sent to ${result.smsTarget || payload.recipientPhone} (MCA Gateway)`;
       } else {
@@ -255,7 +255,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
 
       setDispatchStatus(
         result.emailDelivered 
-          ? `✓ Live Email sent to ${result.emailTarget} via Gmail SMTP & SMS logged to ${result.smsTarget}`
+          ? `✓ Live Email sent to ${result.emailTarget} via Resend & SMS logged to ${result.smsTarget}`
           : `✓ Alert successfully dispatched to ${payload.recipientEmail} & ${payload.recipientPhone}`
       );
 
@@ -465,7 +465,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                       <Mail className="w-4 h-4" />
                     </div>
                     <div>
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">Gmail SMTP Gateway</p>
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">Resend Email Gateway</p>
                       <p className="text-[10px] text-slate-500">Official offers & letters</p>
                     </div>
                   </div>
@@ -526,7 +526,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                         Live Multi-Channel Dispatcher (Direct Email, SMS & Push)
                       </h4>
                       <p className="text-[11px] text-slate-600 dark:text-slate-400">
-                        Dispatches direct messages to candidate's registered mail and phone number via Gmail SMTP & MCA Gateway
+                        Dispatches direct messages to candidate's registered mail and phone number via Resend & MCA Gateway
                       </p>
                     </div>
                   </div>
@@ -545,7 +545,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                     <div>
                       <label className="text-[10px] font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 flex items-center gap-1 mb-1">
                         <Mail className="w-3 h-3 text-blue-600" />
-                        <span>Recipient Email (Gmail SMTP)</span>
+                        <span>Recipient Email (Resend)</span>
                       </label>
                       <input
                         type="email"
@@ -624,7 +624,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                         className="w-full px-3 py-2 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-xl text-xs font-semibold text-slate-900 dark:text-white focus:ring-2 focus:ring-amber-500 focus:outline-hidden"
                       >
                         <option value="ALL">⚡ All Channels (Email + SMS + Push)</option>
-                        <option value="Email">📧 Email Letter (Gmail SMTP)</option>
+                        <option value="Email">📧 Email Letter (Resend)</option>
                         <option value="SMS">📱 SMS / DBT Alert (MCA Gateway)</option>
                         <option value="Push">🔔 Browser Push Alert</option>
                       </select>
@@ -835,7 +835,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                           <span>{item.timestamp}</span>
                           <span>•</span>
                           <span className="font-semibold text-slate-700 dark:text-slate-300">
-                            {item.deliveryDetail || (item.channel === 'Email' ? `Delivered to ${item.recipientEmail || targetEmail} via Gmail SMTP` : `Delivered to ${item.recipientPhone || targetPhone} via MCA SMS Gateway`)}
+                            {item.deliveryDetail || (item.channel === 'Email' ? `Delivered to ${item.recipientEmail || targetEmail} via Resend` : `Delivered to ${item.recipientPhone || targetPhone} via MCA SMS Gateway`)}
                           </span>
                         </div>
                         
@@ -897,7 +897,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                     Dispatches formal selection letters, company interview call letters (TCS, Infosys, Reliance), and verified internship completion certificates with verifiable cryptographic QR stamps.
                   </p>
                   <div className="pt-2 border-t border-blue-200 dark:border-blue-900 text-[10px] text-blue-700 dark:text-blue-300 font-semibold">
-                    Protocol: Gmail SMTP / NIC Gov Mail
+                    Protocol: Resend Transactional API / NIC Gov Mail
                   </div>
                 </div>
 
@@ -1037,7 +1037,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                     Simulate TCS Interview Shortlist Email
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Dispatches formal enterprise interview call notification directly to {targetEmail} via Gmail SMTP.
+                    Dispatches formal enterprise interview call notification directly to {targetEmail} via Resend.
                   </p>
                 </button>
 
@@ -1103,7 +1103,7 @@ export const NotificationSystemModal: React.FC<NotificationSystemModalProps> = (
                     Simulate PM Certificate Generation
                   </h4>
                   <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Dispatches government digital certificate issuance notification to {targetEmail} via Gmail SMTP.
+                    Dispatches government digital certificate issuance notification to {targetEmail} via Resend.
                   </p>
                 </button>
               </div>

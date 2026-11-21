@@ -8,7 +8,7 @@ import { createServer as createViteServer } from 'vite';
 import { GoogleGenAI, Type, Modality, ThinkingLevel } from '@google/genai';
 import mammoth from 'mammoth';
 import * as pdfParseModule from 'pdf-parse';
-import nodemailer from 'nodemailer';
+import { Resend } from 'resend';
 import crypto from 'crypto';
 import {
   INITIAL_INTERNSHIPS,
@@ -204,75 +204,102 @@ function verifyOtpValue(enteredOtp: string, storedHash: string): boolean {
   }
 }
 
-function checkGmailSmtpConfig(): { configured: boolean; error?: string } {
-  const user = process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.SMTP_USER;
-  const pass = process.env.EMAIL_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS;
+let resendClient: Resend | null = null;
+let cachedResendApiKey = '';
 
-  if (!user || !pass) {
+function escapeHtml(value: string): string {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function getResendApiKey(): string {
+  return (process.env.RESEND_API_KEY || '').trim();
+}
+
+function getConfiguredEmailFrom(): string {
+  return (process.env.EMAIL_FROM || '').trim();
+}
+
+function formatResendFromHeader(rawFrom: string): string {
+  const clean = rawFrom.trim();
+  if (clean.includes('<') && clean.includes('>')) {
+    return clean;
+  }
+  return `PM Internship Scheme <${clean}>`;
+}
+
+function checkResendConfig(): { configured: boolean; error?: string } {
+  const apiKey = getResendApiKey();
+  const fromEmail = getConfiguredEmailFrom();
+
+  if (!apiKey && !fromEmail) {
     return {
       configured: false,
-      error: "Email service is not configured. Add EMAIL_USER and EMAIL_APP_PASSWORD to .env."
+      error: 'Email service is not configured. Add RESEND_API_KEY and verified sender EMAIL_FROM in environment secrets.'
+    };
+  }
+  if (!apiKey) {
+    return {
+      configured: false,
+      error: 'RESEND_API_KEY is missing. Add RESEND_API_KEY in environment secrets.'
+    };
+  }
+  if (!fromEmail) {
+    return {
+      configured: false,
+      error: 'EMAIL_FROM is missing. Add a verified sender address in EMAIL_FROM (for example, noreply@yourdomain.com).'
     };
   }
   return { configured: true };
 }
 
-function getGmailSmtpTransporter() {
-  const config = checkGmailSmtpConfig();
-  if (!config.configured) {
+function getResendClient(): Resend | null {
+  const apiKey = getResendApiKey();
+  if (!apiKey) {
     return null;
   }
-
-  const user = (process.env.EMAIL_USER || process.env.GMAIL_USER || process.env.SMTP_USER || '').trim();
-  const pass = (process.env.EMAIL_APP_PASSWORD || process.env.GMAIL_APP_PASSWORD || process.env.SMTP_PASS || '').trim().replace(/\s+/g, '');
-
-  let host = (process.env.SMTP_HOST || 'smtp.gmail.com').trim();
-  // Sanitize host if user accidentally entered an email address or malformed hostname into SMTP_HOST
-  if (host.includes('@') || !host.includes('.')) {
-    host = 'smtp.gmail.com';
+  if (!resendClient || cachedResendApiKey !== apiKey) {
+    cachedResendApiKey = apiKey;
+    resendClient = new Resend(apiKey);
   }
+  return resendClient;
+}
 
-  const port = parseInt(process.env.SMTP_PORT || '587', 10);
+function formatResendErrorMessage(err: any): string {
+  const rawMessage = String(err?.message || err || 'Failed to send email via Resend');
+  const lower = rawMessage.toLowerCase();
 
-  // If using Gmail address or host, prefer nodemailer's official service: 'gmail'
-  if (host.toLowerCase().includes('gmail') || user.toLowerCase().endsWith('@gmail.com')) {
-    return nodemailer.createTransport({
-      service: 'gmail',
-      auth: {
-        user,
-        pass
-      }
-    });
+  if (lower.includes('api key is invalid') || lower.includes('unauthorized') || err?.statusCode === 401) {
+    return 'Resend API key is invalid or unauthorized. Please verify RESEND_API_KEY in environment secrets.';
   }
-
-  return nodemailer.createTransport({
-    host,
-    port,
-    secure: port === 465,
-    auth: {
-      user,
-      pass
-    },
-    tls: {
-      rejectUnauthorized: false
-    }
-  });
+  if (lower.includes('domain') && (lower.includes('not verified') || lower.includes('verify'))) {
+    return 'Sender address in EMAIL_FROM is not verified in Resend. Verify your domain/sender in Resend or update EMAIL_FROM.';
+  }
+  if (lower.includes('rate limit') || err?.statusCode === 429) {
+    return 'Resend email rate limit exceeded. Please wait a moment and try again.';
+  }
+  return rawMessage;
 }
 
 async function sendVerificationEmail(toEmail: string, otpCode: string, purpose = 'registration', name?: string) {
-  const configCheck = checkGmailSmtpConfig();
+  const configCheck = checkResendConfig();
   if (!configCheck.configured) {
+    console.warn(`[RESEND] Configuration incomplete for ${toEmail}: ${configCheck.error}`);
     return {
       delivered: false,
-      error: "Email service is not configured. Add EMAIL_USER and EMAIL_APP_PASSWORD to .env."
+      error: configCheck.error || 'Email service is not configured. Add RESEND_API_KEY and EMAIL_FROM to environment secrets.'
     };
   }
 
-  const transporter = getGmailSmtpTransporter();
-  if (!transporter) {
+  const resend = getResendClient();
+  if (!resend) {
     return {
       delivered: false,
-      error: "Email service is not configured. Add EMAIL_USER and EMAIL_APP_PASSWORD to .env."
+      error: 'Resend email client could not be initialized. Please check RESEND_API_KEY.'
     };
   }
 
@@ -287,6 +314,8 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, purpose =
   };
 
   const purposeLabel = purposeLabels[purpose.toLowerCase()] || purpose;
+  const safeRecipientName = escapeHtml(name || 'Candidate');
+  const safePurposeLabel = escapeHtml(purposeLabel);
 
   // Professional Government of India template strictly formatted as required:
   // PM Internship Scheme
@@ -303,8 +332,8 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, purpose =
       </div>
 
       <div style="color: #334155; font-size: 14px; line-height: 1.6;">
-        <p style="margin: 0 0 12px 0;">Hello <strong>${name || 'Candidate'}</strong>,</p>
-        <p style="margin: 0 0 16px 0;">You have requested security verification for <strong>${purposeLabel}</strong> on the PM Internship Scheme portal.</p>
+        <p style="margin: 0 0 12px 0;">Hello <strong>${safeRecipientName}</strong>,</p>
+        <p style="margin: 0 0 16px 0;">You have requested security verification for <strong>${safePurposeLabel}</strong> on the PM Internship Scheme portal.</p>
       </div>
 
       <div style="text-align: center; margin: 24px 0; background-color: #fff7ed; border: 2px dashed #f97316; border-radius: 12px; padding: 20px;">
@@ -332,25 +361,29 @@ async function sendVerificationEmail(toEmail: string, otpCode: string, purpose =
 
   const emailText = `PM Internship Scheme\nSecure Verification\n\nYour OTP is: ${otpCode}\n\nValid for 5 minutes.\n\nNever share your OTP.\n\nPurpose: ${purposeLabel}\nGovernment of India • Ministry of Corporate Affairs`;
 
+  const fromHeader = formatResendFromHeader(getConfiguredEmailFrom());
+
   try {
-    const fromUser = (process.env.EMAIL_FROM || process.env.EMAIL_USER || process.env.GMAIL_USER || 'pminternship.gov@gmail.com').trim();
-    await transporter.sendMail({
-      from: `"PM Internship Scheme" <${fromUser}>`,
+    const { data, error } = await resend.emails.send({
+      from: fromHeader,
       to: toEmail.trim(),
       subject: `PM Internship Scheme • Secure Verification Code`,
       text: emailText,
       html: emailHtml
     });
 
-    console.log(`[GMAIL SMTP] ✓ Secure OTP dispatched to ${toEmail} for [${purposeLabel}]`);
-    return { delivered: true, provider: 'Gmail SMTP' };
-  } catch (err: any) {
-    console.error(`[GMAIL SMTP ERROR] Delivery failed for ${toEmail}:`, err?.message || err);
-    let userMsg = err?.message || 'Failed to dispatch email via Gmail SMTP';
-    if (userMsg.includes('535') || userMsg.includes('BadCredentials') || userMsg.includes('Username and Password not accepted')) {
-      userMsg = 'Gmail SMTP authentication failed (535 BadCredentials). Please ensure 2-Step Verification is active on your Google account and create a 16-character Google App Password for EMAIL_APP_PASSWORD.';
+    if (error) {
+      const friendlyError = formatResendErrorMessage(error);
+      console.error(`[RESEND ERROR] Delivery rejected for ${toEmail} (${purposeLabel}):`, error);
+      return { delivered: false, error: friendlyError };
     }
-    return { delivered: false, error: userMsg };
+
+    console.log(`[RESEND] ✓ Secure OTP dispatched to ${toEmail} for [${purposeLabel}] (id=${data?.id || 'sent'})`);
+    return { delivered: true, provider: 'Resend', messageId: data?.id };
+  } catch (err: any) {
+    const friendlyError = formatResendErrorMessage(err);
+    console.error(`[RESEND ERROR] Exception dispatching OTP to ${toEmail}:`, err?.message || err);
+    return { delivered: false, error: friendlyError };
   }
 }
 
@@ -587,7 +620,7 @@ app.get('/api/auth/me', (req, res) => {
 });
 
 // 1. POST /api/auth/send-email-otp (and legacy /api/auth/send-otp)
-// Secure real email OTP delivery via Gmail SMTP. Hashed storage. 5-min expiry. 60s cooldown.
+// Secure real email OTP delivery via Resend. Hashed storage. 5-min expiry. 60s cooldown.
 // NEVER leaks plaintext OTP in JSON responses or logs.
 app.post(['/api/auth/send-email-otp', '/api/auth/send-otp'], async (req, res) => {
   const { email, purpose = 'registration', name, role = 'STUDENT' } = req.body;
@@ -617,14 +650,14 @@ app.post(['/api/auth/send-email-otp', '/api/auth/send-otp'], async (req, res) =>
     });
   }
 
-  const configCheck = checkGmailSmtpConfig();
+  const configCheck = checkResendConfig();
   if (!configCheck.configured) {
-    return res.status(503).json({
+    return res.status(422).json({
       success: false,
       delivered: false,
-      smtpUnconfigured: true,
+      emailUnconfigured: true,
       warning: configCheck.error,
-      message: 'Email SMTP delivery is not configured on the server. Add EMAIL_USER and EMAIL_APP_PASSWORD in environment secrets to dispatch passcodes securely to user inboxes.'
+      message: configCheck.error || 'Email delivery is not configured on the server. Add RESEND_API_KEY and EMAIL_FROM in environment secrets.'
     });
   }
 
@@ -655,11 +688,11 @@ app.post(['/api/auth/send-email-otp', '/api/auth/send-otp'], async (req, res) =>
   if (!delivery.delivered) {
     otpStore.delete(key);
     otpStore.delete(cleanEmail);
-    return res.status(502).json({
+    return res.status(422).json({
       success: false,
       delivered: false,
       warning: delivery.error,
-      message: `Unable to send passcode to ${cleanEmail}: ${delivery.error || 'SMTP delivery failed'}. Passcodes are only delivered via verified email.`
+      message: `Unable to send passcode to ${cleanEmail}: ${delivery.error || 'Email delivery failed'}. Passcodes are only delivered via verified email.`
     });
   }
 
@@ -849,14 +882,14 @@ app.post(['/api/auth/resend-email-otp', '/api/auth/resend-otp'], async (req, res
     });
   }
 
-  const configCheck = checkGmailSmtpConfig();
+  const configCheck = checkResendConfig();
   if (!configCheck.configured) {
-    return res.status(503).json({
+    return res.status(422).json({
       success: false,
       delivered: false,
-      smtpUnconfigured: true,
+      emailUnconfigured: true,
       warning: configCheck.error,
-      message: 'Email service is not configured. Configure EMAIL_USER and EMAIL_APP_PASSWORD to dispatch passcodes.'
+      message: configCheck.error || 'Email service is not configured. Configure RESEND_API_KEY and EMAIL_FROM to dispatch passcodes.'
     });
   }
 
@@ -885,11 +918,11 @@ app.post(['/api/auth/resend-email-otp', '/api/auth/resend-otp'], async (req, res
   if (!delivery.delivered) {
     otpStore.delete(key);
     otpStore.delete(cleanEmail);
-    return res.status(502).json({
+    return res.status(422).json({
       success: false,
       delivered: false,
       warning: delivery.error,
-      message: `Failed to deliver fresh passcode to ${cleanEmail}: ${delivery.error || 'SMTP error'}`
+      message: `Failed to deliver fresh passcode to ${cleanEmail}: ${delivery.error || 'Email delivery error'}`
     });
   }
 
@@ -1164,44 +1197,54 @@ app.post('/api/notifications/dispatch', async (req, res) => {
   const targetEmail = recipientEmail || (currentUser && currentUser.email);
 
   if ((channel === 'ALL' || channel === 'EMAIL') && targetEmail) {
-    const transporter = getGmailSmtpTransporter();
-    if (transporter) {
+    const configCheck = checkResendConfig();
+    const resend = getResendClient();
+    if (configCheck.configured && resend) {
       try {
-        const fromEmail = process.env.EMAIL_FROM || process.env.GMAIL_USER || process.env.SMTP_USER;
+        const fromHeader = formatResendFromHeader(getConfiguredEmailFrom());
+        const safeRecipientName = escapeHtml(recipientName);
+        const safeTitle = escapeHtml(title);
+        const safeMessage = escapeHtml(message);
         const notificationHtml = `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: auto; padding: 24px; border: 1px solid #e2e8f0; border-radius: 12px; background: #ffffff;">
             <div style="text-align: center; border-bottom: 2px solid #0284c7; padding-bottom: 16px; margin-bottom: 20px;">
               <h2 style="color: #0f172a; margin: 0; font-size: 20px; font-weight: 800;">PM INTERNSHIP SCHEME</h2>
               <p style="color: #64748b; margin: 4px 0 0 0; font-size: 13px; font-weight: 600;">DIRECT BENEFIT TRANSFER & CANDIDATE NOTIFICATION HUB</p>
             </div>
-            <p style="font-size: 15px; color: #334155;">Dear <strong>${recipientName}</strong>,</p>
+            <p style="font-size: 15px; color: #334155;">Dear <strong>${safeRecipientName}</strong>,</p>
             <div style="padding: 16px; background: #f0f9ff; border-left: 4px solid #0284c7; border-radius: 6px; margin: 16px 0;">
-              <h3 style="margin: 0 0 8px 0; color: #0369a1; font-size: 16px;">${title}</h3>
-              <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6;">${message}</p>
+              <h3 style="margin: 0 0 8px 0; color: #0369a1; font-size: 16px;">${safeTitle}</h3>
+              <p style="margin: 0; font-size: 14px; color: #334155; line-height: 1.6;">${safeMessage}</p>
             </div>
-            ${metadata?.stipendAmount ? `<p style="font-size: 14px; color: #047857;"><strong>Direct Benefit Transfer Amount:</strong> ₹${metadata.stipendAmount}</p>` : ''}
-            ${metadata?.companyName ? `<p style="font-size: 14px; color: #334155;"><strong>Partner Enterprise:</strong> ${metadata.companyName}</p>` : ''}
-            ${metadata?.round ? `<p style="font-size: 14px; color: #334155;"><strong>Selection Stage:</strong> ${metadata.round}</p>` : ''}
+            ${metadata?.stipendAmount ? `<p style="font-size: 14px; color: #047857;"><strong>Direct Benefit Transfer Amount:</strong> ₹${escapeHtml(String(metadata.stipendAmount))}</p>` : ''}
+            ${metadata?.companyName ? `<p style="font-size: 14px; color: #334155;"><strong>Partner Enterprise:</strong> ${escapeHtml(String(metadata.companyName))}</p>` : ''}
+            ${metadata?.round ? `<p style="font-size: 14px; color: #334155;"><strong>Selection Stage:</strong> ${escapeHtml(String(metadata.round))}</p>` : ''}
             <hr style="border: none; border-top: 1px solid #e2e8f0; margin: 24px 0;" />
             <p style="font-size: 12px; color: #94a3b8; text-align: center; margin: 0;">Ministry of Corporate Affairs • Government of India • Dispatched via Official Gateway</p>
           </div>
         `;
 
-        await transporter.sendMail({
-          from: `PM Internship Scheme <${fromEmail}>`,
-          to: targetEmail,
+        const { data, error } = await resend.emails.send({
+          from: fromHeader,
+          to: String(targetEmail).trim(),
           subject: `[Official Alert] ${title}`,
           text: `Dear ${recipientName},\n\n${title}\n\n${message}\n\nGovernment of India • Ministry of Corporate Affairs`,
           html: notificationHtml
         });
-        emailDelivered = true;
-        console.log(`[NOTIFICATION HUB] Live email dispatched to ${targetEmail}`);
+
+        if (error) {
+          emailError = formatResendErrorMessage(error);
+          console.warn(`[NOTIFICATION HUB] Resend dispatch error for ${targetEmail}:`, error);
+        } else {
+          emailDelivered = true;
+          console.log(`[NOTIFICATION HUB] ✓ Live Resend email dispatched to ${targetEmail} (id=${data?.id || 'sent'})`);
+        }
       } catch (err: any) {
-        console.warn(`[NOTIFICATION HUB] Email dispatch notice:`, err?.message || err);
-        emailError = err?.message;
+        emailError = formatResendErrorMessage(err);
+        console.warn(`[NOTIFICATION HUB] Email dispatch exception for ${targetEmail}:`, err?.message || err);
       }
     } else {
-      console.log(`[NOTIFICATION HUB] Gmail SMTP credentials not set; logged for dispatch: ${targetEmail}`);
+      console.log(`[NOTIFICATION HUB] Resend credentials/sender not configured (${configCheck.error}); logged for dispatch: ${targetEmail}`);
     }
   }
 
@@ -2121,7 +2164,8 @@ app.post(['/api/ai/tts', '/api/ai/multilingual-voice'], async (req, res) => {
     return res.status(400).json({ error: 'Text is required for TTS synthesis' });
   }
 
-  const cleanLang = (langCode || 'en').toString().toLowerCase().trim();
+  const rawLang = (langCode || 'en').toString().toLowerCase().trim();
+  const baseLang = rawLang.split('-')[0];
   const langMap: Record<string, string> = {
     hi: 'hi',
     hindi: 'hi',
@@ -2131,17 +2175,25 @@ app.post(['/api/ai/tts', '/api/ai/multilingual-voice'], async (req, res) => {
     tamil: 'ta',
     kn: 'kn',
     kannada: 'kn',
+    ml: 'ml',
+    malayalam: 'ml',
     mr: 'mr',
     marathi: 'mr',
     bn: 'bn',
     bengali: 'bn',
     gu: 'gu',
     gujarati: 'gu',
+    pa: 'pa',
+    punjabi: 'pa',
+    or: 'or',
+    odia: 'or',
+    ur: 'ur',
+    urdu: 'ur',
     en: 'en-IN',
     english: 'en-IN'
   };
 
-  const targetLang = langMap[cleanLang] || 'en-IN';
+  const targetLang = langMap[rawLang] || langMap[baseLang] || 'en-IN';
 
   // 1. First priority: High-fidelity Google Text-to-Speech audio stream for authentic Indian regional pronunciation
   try {
@@ -2174,7 +2226,7 @@ app.post(['/api/ai/tts', '/api/ai/multilingual-voice'], async (req, res) => {
     try {
       const response = await ai.models.generateContent({
         model: 'gemini-3.1-flash-tts-preview',
-        contents: [{ parts: [{ text: `Speak warmly, clearly, and articulately in ${cleanLang}: ${text.slice(0, 400)}` }] }],
+        contents: [{ parts: [{ text: `Speak warmly, clearly, and articulately in ${targetLang}: ${text.slice(0, 400)}` }] }],
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {

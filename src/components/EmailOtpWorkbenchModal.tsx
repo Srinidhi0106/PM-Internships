@@ -299,7 +299,7 @@ export const EmailOtpWorkbenchModal: React.FC<EmailOtpWorkbenchModalProps> = ({
                 <div className="space-y-1">
                   <span className="font-extrabold block">Live In-App Mail OTP Engine</span>
                   <p className="leading-relaxed">
-                    Test the strict Email Passcode flow: passcodes are generated cryptographically on the backend, stored only as HMAC-SHA256 hashes, never displayed in the UI, and sent directly to the target Mail ID via SMTP so only the inbox owner can authenticate.
+                    Test the strict Email Passcode flow: passcodes are generated cryptographically on the backend, stored only as HMAC-SHA256 hashes, never displayed in the UI, and sent directly to the target Mail ID via Resend so only the inbox owner can authenticate.
                   </p>
                 </div>
               </div>
@@ -448,10 +448,10 @@ export const EmailOtpWorkbenchModal: React.FC<EmailOtpWorkbenchModalProps> = ({
               <div className="p-4 bg-indigo-50 dark:bg-indigo-950/40 rounded-2xl border border-indigo-200 dark:border-indigo-800 text-indigo-900 dark:text-indigo-200">
                 <h4 className="font-black text-sm mb-1 flex items-center gap-2">
                   <Key className="w-4 h-4 text-indigo-600" />
-                  <span>How to Connect Real Gmail SMTP in Google AI Studio</span>
+                  <span>How to Connect Real Email Delivery via Resend in Google AI Studio</span>
                 </h4>
                 <p className="leading-relaxed">
-                  In Google AI Studio, regular Google account passwords cannot be used directly for SMTP due to Google's strict OAuth2 / 2FA security policies. You must generate a free, dedicated <strong>16-digit Google App Password</strong>.
+                  InternIQ dispatches OTP passcodes and official alerts through the <strong>Resend transactional email API</strong>. Configure your Resend API key and a verified sender address in environment secrets—never store email credentials in frontend code.
                 </p>
               </div>
 
@@ -459,18 +459,18 @@ export const EmailOtpWorkbenchModal: React.FC<EmailOtpWorkbenchModalProps> = ({
                 {[
                   {
                     step: '1',
-                    title: 'Enable 2-Step Verification on your Google Account',
-                    desc: 'Visit myaccount.google.com > Security > 2-Step Verification and turn it ON.'
+                    title: 'Create a Resend API Key',
+                    desc: 'Sign in to your Resend dashboard (resend.com/api-keys) and generate a server-side API key with sending access.'
                   },
                   {
                     step: '2',
-                    title: 'Generate a 16-Character App Password',
-                    desc: 'In Security, search for "App passwords". Select App name "AI Studio Portal" and click Generate. Google will show a 16-character code like "abcd efgh ijkl mnop".'
+                    title: 'Verify Your Sender Address or Domain',
+                    desc: 'Verify your sending domain in Resend (or use your verified Resend sender email) so emails pass SPF/DKIM checks and land in user inboxes.'
                   },
                   {
                     step: '3',
-                    title: 'Add Variables to your Environment (.env)',
-                    desc: 'Set EMAIL_USER=yourname@gmail.com and EMAIL_APP_PASSWORD=abcdefghijklmnop in your .env configuration.'
+                    title: 'Add Secrets to Environment Configuration',
+                    desc: 'Set RESEND_API_KEY and EMAIL_FROM (plus JWT_SECRET for HMAC hashing) in your server environment secrets.'
                   },
                   {
                     step: '4',
@@ -498,7 +498,7 @@ export const EmailOtpWorkbenchModal: React.FC<EmailOtpWorkbenchModalProps> = ({
                     type="button"
                     onClick={() =>
                       copyCode(
-                        `# Google AI Studio Gmail SMTP Configuration\nEMAIL_USER=your_email@gmail.com\nEMAIL_APP_PASSWORD=xxxx-xxxx-xxxx-xxxx\nSMTP_HOST=smtp.gmail.com\nSMTP_PORT=587\nJWT_SECRET=pm-scheme-government-otp-secret-key-2025`,
+                        `# Resend Email Delivery Configuration\nRESEND_API_KEY=re_your_api_key_here\nEMAIL_FROM=noreply@yourdomain.com\nJWT_SECRET=pm-scheme-government-otp-secret-key-2025`,
                         'env'
                       )
                     }
@@ -509,10 +509,8 @@ export const EmailOtpWorkbenchModal: React.FC<EmailOtpWorkbenchModalProps> = ({
                   </button>
                 </div>
                 <pre className="p-3 bg-slate-900 text-emerald-400 rounded-xl font-mono text-[11px] overflow-x-auto border border-slate-800">
-{`EMAIL_USER=your_official_email@gmail.com
-EMAIL_APP_PASSWORD=abcdefghijklmnop
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
+{`RESEND_API_KEY=re_your_api_key_here
+EMAIL_FROM=noreply@yourdomain.com
 JWT_SECRET=pm-scheme-government-otp-secret-key-2025`}
                 </pre>
               </div>
@@ -526,7 +524,7 @@ JWT_SECRET=pm-scheme-government-otp-secret-key-2025`}
             <div className="space-y-3 text-xs">
               <div className="flex items-center justify-between">
                 <span className="font-bold text-slate-700 dark:text-slate-300">
-                  Express + Nodemailer + HMAC Hashed OTP Storage:
+                  Express + Resend + HMAC Hashed OTP Storage:
                 </span>
                 <button
                   type="button"
@@ -544,15 +542,11 @@ app.post('/api/auth/send-email-otp', async (req, res) => {
     resendAvailableAt: Date.now() + 60 * 1000
   });
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_APP_PASSWORD }
-  });
-
-  await transporter.sendMail({
-    from: '"PM Internship Scheme" <' + process.env.EMAIL_USER + '>',
+  const resend = new Resend(process.env.RESEND_API_KEY);
+  await resend.emails.send({
+    from: process.env.EMAIL_FROM || '',
     to: email,
-    subject: 'Your 6-Digit Verification Code',
+    subject: 'PM Internship Scheme • Secure Verification Code',
     text: 'Your OTP is ' + generatedOtp
   });
 
@@ -569,7 +563,7 @@ app.post('/api/auth/send-email-otp', async (req, res) => {
               </div>
 
               <pre className="p-4 bg-slate-900 text-slate-200 rounded-2xl font-mono text-[11px] overflow-x-auto border border-slate-800 leading-relaxed max-h-96">
-{`import nodemailer from 'nodemailer';
+{`import { Resend } from 'resend';
 import crypto from 'crypto';
 
 // In-Memory Secure Hashed OTP Store
@@ -599,21 +593,21 @@ app.post('/api/auth/send-email-otp', async (req, res) => {
     attempts: 0
   });
 
-  const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: { user: process.env.EMAIL_USER, pass: process.env.EMAIL_APP_PASSWORD }
-  });
+  const resend = new Resend(process.env.RESEND_API_KEY);
 
   try {
-    await transporter.sendMail({
-      from: '"PM Internship Scheme" <' + process.env.EMAIL_USER + '>',
+    const { error } = await resend.emails.send({
+      from: \`PM Internship Scheme <\${process.env.EMAIL_FROM}>\`,
       to: email,
-      subject: \`Your Verification OTP: \${generatedOtp}\`,
+      subject: 'PM Internship Scheme • Secure Verification Code',
       html: \`<h3>Your Verification Code is \${generatedOtp}</h3><p>Valid for 5 minutes.</p>\`
     });
-    return res.json({ success: true, message: 'OTP sent to ' + email });
+    if (error) {
+      return res.status(422).json({ success: false, delivered: false, message: error.message });
+    }
+    return res.json({ success: true, delivered: true, message: 'OTP sent to ' + email });
   } catch (err) {
-    return res.status(502).json({ success: false, delivered: false, message: 'SMTP delivery failed' });
+    return res.status(502).json({ success: false, delivered: false, message: 'Resend email delivery failed' });
   }
 });`}
               </pre>

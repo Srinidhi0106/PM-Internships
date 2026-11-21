@@ -331,7 +331,7 @@ export const AuthPage: React.FC<AuthPageProps> = ({
   };
 
   // ----------------------------------------------------
-  // 1. REAL EMAIL PASSCODE AUTHENTICATION (5-MIN EXPIRY, SMTP ONLY)
+  // 1. REAL EMAIL PASSCODE AUTHENTICATION (5-MIN EXPIRY, RESEND EMAIL ONLY)
   // ----------------------------------------------------
   const handleSendEmailOtp = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
@@ -885,10 +885,16 @@ export const AuthPage: React.FC<AuthPageProps> = ({
           // Verify via backend scrypt password store (server responds 403 requiresOtp:true ONLY if scrypt hash matches)
           const checkRes = await fetch('/api/auth/login', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
             body: JSON.stringify({ email: cleanEmail, password, role })
           });
-          const checkData = await checkRes.json();
+          const checkText = await checkRes.text();
+          let checkData: any = {};
+          try {
+            checkData = checkText ? JSON.parse(checkText) : {};
+          } catch {
+            checkData = { message: `Server returned an unexpected response (HTTP ${checkRes.status}).` };
+          }
           if (!checkData.requiresOtp && !checkRes.ok) {
             setErrorMessage(checkData.message || fbErr?.message || 'Invalid email or password.');
             return;
@@ -953,7 +959,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             otpVerificationToken: verifyRes.otpVerificationToken
           })
         });
-        const regData = await regRes.json();
+        const regText = await regRes.text();
+        let regData: any = {};
+        try {
+          regData = regText ? JSON.parse(regText) : {};
+        } catch {
+          regData = { message: `Registration server returned an unexpected response (HTTP ${regRes.status}).` };
+        }
         if (!regRes.ok || !regData.success) {
           setErrorMessage(regData.message || 'Registration failed.');
           return;
@@ -1005,7 +1017,13 @@ export const AuthPage: React.FC<AuthPageProps> = ({
             otpVerificationToken: verifyRes.otpVerificationToken
           })
         });
-        const loginData = await loginRes.json();
+        const loginText = await loginRes.text();
+        let loginData: any = {};
+        try {
+          loginData = loginText ? JSON.parse(loginText) : {};
+        } catch {
+          loginData = { message: `Sign-in server returned an unexpected response (HTTP ${loginRes.status}).` };
+        }
         if (!loginRes.ok || !loginData.success || !loginData.user) {
           setErrorMessage(loginData.message || 'Sign-in verification failed.');
           return;
